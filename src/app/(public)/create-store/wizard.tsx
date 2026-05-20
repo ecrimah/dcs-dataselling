@@ -69,7 +69,7 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
     businessName: "",
     slug: "",
     emoji: "store",
-    themeColor: "#06b6d4",
+    themeColor: "#0A2E5D",
     whatsapp: "",
     momoNumber: "",
     momoNetwork: "mtn",
@@ -251,7 +251,7 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 transition-all duration-300 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-gold to-gold-glow transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -267,7 +267,7 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
                       <div
                         className={cn(
                           "h-0.5 flex-1",
-                          done || active ? "bg-cyan-500" : "bg-slate-200",
+                          done || active ? "bg-gold" : "bg-slate-200",
                         )}
                       />
                     )}
@@ -275,9 +275,9 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
                       className={cn(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
                         done
-                          ? "bg-cyan-500 text-white"
+                          ? "bg-gold text-white"
                           : active
-                            ? "bg-navy-900 text-white ring-2 ring-cyan-400/40 ring-offset-2"
+                            ? "bg-royal text-white ring-2 ring-gold/40 ring-offset-2"
                             : "bg-slate-200 text-muted",
                       )}
                     >
@@ -287,7 +287,7 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
                       <div
                         className={cn(
                           "h-0.5 flex-1",
-                          i < step ? "bg-cyan-500" : "bg-slate-200",
+                          i < step ? "bg-gold" : "bg-slate-200",
                         )}
                       />
                     )}

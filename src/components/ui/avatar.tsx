@@ -32,7 +32,8 @@ function tone(seed: string, override?: string): { from: string; to: string } {
     return { from: override, to: shade(override, -18) };
   }
   const palettes = [
-    { from: "#06b6d4", to: "#0891b2" }, // cyan
+    { from: "#0A2E5D", to: "#081F3F" }, // royal
+    { from: "#D4AF37", to: "#8B7320" }, // gold
     { from: "#0ea5e9", to: "#0369a1" }, // sky
     { from: "#3b82f6", to: "#1d4ed8" }, // blue
     { from: "#8b5cf6", to: "#6d28d9" }, // violet
@@ -108,7 +109,7 @@ export function Avatar({
           <BadgeCheck
             className="h-full w-full"
             strokeWidth={2.5}
-            style={{ fill: "white", color: "#06b6d4" }}
+            style={{ fill: "white", color: "#D4AF37" }}
           />
         </span>
       )}

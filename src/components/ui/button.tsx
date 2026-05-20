@@ -4,19 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "gradient-accent text-white shadow-lg shadow-cyan-500/20 hover:brightness-110 active:scale-[0.98]",
+          "gradient-accent text-white shadow-lg shadow-gold/25 hover:brightness-105 active:scale-[0.98]",
         secondary:
-          "bg-white text-navy-900 border border-border hover:bg-slate-50 active:scale-[0.98]",
+          "bg-white text-royal border border-border hover:bg-soft active:scale-[0.98]",
         outline:
-          "border border-white/20 bg-white/5 text-white hover:bg-white/10",
-        ghost: "text-muted hover:bg-slate-100 hover:text-foreground",
+          "border border-white/25 bg-white/5 text-white hover:border-gold/40 hover:bg-white/10",
+        ghost: "text-muted hover:bg-surface-soft hover:text-foreground",
         danger: "bg-danger text-white hover:bg-red-600",
-        navy: "bg-navy-900 text-white hover:bg-navy-800",
+        navy: "bg-royal text-white hover:bg-royal-deep",
+        gold: "bg-gold text-white hover:bg-gold-glow hover:text-royal-deep",
       },
       size: {
         default: "h-11 px-5 py-2",

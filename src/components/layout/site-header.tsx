@@ -27,7 +27,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-3 text-slate-400">
             <span className="flex items-center gap-1.5">
               <span className="pulse-dot" />
-              <span className="font-bold uppercase tracking-[0.16em] text-emerald-300">
+              <span className="font-bold uppercase tracking-[0.16em] text-gold-glow">
                 All systems operational
               </span>
             </span>
@@ -90,7 +90,7 @@ export function SiteHeader() {
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 ring-1 ring-cyan-400/30"
+                      className="absolute inset-0 rounded-full bg-gold/15 ring-1 ring-gold/40"
                     />
                   )}
                   <span className="relative">{item.label}</span>
@@ -110,12 +110,11 @@ export function SiteHeader() {
             </Link>
             <Link
               href="/marketplace"
-              className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-navy-950 transition-all"
+              className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all hover:brightness-105"
               style={{
-                background:
-                  "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)",
+                background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
                 boxShadow:
-                  "0 6px 18px rgba(34, 211, 238, 0.35), inset 0 1px 0 rgba(255,255,255,0.4)",
+                  "0 6px 18px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
               }}
             >
               <span>Buy data</span>
@@ -140,7 +139,7 @@ export function SiteHeader() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.5) 50%, transparent 100%)",
+              "linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.55) 50%, transparent 100%)",
           }}
         />
       </div>
@@ -177,9 +176,9 @@ export function SiteHeader() {
             </Link>
             <Link
               href="/marketplace"
-              className="rounded-full px-4 py-2 text-center text-sm font-bold text-navy-950"
+              className="rounded-full px-4 py-2 text-center text-sm font-bold text-white"
               style={{
-                background: "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)",
+                background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
               }}
               onClick={() => setOpen(false)}
             >

@@ -1,31 +1,47 @@
+import { BRAND, BRAND_GRADIENT } from "@/lib/brand";
+
 /** Solid brand colours and CSS gradients stored in vendors.theme_color */
 
-export const DEFAULT_VENDOR_THEME = "#06b6d4";
+export const DEFAULT_VENDOR_THEME = BRAND.royalBlue;
 
 export const VENDOR_THEME_SOLIDS = [
-  { id: "#06b6d4", name: "Cyan" },
-  { id: "#0ea5e9", name: "Sky" },
+  { id: BRAND.royalBlue, name: "Royal Blue" },
+  { id: BRAND.deepNavy, name: "Deep Navy" },
+  { id: BRAND.metallicGold, name: "Gold" },
+  { id: BRAND.goldGlow, name: "Gold Glow" },
   { id: "#3b82f6", name: "Blue" },
   { id: "#8b5cf6", name: "Violet" },
   { id: "#ec4899", name: "Pink" },
-  { id: "#f59e0b", name: "Amber" },
   { id: "#10b981", name: "Emerald" },
-  { id: "#14b8a6", name: "Teal" },
 ] as const;
 
 export const VENDOR_THEME_GRADIENTS = [
-  { id: "grad-ocean", name: "Ocean", css: "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)" },
-  { id: "grad-aurora", name: "Aurora", css: "linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%)" },
-  { id: "grad-elite", name: "Elite", css: "linear-gradient(135deg, #0f172a 0%, #06b6d4 100%)" },
+  {
+    id: "grad-dcs",
+    name: "DCS Elite",
+    css: BRAND_GRADIENT.background,
+  },
+  {
+    id: "grad-gold",
+    name: "Gold Premium",
+    css: BRAND_GRADIENT.goldButton,
+  },
+  {
+    id: "grad-royal",
+    name: "Royal",
+    css: `linear-gradient(135deg, ${BRAND.deepNavy} 0%, ${BRAND.royalMid} 100%)`,
+  },
+  {
+    id: "grad-midnight",
+    name: "Midnight",
+    css: `linear-gradient(135deg, ${BRAND.eliteBlack} 0%, ${BRAND.royalBlue} 100%)`,
+  },
   { id: "grad-sunset", name: "Sunset", css: "linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)" },
-  { id: "grad-royal", name: "Royal", css: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)" },
   { id: "grad-forest", name: "Forest", css: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)" },
   { id: "grad-fire", name: "Fire", css: "linear-gradient(135deg, #f97316 0%, #ef4444 100%)" },
-  { id: "grad-midnight", name: "Midnight", css: "linear-gradient(135deg, #1e293b 0%, #2563eb 100%)" },
+  { id: "grad-violet", name: "Violet", css: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)" },
   { id: "grad-rose", name: "Rose", css: "linear-gradient(135deg, #f472b6 0%, #fb7185 100%)" },
-  { id: "grad-mint", name: "Mint", css: "linear-gradient(135deg, #2dd4bf 0%, #4ade80 100%)" },
-  { id: "grad-electric", name: "Electric", css: "linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%)" },
-  { id: "grad-premium", name: "Premium", css: "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)" },
+  { id: "grad-sky", name: "Sky", css: "linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)" },
 ] as const;
 
 const GRADIENT_BY_CSS = new Map<string, (typeof VENDOR_THEME_GRADIENTS)[number]>(

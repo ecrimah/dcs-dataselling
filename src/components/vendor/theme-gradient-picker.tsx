@@ -22,8 +22,8 @@ export function ThemeGradientPicker({ value, onChange }: ThemeGradientPickerProp
   const parsedCustom = parseCustomGradient(value);
   const isCustom = isThemeGradient(value) && !preset;
 
-  const [customFrom, setCustomFrom] = useState(parsedCustom?.from ?? "#06b6d4");
-  const [customTo, setCustomTo] = useState(parsedCustom?.to ?? "#8b5cf6");
+  const [customFrom, setCustomFrom] = useState(parsedCustom?.from ?? "#0A2E5D");
+  const [customTo, setCustomTo] = useState(parsedCustom?.to ?? "#D4AF37");
 
   const customPreview = useMemo(
     () => buildCustomGradient(customFrom, customTo),

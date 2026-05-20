@@ -212,7 +212,7 @@ export default function SupportPage() {
               href="/marketplace"
               className="inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-navy-950"
               style={{
-                background: "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)",
+                background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
                 boxShadow: "0 6px 18px rgba(34, 211, 238, 0.3)",
               }}
             >

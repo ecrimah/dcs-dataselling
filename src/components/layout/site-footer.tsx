@@ -33,9 +33,9 @@ export function SiteFooter() {
       className="relative overflow-hidden border-t border-white/5"
       style={{
         background: `
-          radial-gradient(at 12% 0%, rgba(6, 182, 212, 0.08) 0px, transparent 50%),
-          radial-gradient(at 90% 100%, rgba(20, 184, 166, 0.08) 0px, transparent 50%),
-          linear-gradient(180deg, #060914 0%, #0a1124 100%)
+          radial-gradient(at 12% 0%, rgba(212, 175, 55, 0.08) 0px, transparent 50%),
+          radial-gradient(at 90% 100%, rgba(10, 46, 93, 0.4) 0px, transparent 50%),
+          linear-gradient(180deg, #081F3F 0%, #0A2E5D 100%)
         `,
       }}
     >
@@ -86,7 +86,7 @@ export function SiteFooter() {
           <div className="grid grid-cols-3 gap-3 sm:contents sm:gap-0">
             {Object.entries(FOOTER_LINKS).map(([title, links]) => (
               <div key={title}>
-                <h4 className="text-[9px] font-bold uppercase tracking-[0.14em] text-cyan-300 sm:text-[10px] sm:tracking-[0.18em]">
+                <h4 className="text-[9px] font-bold uppercase tracking-[0.14em] text-gold-glow sm:text-[10px] sm:tracking-[0.18em]">
                   {title}
                 </h4>
                 <ul className="mt-1.5 space-y-1 sm:mt-3 sm:space-y-2">

@@ -278,7 +278,7 @@ export function CheckoutForm({ bundle }: Props) {
             className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl py-3.5 text-sm font-bold text-navy-950 transition-all disabled:opacity-60"
             style={{
               background:
-                "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)",
+                "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
               boxShadow:
                 "0 8px 24px rgba(34, 211, 238, 0.35), inset 0 1px 0 rgba(255,255,255,0.45)",
             }}

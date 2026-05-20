@@ -96,7 +96,7 @@ export async function HeroSection() {
               <span
                 style={{
                   background:
-                    "linear-gradient(120deg, #67e8f9 0%, #2dd4bf 50%, #22d3ee 100%)",
+                    "linear-gradient(120deg, #F4D160 0%, #D4AF37 50%, #F4D160 100%)",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   color: "transparent",

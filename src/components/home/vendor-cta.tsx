@@ -16,7 +16,7 @@ const SUCCESS_STORIES = [
     role: "KNUST",
     earnings: "₵2,840",
     period: "1st month",
-    color: "#06b6d4",
+    color: "#0A2E5D",
   },
   {
     name: "Kwabena S.",

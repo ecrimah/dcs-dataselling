@@ -1,3 +1,5 @@
+export { BRAND, BRAND_GRADIENT } from "@/lib/brand";
+
 export const SITE = {
   name: "DCS ELITE",
   shortName: "DCS",

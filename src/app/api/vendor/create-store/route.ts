@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const businessName = String(fd.get("businessName") ?? "").trim();
     const slug = String(fd.get("slug") ?? "").trim();
     const emoji = String(fd.get("emoji") ?? "store");
-    const themeColor = String(fd.get("themeColor") ?? "#06b6d4");
+    const themeColor = String(fd.get("themeColor") ?? "#0A2E5D");
     const whatsapp = String(fd.get("whatsapp") ?? "");
     const momoNumber = String(fd.get("momoNumber") ?? "");
     const momoNetwork = String(fd.get("momoNetwork") ?? "mtn") as "mtn" | "telecel" | "at";

@@ -138,7 +138,7 @@ export function HeroBuyWidget({ bundlesByNetwork }: HeroBuyWidgetProps) {
             disabled={loading || !phoneValid || !selected}
             className="flex shrink-0 items-center gap-1 rounded-md px-3 py-1.5 text-xs font-extrabold text-navy-950 transition-all disabled:cursor-not-allowed disabled:opacity-50"
             style={{
-              background: "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)",
+              background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
               boxShadow: phoneValid
                 ? "0 6px 18px rgba(34, 211, 238, 0.4), 0 2px 0 rgba(0,0,0,0.05) inset"
                 : "none",

@@ -17,8 +17,8 @@ export function StatCard({ label, value, change, icon: Icon, className }: StatCa
     <div className={cn("card-elevated overflow-hidden p-5", className)}>
       <div className="flex items-center gap-3">
         {Icon && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10">
-            <Icon className="h-5 w-5 text-cyan-600" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/10">
+            <Icon className="h-5 w-5 text-gold-dark" />
           </div>
         )}
         <p className="min-w-0 flex-1 text-sm font-medium leading-snug text-muted">{label}</p>

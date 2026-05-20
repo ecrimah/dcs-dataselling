@@ -92,7 +92,7 @@ export async function getCurrentVendor() {
     status: row.status,
     kycStatus: row.kyc_status,
     tier: row.tier,
-    themeColor: row.theme_color ?? "#06b6d4",
+    themeColor: row.theme_color ?? "#0A2E5D",
     emoji: row.emoji,
     bannerUrl: row.banner_url,
     whatsappNumber: row.whatsapp_number,
