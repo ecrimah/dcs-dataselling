@@ -45,26 +45,10 @@ export default async function AccountPage() {
               </div>
               <div>
                 <p className="text-sm font-bold">{vendor.businessName}</p>
-                <p className="text-xs text-muted">
-                  {vendor.kycStatus === "verified"
-                    ? "Manage your store"
-                    : vendor.kycStatus === "pending_review"
-                      ? "Verification pending"
-                      : "Complete setup"}
-                </p>
+                <p className="text-xs text-muted">Manage your store</p>
               </div>
             </div>
-            <Badge
-              variant={
-                vendor.kycStatus === "verified"
-                  ? "success"
-                  : vendor.kycStatus === "rejected"
-                    ? "danger"
-                    : "warning"
-              }
-            >
-              {vendor.kycStatus?.replace("_", " ")}
-            </Badge>
+            <Badge variant="success">Active</Badge>
           </Link>
         )}
 

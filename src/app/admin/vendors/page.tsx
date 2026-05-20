@@ -42,12 +42,6 @@ export default async function AdminVendorsPage() {
             {vendors.length} vendors · {pending.length} pending approval
           </p>
         </div>
-        <Link
-          href="/admin/kyc"
-          className="text-sm font-semibold text-cyan-700 hover:text-cyan-600"
-        >
-          KYC queue →
-        </Link>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -63,7 +57,7 @@ export default async function AdminVendorsPage() {
               <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
                 <th className="px-4 py-3 font-medium">Vendor</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">KYC</th>
+                <th className="px-4 py-3 font-medium">Onboarding</th>
                 <th className="px-4 py-3 font-medium">Orders</th>
                 <th className="px-4 py-3 font-medium">Rating</th>
                 <th className="px-4 py-3 font-medium">Actions</th>
@@ -86,7 +80,7 @@ export default async function AdminVendorsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-xs capitalize text-muted">
-                      {v.kyc_status?.replace(/_/g, " ") ?? "—"}
+                      {v.status === "approved" ? "Live" : v.kyc_status?.replace(/_/g, " ") ?? "—"}
                     </span>
                   </td>
                   <td className="px-4 py-3 num">{formatCompact(v.total_orders)}</td>

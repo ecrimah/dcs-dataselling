@@ -50,7 +50,6 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin/operations", label: "Operations", icon: Shield },
   { href: "/admin/orders", label: "All Orders", icon: ShoppingCart },
   { href: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
-  { href: "/admin/kyc", label: "KYC Queue", icon: Shield },
   { href: "/admin/promotions", label: "Promotions", icon: Package },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },

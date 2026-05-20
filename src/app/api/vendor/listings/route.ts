@@ -23,14 +23,11 @@ export async function POST(request: Request) {
 
     const { data: vendor } = await service
       .from("vendors")
-      .select("id, kyc_status")
+      .select("id")
       .eq("user_id", user.id)
       .maybeSingle();
-    const v = vendor as { id: string; kyc_status: string } | null;
+    const v = vendor as { id: string } | null;
     if (!v) return NextResponse.json({ error: "No vendor account" }, { status: 404 });
-    if (v.kyc_status !== "verified") {
-      return NextResponse.json({ error: "Complete KYC verification first" }, { status: 403 });
-    }
 
     const { data: wholesale } = await service
       .from("wholesale_bundles")

@@ -43,7 +43,7 @@ const QUICK_HELP = [
   },
   {
     icon: Store,
-    title: "Vendor & KYC",
+    title: "Vendor support",
     desc: "Store setup and payouts",
     href: "/create-store",
   },

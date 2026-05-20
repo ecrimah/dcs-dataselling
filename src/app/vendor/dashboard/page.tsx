@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchVendorDashboardStats } from "@/lib/data/queries";
 import { fetchVendorListings } from "@/lib/data/wholesale";
-import { KycGate } from "@/components/vendor/kyc-gate";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 
 export const dynamic = "force-dynamic";
@@ -27,20 +26,6 @@ export default async function VendorDashboardPage() {
     return (
       <div className="space-y-6">
         <SetupFeeGate />
-      </div>
-    );
-  }
-
-  if (vendor.kycStatus !== "verified") {
-    return (
-      <div className="space-y-6">
-        <div className="rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 p-6">
-          <h2 className="text-lg font-bold">Welcome to DCS, {vendor.businessName}!</h2>
-          <p className="mt-1 text-sm text-muted">
-            Just one step left before you can start selling.
-          </p>
-        </div>
-        <KycGate vendor={vendor} />
       </div>
     );
   }

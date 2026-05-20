@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { StepIdentity } from "./steps/identity";
 import { StepBranding } from "./steps/branding";
-import { StepKyc } from "./steps/kyc";
 import { StepPayout } from "./steps/payout";
 import { StepSetupFee } from "./steps/setup-fee";
 import { StepReview } from "./steps/review";
@@ -24,10 +23,6 @@ export interface StoreFormState {
   emoji: string;
   themeColor: string;
   whatsapp: string;
-  ghanaCardNumber: string;
-  ghanaCardFront: File | null;
-  ghanaCardBack: File | null;
-  selfie: File | null;
   momoNumber: string;
   momoNetwork: "mtn" | "telecel" | "at";
   referralCode: string;
@@ -39,14 +34,13 @@ export interface StoreFormState {
 const STEPS = [
   { id: "identity", label: "Account", desc: "Login & store name" },
   { id: "branding", label: "Branding", desc: "Theme & avatar" },
-  { id: "kyc", label: "Verification", desc: "Ghana Card + selfie" },
   { id: "payout", label: "Payout", desc: "MoMo for earnings" },
   { id: "fee", label: "Store fee", desc: "Activation payment" },
   { id: "review", label: "Submit", desc: "Final review" },
 ] as const;
 
-const SETUP_FEE_STEP = 4;
-const REVIEW_STEP = 5;
+const SETUP_FEE_STEP = 3;
+const REVIEW_STEP = 4;
 
 type WizardProps = {
   signedInEmail?: string | null;
@@ -77,10 +71,6 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
     emoji: "store",
     themeColor: "#06b6d4",
     whatsapp: "",
-    ghanaCardNumber: "",
-    ghanaCardFront: null,
-    ghanaCardBack: null,
-    selfie: null,
     momoNumber: "",
     momoNetwork: "mtn",
     referralCode: "",
@@ -159,13 +149,6 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
       case 1:
         return Boolean(form.themeColor) && Boolean(form.emoji);
       case 2:
-        return (
-          form.ghanaCardNumber.trim().length >= 10 &&
-          !!form.ghanaCardFront &&
-          !!form.ghanaCardBack &&
-          !!form.selfie
-        );
-      case 3:
         return form.momoNumber.trim().length >= 10;
       case SETUP_FEE_STEP:
         return form.setupFeePaid && form.setupFeeReference.length > 0;
@@ -239,19 +222,15 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
       fd.append("emoji", form.emoji);
       fd.append("themeColor", form.themeColor);
       fd.append("whatsapp", form.whatsapp);
-      fd.append("ghanaCardNumber", form.ghanaCardNumber);
       fd.append("momoNumber", form.momoNumber);
       fd.append("momoNetwork", form.momoNetwork);
       fd.append("referralCode", form.referralCode);
       fd.append("setupFeeReference", form.setupFeeReference);
-      if (form.ghanaCardFront) fd.append("ghanaCardFront", form.ghanaCardFront);
-      if (form.ghanaCardBack) fd.append("ghanaCardBack", form.ghanaCardBack);
-      if (form.selfie) fd.append("selfie", form.selfie);
 
       const res = await fetch("/api/vendor/create-store", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create store");
-      toast.success("Application submitted! We're reviewing your KYC.");
+      toast.success("Your store is live! Open your dashboard to add bundles.");
       router.push(`/vendor/dashboard?welcome=1`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Submission failed");
@@ -263,7 +242,6 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_20px_60px_rgba(6,9,20,0.12)]">
-        {/* Progress */}
         <div className="border-b border-border bg-slate-50/80 px-5 py-4 sm:px-6">
           <div className="mb-3 flex items-center justify-between text-xs">
             <span className="font-semibold text-foreground">
@@ -341,11 +319,14 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
             />
           )}
           {step === 1 && <StepBranding form={form} update={update} />}
-          {step === 2 && <StepKyc form={form} update={update} />}
-          {step === 3 && <StepPayout form={form} update={update} />}
+          {step === 2 && <StepPayout form={form} update={update} />}
           {step === SETUP_FEE_STEP && <StepSetupFee form={form} update={update} />}
           {step === REVIEW_STEP && (
-            <StepReview form={form} update={update} sessionEmail={sessionEmail || form.accountEmail} />
+            <StepReview
+              form={form}
+              update={update}
+              sessionEmail={sessionEmail || form.accountEmail}
+            />
           )}
 
           <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">

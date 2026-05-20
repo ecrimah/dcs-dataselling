@@ -25,7 +25,6 @@ export async function POST(request: Request) {
     const emoji = String(fd.get("emoji") ?? "store");
     const themeColor = String(fd.get("themeColor") ?? "#06b6d4");
     const whatsapp = String(fd.get("whatsapp") ?? "");
-    const ghanaCardNumber = String(fd.get("ghanaCardNumber") ?? "");
     const momoNumber = String(fd.get("momoNumber") ?? "");
     const momoNetwork = String(fd.get("momoNetwork") ?? "mtn") as "mtn" | "telecel" | "at";
     const referralCode = String(fd.get("referralCode") ?? "");
@@ -54,13 +53,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const front = fd.get("ghanaCardFront") as File | null;
-    const back = fd.get("ghanaCardBack") as File | null;
-    const selfie = fd.get("selfie") as File | null;
-    if (!front || !back || !selfie) {
-      return NextResponse.json({ error: "All KYC documents required" }, { status: 400 });
-    }
-
     const { data: vendorId, error: rpcErr } = await supabase.rpc("create_store", {
       p_business_name: businessName,
       p_slug: slug,
@@ -85,35 +77,12 @@ export async function POST(request: Request) {
       .update({
         momo_number: momoNumber,
         momo_network: momoNetwork,
-        compliance_notes: `Ghana Card: ${ghanaCardNumber}`,
+        kyc_status: "verified",
+        status: "approved",
+        verified: true,
+        tier: "verified",
       })
       .eq("id", vendorId);
-
-    const uploads: Array<{ doc_type: string; file: File }> = [
-      { doc_type: "ghana_card_front", file: front },
-      { doc_type: "ghana_card_back", file: back },
-      { doc_type: "selfie", file: selfie },
-    ];
-
-    for (const u of uploads) {
-      const ext = (u.file.name.split(".").pop() ?? "jpg").toLowerCase();
-      const path = `${vendorId}/${u.doc_type}-${Date.now()}.${ext}`;
-      const buf = Buffer.from(await u.file.arrayBuffer());
-      const { error: upErr } = await service.storage
-        .from("kyc-documents")
-        .upload(path, buf, { contentType: u.file.type, upsert: true });
-      if (upErr) {
-        console.error("[storage]", upErr);
-        continue;
-      }
-      await service.from("kyc_documents").upsert({
-        vendor_id: vendorId,
-        doc_type: u.doc_type,
-        storage_path: path,
-      });
-    }
-
-    await supabase.rpc("submit_kyc");
 
     await linkSetupPaymentToVendor(setupPayment.id, vendorId as string, setupFeeReference);
 

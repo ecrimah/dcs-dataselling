@@ -33,7 +33,7 @@ const FAQS = [
   {
     icon: Store,
     q: "Can I sell on DCS?",
-    a: "Yes. Ghana Card + selfie KYC. Most vendors approved within a few hours.",
+    a: "Yes. Create your store in minutes, pay the setup fee, and start listing bundles with your markup.",
   },
   {
     icon: Tags,

@@ -53,7 +53,7 @@ export default async function VendorsPage() {
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">
               <ShieldCheck className="h-3.5 w-3.5" />
-              KYC-verified sellers
+              DCS-verified sellers
             </span>
             <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Shop trusted vendors

@@ -22,7 +22,7 @@ export async function TrustSection() {
       stat: `${stats.activeVendors}+`,
       statLabel: "verified vendors",
       title: "Verified by DCS",
-      description: "Ghana Card KYC before any vendor can sell.",
+      description: "Every vendor store is onboarded and monitored by DCS.",
       className: "lg:col-span-5",
     },
     {
@@ -57,7 +57,7 @@ export async function TrustSection() {
     { label: "Paystack · BoG" },
     { label: "Moolre · BoG" },
     { label: "PCI-DSS aligned" },
-    { icon: BadgeCheck, label: "Ghana Card KYC" },
+    { icon: BadgeCheck, label: "Verified vendors" },
     { icon: Zap, label: `${formatCompact(stats.ordersFulfilled)} delivered` },
   ];
 
@@ -72,7 +72,7 @@ export async function TrustSection() {
               <span className="text-aurora">Moves like fintech.</span>
             </h2>
             <p className="mt-1 text-xs text-slate-400 sm:mt-2 sm:text-sm">
-              KYC, licensed rails, SLA fulfilment, dispute protection.
+              Verified vendors, licensed rails, SLA fulfilment, dispute protection.
             </p>
           </div>
 

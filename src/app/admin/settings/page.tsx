@@ -50,11 +50,6 @@ export default function AdminSettingsPage() {
             </Link>
           </li>
           <li>
-            <Link href="/admin/kyc" className="hover:underline">
-              KYC queue →
-            </Link>
-          </li>
-          <li>
             <Link href="/marketplace" className="hover:underline">
               Public marketplace →
             </Link>

@@ -3,7 +3,6 @@ import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchWholesaleCatalogue, fetchVendorListings } from "@/lib/data/wholesale";
 import { CatalogueEditor } from "./editor";
-import { KycGate } from "@/components/vendor/kyc-gate";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +12,6 @@ export default async function CataloguePage() {
 
   if (!vendor.setupFeePaidAt) {
     return <SetupFeeGate />;
-  }
-
-  if (vendor.kycStatus !== "verified") {
-    return <KycGate vendor={vendor} />;
   }
 
   const [wholesale, listings] = await Promise.all([

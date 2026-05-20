@@ -46,7 +46,7 @@ export function StepPayout({ form, update }: Props) {
         placeholder="0241234567"
         value={form.momoNumber}
         onChange={(e) => update("momoNumber", e.target.value)}
-        hint="Must match your Ghana Card name."
+        hint="Must match the name on your MoMo wallet."
       />
 
       <Input

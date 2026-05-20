@@ -116,7 +116,7 @@ export function SiteFooter() {
           <span className="hidden min-[360px]:inline">Moolre · BoG</span>
           <span className="flex items-center gap-1 text-slate-400 sm:gap-1.5">
             <ShieldCheck className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            KYC
+            Verified
           </span>
           <span className="hidden sm:inline">PCI-DSS aligned</span>
         </div>

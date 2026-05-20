@@ -17,7 +17,7 @@ export function StepReview({ form, update, sessionEmail }: Props) {
       <div>
         <h2 className="text-xl font-bold">One last check</h2>
         <p className="mt-1 text-sm text-muted">
-          Review your details. After submitting, our compliance team will verify within 24 hours.
+          Review your details, then submit to launch your storefront.
         </p>
       </div>
 
@@ -26,11 +26,6 @@ export function StepReview({ form, update, sessionEmail }: Props) {
         <Row label="Store" value={form.businessName} />
         <Row label="Handle" value={`/vendor/${form.slug}`} />
         <Row label="MoMo" value={`${form.momoNetwork.toUpperCase()} · ${form.momoNumber}`} />
-        <Row label="Ghana Card" value={form.ghanaCardNumber} />
-        <Row
-          label="Documents"
-          value={`${[form.ghanaCardFront, form.ghanaCardBack, form.selfie].filter(Boolean).length}/3 uploaded`}
-        />
         <Row
           label="Setup fee"
           value={form.setupFeePaid ? `Paid ${formatGHS(VENDOR_STORE_SETUP_FEE_GHS)}` : "Not paid"}
@@ -51,7 +46,7 @@ export function StepReview({ form, update, sessionEmail }: Props) {
           className="mt-0.5 rounded border-border text-cyan-600 focus:ring-cyan-500"
         />
         <span>
-          I confirm the documents are mine and agree to the{" "}
+          I agree to the{" "}
           <Link href="/terms" className="text-cyan-600 hover:underline">
             DCS Vendor Terms
           </Link>{" "}
@@ -66,9 +61,9 @@ export function StepReview({ form, update, sessionEmail }: Props) {
       <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 text-xs text-muted">
         <p className="font-medium text-cyan-700">What happens next?</p>
         <ol className="mt-2 list-decimal space-y-1 pl-4">
-          <li>Our team verifies your KYC (max 24h)</li>
-          <li>You unlock your storefront + catalogue editor</li>
-          <li>Set markups, share your link, start earning</li>
+          <li>Your store goes live on DCS ELITE</li>
+          <li>Open your dashboard and pick bundles from the wholesale catalogue</li>
+          <li>Set markups, share your link, and start earning</li>
         </ol>
       </div>
     </div>
