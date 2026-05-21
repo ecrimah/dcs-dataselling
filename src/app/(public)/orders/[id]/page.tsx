@@ -138,7 +138,7 @@ export default async function OrderTrackingPage({
 
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Button variant="secondary" className="flex-1" asChild>
-            <Link href="/marketplace">Buy More Data</Link>
+            <Link href="/buy">Buy More Data</Link>
           </Button>
           <Button variant="ghost" className="flex-1" asChild>
             <Link href="/support">

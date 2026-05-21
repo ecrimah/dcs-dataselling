@@ -4,14 +4,14 @@ const STEPS = [
   {
     num: "01",
     icon: Search,
-    title: "Pick a network",
-    desc: "MTN, Telecel, or AT — choose your carrier in one tap.",
+    title: "Open your store link",
+    desc: "Paste the link your agent shared — each store is private to that agent.",
   },
   {
     num: "02",
     icon: MousePointerClick,
     title: "Choose a bundle",
-    desc: "Compare verified vendors by price, speed, and rating.",
+    desc: "Open your agent's store and pick the plan that fits you.",
   },
   {
     num: "03",

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { BadgeCheck, Star } from "lucide-react";
 import { fetchVendorBySlug, fetchVendorBundles } from "@/lib/data/queries";
 import { BundleCard } from "@/components/marketplace/bundle-card";
@@ -82,9 +81,7 @@ export default async function VendorStorefrontPage({
           </div>
         )}
         <p className="mt-8 text-center text-sm text-muted">
-          <Link href="/marketplace" className="text-cyan-600 hover:underline">
-            Compare all vendors on the marketplace →
-          </Link>
+          Powered by DCS ELITE — secure payments and instant delivery.
         </p>
       </div>
     </div>

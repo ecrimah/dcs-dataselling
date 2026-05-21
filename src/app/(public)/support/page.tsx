@@ -205,18 +205,18 @@ export default function SupportPage() {
             <div>
               <p className="font-bold text-foreground">Still buying data?</p>
               <p className="mt-0.5 text-sm text-muted">
-                Browse verified vendors and pay with MoMo in seconds.
+                Open your agent&apos;s store link and pay with MoMo in seconds.
               </p>
             </div>
             <Link
-              href="/marketplace"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-navy-950"
+              href="/buy"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
-                boxShadow: "0 6px 18px rgba(34, 211, 238, 0.3)",
+                boxShadow: "0 6px 18px rgba(212, 175, 55, 0.3)",
               }}
             >
-              Go to marketplace
+              Buy data
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

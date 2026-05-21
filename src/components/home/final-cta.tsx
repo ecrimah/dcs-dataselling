@@ -23,13 +23,13 @@ export function FinalCta() {
             <span className="text-aurora">Or build a business selling it.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-sm text-slate-300">
-            Whether you&apos;re topping up or launching a side hustle, DCS is built for
-            both — same trust layer.
+            Customers buy through their agent&apos;s private link. Agents get their
+            own branded store — same trust layer.
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
             <Button size="sm" asChild>
-              <Link href="/marketplace">
-                Buy data now
+              <Link href="/buy">
+                Buy through your agent
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>

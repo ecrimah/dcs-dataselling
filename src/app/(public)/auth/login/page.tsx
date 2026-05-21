@@ -48,7 +48,7 @@ export default function LoginPage() {
         <div className="relative z-10 px-8 pb-4 pt-10 lg:pt-12">
           <h1 className="max-w-sm text-3xl font-extrabold tracking-tight text-white">
             Welcome back to{" "}
-            <span className="text-aurora">Ghana&apos;s data marketplace.</span>
+            <span className="text-aurora">Ghana&apos;s elite data platform.</span>
           </h1>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-slate-300">
             Sign in to view orders, manage your account, or access your vendor dashboard.
@@ -78,10 +78,10 @@ export default function LoginPage() {
             <DcsLogo size={36} />
           </Link>
           <Link
-            href="/marketplace"
+            href="/buy"
             className="text-xs font-semibold text-cyan-700 hover:text-cyan-600"
           >
-            Browse bundles →
+            Buy data →
           </Link>
         </div>
 
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button variant="secondary" size="sm" className="w-full" asChild>
-                  <Link href="/marketplace">Buy data</Link>
+                  <Link href="/buy">Buy data</Link>
                 </Button>
                 <Button variant="secondary" size="sm" className="w-full" asChild>
                   <Link href="/create-store">

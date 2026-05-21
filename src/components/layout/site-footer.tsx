@@ -5,8 +5,7 @@ import { DcsLogo } from "@/components/brand/dcs-logo";
 
 const FOOTER_LINKS = {
   Platform: [
-    { href: "/marketplace", label: "Buy Data" },
-    { href: "/vendors", label: "Browse Vendors" },
+    { href: "/buy", label: "Buy Data" },
     { href: "/create-store", label: "Sell on DCS" },
     { href: "/account", label: "My Account" },
   ],

@@ -50,8 +50,8 @@ export default function AdminSettingsPage() {
             </Link>
           </li>
           <li>
-            <Link href="/marketplace" className="hover:underline">
-              Public marketplace →
+            <Link href="/buy" className="hover:underline">
+              Public buy page →
             </Link>
           </li>
         </ul>

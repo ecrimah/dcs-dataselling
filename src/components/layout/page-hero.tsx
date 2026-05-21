@@ -5,7 +5,7 @@ interface PageHeroProps {
   imageSrc: string;
   imageAlt: string;
   imagePosition?: string;
-  accent?: "cyan" | "emerald";
+  accent?: "cyan" | "emerald" | "gold";
   children: ReactNode;
   footer?: ReactNode;
 }
@@ -24,6 +24,12 @@ export function PageHero({
           radial-gradient(ellipse 50% 40% at 8% 20%, rgba(16, 185, 129, 0.16), transparent 70%),
           radial-gradient(ellipse 40% 30% at 12% 90%, rgba(34, 211, 238, 0.12), transparent 70%),
           radial-gradient(ellipse 30% 30% at 92% 50%, rgba(34, 211, 238, 0.12), transparent 70%)
+        `
+      : accent === "gold"
+        ? `
+          radial-gradient(ellipse 50% 40% at 8% 20%, rgba(212, 175, 55, 0.16), transparent 70%),
+          radial-gradient(ellipse 40% 30% at 12% 90%, rgba(10, 46, 93, 0.35), transparent 70%),
+          radial-gradient(ellipse 30% 30% at 92% 50%, rgba(244, 209, 96, 0.10), transparent 70%)
         `
       : `
           radial-gradient(ellipse 50% 40% at 8% 20%, rgba(34, 211, 238, 0.18), transparent 70%),

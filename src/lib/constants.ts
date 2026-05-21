@@ -5,9 +5,9 @@ export const SITE = {
   shortName: "DCS",
   brandLine: "ELITE",
   domain: "dcselite.com",
-  tagline: "Ghana's Elite Data Marketplace",
+  tagline: "Ghana's Elite Data Platform",
   description:
-    "Buy and sell mobile data bundles on dcselite.com — a trusted multi-vendor marketplace with secure MoMo payments and instant fulfilment.",
+    "Launch your own data store on dcselite.com — private storefronts, secure MoMo payments, and instant fulfilment for MTN, Telecel & AirtelTigo.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dcselite.com",
   supportWhatsApp: "+233200000000",
   supportEmail: "support@dcselite.com",

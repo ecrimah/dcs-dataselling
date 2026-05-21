@@ -55,11 +55,11 @@ export function CheckoutForm({ bundle }: Props) {
             No bundle selected
           </p>
           <p className="mt-1 text-xs text-muted">
-            Pick a bundle from the marketplace to continue checkout.
+            Open your agent&apos;s store link to pick a bundle and continue checkout.
           </p>
           <Button className="mt-5" asChild>
-            <Link href="/marketplace">
-              Browse marketplace
+            <Link href="/buy">
+              Open agent store
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

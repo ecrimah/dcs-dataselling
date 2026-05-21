@@ -9,8 +9,7 @@ import { cn } from "@/lib/utils";
 import { DcsLogo } from "@/components/brand/dcs-logo";
 
 const NAV = [
-  { href: "/marketplace", label: "Buy Data" },
-  { href: "/vendors", label: "Vendors" },
+  { href: "/buy", label: "Buy Data" },
   { href: "/create-store", label: "Sell on DCS" },
   { href: "/support", label: "Support" },
 ];
@@ -109,7 +108,7 @@ export function SiteHeader() {
               <ChevronDown className="h-3 w-3" />
             </Link>
             <Link
-              href="/marketplace"
+              href="/buy"
               className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all hover:brightness-105"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
@@ -175,7 +174,7 @@ export function SiteHeader() {
               Sign in
             </Link>
             <Link
-              href="/marketplace"
+              href="/buy"
               className="rounded-full px-4 py-2 text-center text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",

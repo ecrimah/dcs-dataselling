@@ -1,12 +1,7 @@
-import Link from "next/link";
 import {
-  ArrowRight,
-  BadgeCheck,
   Headphones,
   Lock,
-  ShieldCheck,
   Timer,
-  Zap,
 } from "lucide-react";
 import { fetchPlatformStats } from "@/lib/data/queries";
 import { formatCompact } from "@/lib/format";
@@ -17,14 +12,6 @@ export async function TrustSection() {
   const stats = await fetchPlatformStats();
 
   const pillars = [
-    {
-      icon: ShieldCheck,
-      stat: `${stats.activeVendors}+`,
-      statLabel: "verified vendors",
-      title: "Verified by DCS",
-      description: "Every vendor store is onboarded and monitored by DCS.",
-      className: "lg:col-span-5",
-    },
     {
       icon: Lock,
       stat: "BoG",
@@ -52,15 +39,6 @@ export async function TrustSection() {
     },
   ];
 
-  const badges = [
-    { icon: Lock, label: "256-bit TLS" },
-    { label: "Paystack · BoG" },
-    { label: "Moolre · BoG" },
-    { label: "PCI-DSS aligned" },
-    { icon: BadgeCheck, label: "Verified vendors" },
-    { icon: Zap, label: `${formatCompact(stats.ordersFulfilled)} delivered` },
-  ];
-
   return (
     <TrustParallaxShell>
       <div className="mx-auto max-w-7xl">
@@ -72,7 +50,7 @@ export async function TrustSection() {
               <span className="text-aurora">Moves like fintech.</span>
             </h2>
             <p className="mt-1 text-xs text-slate-400 sm:mt-2 sm:text-sm">
-              Verified vendors, licensed rails, SLA fulfilment, dispute protection.
+              Private agent stores, licensed rails, SLA fulfilment, dispute protection.
             </p>
           </div>
 
@@ -80,7 +58,7 @@ export async function TrustSection() {
             {[
               { value: formatCompact(stats.ordersFulfilled), label: "Delivered" },
               { value: `${stats.successRate}%`, label: "Success" },
-              { value: formatCompact(stats.activeVendors), label: "Vendors" },
+              { value: "3", label: "Networks" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -143,27 +121,6 @@ export async function TrustSection() {
               </p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-3 flex flex-col items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 backdrop-blur-sm sm:mt-6 sm:gap-4 sm:rounded-2xl sm:px-6 sm:py-4 lg:flex-row">
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:justify-start sm:gap-2">
-            {badges.map((b) => (
-              <span
-                key={b.label}
-                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-300 sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[10px]"
-              >
-                {b.icon && <b.icon className="h-2.5 w-2.5 text-cyan-400 sm:h-3 sm:w-3" />}
-                {b.label}
-              </span>
-            ))}
-          </div>
-          <Link
-            href="/#trust"
-            className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-cyan-300 transition-colors hover:text-cyan-200 sm:text-xs"
-          >
-            Security centre
-            <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-          </Link>
         </div>
       </div>
     </TrustParallaxShell>
