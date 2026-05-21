@@ -74,6 +74,7 @@ function rowToVendor(row: {
   featured: boolean;
   theme_color?: string | null;
   emoji?: string | null;
+  whatsapp_number?: string | null;
   created_at: string;
 }): Vendor {
   return {
@@ -91,6 +92,7 @@ function rowToVendor(row: {
     featured: row.featured,
     themeColor: row.theme_color ?? undefined,
     emoji: row.emoji ?? undefined,
+    whatsappNumber: row.whatsapp_number ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -116,7 +118,7 @@ export async function fetchVendorBySlug(slug: string): Promise<Vendor | null> {
   const { data, error } = await supabase
     .from("vendors")
     .select(
-      "id, slug, business_name, tagline, logo_url, status, verified, rating, total_orders, fulfilment_minutes, commission_rate, featured, theme_color, emoji, created_at",
+      "id, slug, business_name, tagline, logo_url, status, verified, rating, total_orders, fulfilment_minutes, commission_rate, featured, theme_color, emoji, whatsapp_number, created_at",
     )
     .eq("slug", slug)
     .eq("status", "approved")
