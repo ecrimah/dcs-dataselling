@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Check,
   Clock,
   Lock,
   ShieldCheck,
@@ -35,7 +34,6 @@ const NETWORK_BAR: Record<NetworkId, string> = {
 export function CheckoutForm({ bundle }: Props) {
   const router = useRouter();
   const [phone, setPhone] = useState("");
-  const [provider, setProvider] = useState<"paystack" | "moolre">("paystack");
   const [loading, setLoading] = useState(false);
 
   if (!bundle) {
@@ -88,7 +86,7 @@ export function CheckoutForm({ bundle }: Props) {
         body: JSON.stringify({
           bundleId: bundle.id,
           recipientPhone: phone,
-          provider,
+          provider: "paystack",
         }),
       });
       const data = await res.json();
@@ -227,34 +225,17 @@ export function CheckoutForm({ bundle }: Props) {
             </p>
           </div>
 
-          {/* Payment rails */}
+          {/* Payment */}
           <div className="space-y-2">
             <p className="text-sm font-semibold text-foreground">Pay with</p>
-            <div className="grid grid-cols-2 gap-2">
-              <PaymentRail
-                active={provider === "paystack"}
-                onClick={() => setProvider("paystack")}
-                name="Paystack"
-                desc="MoMo · Visa · Mastercard"
-                accent="from-sky-500 to-blue-600"
-                icon={
-                  <span className="text-lg font-black tracking-tighter text-white">
-                    P
-                  </span>
-                }
-              />
-              <PaymentRail
-                active={provider === "moolre"}
-                onClick={() => setProvider("moolre")}
-                name="Moolre"
-                desc="Mobile Money only"
-                accent="from-emerald-500 to-teal-600"
-                icon={
-                  <span className="text-lg font-black tracking-tighter text-white">
-                    M
-                  </span>
-                }
-              />
+            <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-lg font-black text-white">
+                P
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Paystack</p>
+                <p className="text-xs text-muted">MoMo · Visa · Mastercard</p>
+              </div>
             </div>
           </div>
 
@@ -265,8 +246,8 @@ export function CheckoutForm({ bundle }: Props) {
           >
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" />
             <p className="text-xs leading-relaxed text-muted">
-              Payment is verified via secure webhook. You&apos;ll get SMS and
-              in-app confirmation the moment your bundle is delivered.
+              Payment is verified via secure webhook. You&apos;ll get an SMS when
+              your bundle is delivered.
             </p>
           </div>
 
@@ -330,52 +311,5 @@ function Row({
         {value}
       </dd>
     </div>
-  );
-}
-
-function PaymentRail({
-  active,
-  onClick,
-  name,
-  desc,
-  accent,
-  icon,
-}: {
-  active: boolean;
-  onClick: () => void;
-  name: string;
-  desc: string;
-  accent: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "relative flex items-center gap-3 rounded-xl border p-3 text-left transition-all",
-        active
-          ? "border-cyan-500 bg-cyan-500/5 ring-2 ring-cyan-500/25"
-          : "border-border hover:border-slate-300 hover:bg-slate-50",
-      )}
-    >
-      <span
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-sm",
-          accent,
-        )}
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-bold text-foreground">{name}</span>
-        <span className="block text-[10px] text-muted">{desc}</span>
-      </span>
-      {active && (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-white">
-          <Check className="h-3 w-3" strokeWidth={3} />
-        </span>
-      )}
-    </button>
   );
 }

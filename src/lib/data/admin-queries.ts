@@ -24,7 +24,6 @@ export interface AdminOverviewMetrics {
   activeVendors: number;
   successRate: number;
   paystackShare: number;
-  moolreShare: number;
 }
 
 export interface AdminTopCustomer {
@@ -88,10 +87,10 @@ export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null>
     rows30d.length > 0 ? Math.round((fulfilled / rows30d.length) * 1000) / 10 : 100;
 
   const paystackCount = rows30d.filter((r) => r.payment_provider === "paystack").length;
-  const moolreCount = rows30d.filter((r) => r.payment_provider === "moolre").length;
-  const paidCount = paystackCount + moolreCount;
-  const paystackShare = paidCount > 0 ? Math.round((paystackCount / paidCount) * 100) : 0;
-  const moolreShare = paidCount > 0 ? Math.round((moolreCount / paidCount) * 100) : 0;
+  const paidCount = rows30d.filter((r) =>
+    ["paid", "queued", "processing", "fulfilled"].includes(r.status),
+  ).length;
+  const paystackShare = paidCount > 0 ? Math.round((paystackCount / paidCount) * 100) : 100;
 
   const todayRows = (ordersToday.data ?? []) as { status: string }[];
   const ps = platformStats.data as {
@@ -111,7 +110,6 @@ export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null>
     activeVendors: vendorsRes.data?.length ?? ps?.active_vendors ?? 0,
     successRate: ps?.success_rate != null ? Number(ps.success_rate) : successRate,
     paystackShare,
-    moolreShare,
   };
 }
 

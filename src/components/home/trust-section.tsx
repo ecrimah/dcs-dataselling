@@ -17,7 +17,7 @@ export async function TrustSection() {
       stat: "BoG",
       statLabel: "licensed rails",
       title: "Licensed payments",
-      description: "Paystack & Moolre — webhook-verified, encrypted.",
+      description: "Paystack payments — webhook-verified, encrypted.",
       className: "lg:col-span-7",
       featured: true,
     },

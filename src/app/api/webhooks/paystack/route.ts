@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { markSetupPaymentPaid } from "@/lib/payments/setup-fee";
 import { markWalletTopupPaid } from "@/lib/payments/wallet";
 import { markWholesaleOrderPaid } from "@/lib/payments/wholesale-order";
+import { smsOrderPaymentReceived } from "@/lib/notifications/sms";
+import { formatDataAmount } from "@/lib/format";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -54,11 +56,28 @@ export async function POST(request: Request) {
 
     const { data: order } = await service
       .from("orders")
-      .select("id, status")
+      .select(
+        `
+        id, status, reference, recipient_phone,
+        bundles ( name, data_mb )
+      `,
+      )
       .eq("reference", event.data.reference)
       .maybeSingle();
 
     if (order && order.status === "pending") {
+      const o = order as {
+        id: string;
+        status: string;
+        reference: string;
+        recipient_phone: string;
+        bundles: { name: string; data_mb: number } | { name: string; data_mb: number }[] | null;
+      };
+      const bundle = Array.isArray(o.bundles) ? o.bundles[0] : o.bundles;
+      const bundleLabel = bundle
+        ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
+        : "data";
+
       await service
         .from("orders")
         .update({
@@ -66,10 +85,10 @@ export async function POST(request: Request) {
           paid_at: new Date().toISOString(),
           payment_reference: event.data.reference,
         })
-        .eq("id", order.id);
+        .eq("id", o.id);
 
       await service.from("transactions").insert({
-        order_id: order.id,
+        order_id: o.id,
         provider: "paystack",
         provider_reference: event.data.reference,
         amount: event.data.amount / 100,
@@ -77,11 +96,13 @@ export async function POST(request: Request) {
         raw_payload: event.data,
       });
 
-      // Auto-queue for fulfilment
-      await service
-        .from("orders")
-        .update({ status: "queued" })
-        .eq("id", order.id);
+      await service.from("orders").update({ status: "queued" }).eq("id", o.id);
+
+      void smsOrderPaymentReceived({
+        phone: o.recipient_phone,
+        reference: o.reference,
+        bundleLabel,
+      });
     }
   }
 

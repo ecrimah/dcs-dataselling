@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { creditVendorReward } from "@/lib/vendor/extras";
+import { smsOrderFulfilled } from "@/lib/notifications/sms";
+import { formatDataAmount } from "@/lib/format";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -49,7 +51,12 @@ export async function PATCH(
 
   const { data: existing } = await service
     .from("orders")
-    .select("id, vendor_id, status, amount, platform_fee, reference")
+    .select(
+      `
+      id, vendor_id, status, amount, platform_fee, reference, recipient_phone,
+      bundles ( name, data_mb )
+    `,
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -65,6 +72,8 @@ export async function PATCH(
     amount: number;
     platform_fee: number;
     reference: string;
+    recipient_phone: string;
+    bundles: { name: string; data_mb: number } | { name: string; data_mb: number }[] | null;
   } | null;
 
   if (body.status === "fulfilled" && prev && prev.status !== "fulfilled") {
@@ -72,6 +81,16 @@ export async function PATCH(
     if (markupEstimate > 0) {
       await creditVendorReward(prev.vendor_id, +markupEstimate.toFixed(2), prev.reference);
     }
+
+    const bundle = Array.isArray(prev.bundles) ? prev.bundles[0] : prev.bundles;
+    const bundleLabel = bundle
+      ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
+      : "Data bundle";
+    void smsOrderFulfilled({
+      phone: prev.recipient_phone,
+      reference: prev.reference,
+      bundleLabel,
+    });
   }
 
   return NextResponse.json({ ok: true });

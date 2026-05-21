@@ -6,7 +6,7 @@ Premium multi-vendor data marketplace at **dcselite.com** — built with Next.js
 
 - **Public marketplace** — browse, filter, compare bundles (MTN, Telecel, AT)
 - **Vendor storefronts** — `/vendor/[slug]`
-- **Secure checkout** — Paystack & Moolre integration stubs
+- **Secure checkout** — Paystack payments with Arkesel SMS notifications
 - **Order tracking** — fulfilment progress UI
 - **Vendor dashboard** — revenue, queue, analytics
 - **Super admin** — GMV, vendor governance, operations overview
@@ -28,7 +28,7 @@ Copy `.env.example` to `.env.local` and configure:
 
 - Supabase (auth + database)
 - Paystack secret & public keys
-- Moolre API & webhook secret
+- Arkesel API key & sender ID (SMS)
 
 Supabase keys are required — the app loads all marketplace, vendor, and admin data from the database.
 
@@ -55,9 +55,8 @@ Or paste `supabase/migrations/001_initial_schema.sql` in the SQL editor.
 
 ## Payments
 
-- `POST /api/payments/initialize` — start Paystack/Moolre payment
-- `POST /api/webhooks/paystack` — verified webhook handler
-- `POST /api/webhooks/moolre` — Moolre webhook handler
+- `POST /api/payments/initialize` — start Paystack payment
+- `POST /api/webhooks/paystack` — verified webhook handler (triggers Arkesel SMS)
 
 ## Stack
 

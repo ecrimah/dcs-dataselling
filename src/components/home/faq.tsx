@@ -28,7 +28,7 @@ const FAQS = [
   {
     icon: CreditCard,
     q: "Which payments work?",
-    a: "MTN MoMo, Telecel Cash, AT Money, and cards — via Paystack or Moolre (BoG-licensed).",
+    a: "MTN MoMo, Telecel Cash, AT Money, and cards — via Paystack. Order updates sent by SMS (Arkesel).",
   },
   {
     icon: Store,

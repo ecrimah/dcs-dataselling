@@ -6,7 +6,7 @@ import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supa
 const schema = z.object({
   bundleId: z.string().uuid(),
   recipientPhone: z.string().min(10).max(20),
-  provider: z.enum(["paystack", "moolre"]),
+  provider: z.literal("paystack").default("paystack"),
 });
 
 export async function POST(request: Request) {
@@ -107,10 +107,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error:
-          body.provider === "paystack"
-            ? "Paystack is not configured. Add PAYSTACK_SECRET_KEY to enable payments."
-            : "Moolre is not configured. Add MOOLRE_API_KEY to enable payments.",
+        error: "Paystack is not configured. Add PAYSTACK_SECRET_KEY to enable payments.",
       },
       { status: 503 },
     );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/constants";
+import { isArkeselConfigured } from "@/lib/notifications/arkesel";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default function AdminSettingsPage() {
   const supabaseOk = hasSupabaseConfig();
   const paystackOk = Boolean(process.env.PAYSTACK_SECRET_KEY?.startsWith("sk_"));
-  const moolreOk = Boolean(process.env.MOOLRE_API_KEY && process.env.MOOLRE_API_KEY !== "your-moolre-api-key");
+  const arkeselOk = isArkeselConfigured();
 
   return (
     <div className="space-y-6">
@@ -32,7 +33,11 @@ export default function AdminSettingsPage() {
         <ul className="mt-4 space-y-2 text-sm">
           <StatusRow label="Supabase" ok={supabaseOk} />
           <StatusRow label="Paystack" ok={paystackOk} hint="Set PAYSTACK_SECRET_KEY in .env.local" />
-          <StatusRow label="Moolre" ok={moolreOk} hint="Set MOOLRE_API_KEY in .env.local" />
+          <StatusRow
+            label="Arkesel SMS"
+            ok={arkeselOk}
+            hint="Set ARKESEL_API_KEY and ARKESEL_SENDER_ID in .env.local"
+          />
         </ul>
       </section>
 

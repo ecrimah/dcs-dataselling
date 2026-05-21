@@ -144,8 +144,7 @@ export default async function AdminOverviewPage() {
           <h2 className="font-semibold">Payment performance</h2>
           <div className="mt-6 space-y-4">
             <MetricBar label="Success rate" value={metrics?.successRate ?? 0} />
-            <MetricBar label="Paystack" value={metrics?.paystackShare ?? 0} />
-            <MetricBar label="Moolre" value={metrics?.moolreShare ?? 0} />
+            <MetricBar label="Paystack" value={metrics?.paystackShare ?? 100} />
           </div>
         </div>
 

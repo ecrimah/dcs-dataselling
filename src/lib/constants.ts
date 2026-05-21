@@ -42,7 +42,7 @@ export const SORT_OPTIONS = [
   { id: "popular", label: "Most Popular" },
 ] as const;
 
-export const PAYMENT_PROVIDERS = ["paystack", "moolre"] as const;
+export const PAYMENT_PROVIDERS = ["paystack"] as const;
 
 /** One-time fee (GHS) vendors pay before store onboarding is submitted */
 export const VENDOR_STORE_SETUP_FEE_GHS = Number(
