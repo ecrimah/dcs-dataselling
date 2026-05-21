@@ -28,6 +28,15 @@ export default async function SupplierConsolePage() {
   const webhookConfigured = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
   const unsignedMode = process.env.SKANKA5_ALLOW_UNSIGNED_WEBHOOKS === "1";
 
+  const envChecks: Array<{ name: string; present: boolean; required: boolean }> = [
+    { name: "SKANKA5_API_KEY", present: Boolean(process.env.SKANKA5_API_KEY), required: true },
+    { name: "SKANKA5_NETWORK_ID_MTN", present: Boolean(process.env.SKANKA5_NETWORK_ID_MTN), required: true },
+    { name: "SKANKA5_NETWORK_ID_TELECEL", present: Boolean(process.env.SKANKA5_NETWORK_ID_TELECEL), required: false },
+    { name: "SKANKA5_NETWORK_ID_AT", present: Boolean(process.env.SKANKA5_NETWORK_ID_AT), required: false },
+    { name: "SKANKA5_WEBHOOK_SECRET", present: Boolean(process.env.SKANKA5_WEBHOOK_SECRET), required: false },
+  ];
+  const missingRequired = envChecks.filter((c) => c.required && !c.present);
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -59,18 +68,45 @@ export default async function SupplierConsolePage() {
         </div>
       </header>
 
-      {!configured && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          <p className="font-semibold">Supplier API is not configured.</p>
-          <p className="mt-1 text-xs">
-            Set <code className="rounded bg-amber-200/60 px-1">SKANKA5_API_KEY</code>,{" "}
-            <code className="rounded bg-amber-200/60 px-1">SKANKA5_WEBHOOK_SECRET</code>, and{" "}
-            <code className="rounded bg-amber-200/60 px-1">SKANKA5_NETWORK_ID_MTN</code> (plus
-            Telecel / AT) in your environment. Without this, paid orders stay <strong>queued</strong>{" "}
-            until you fulfil them manually.
+      <div
+        className={`rounded-2xl border p-4 text-sm ${
+          missingRequired.length > 0
+            ? "border-amber-300 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+        }`}
+      >
+        <p className="font-semibold">
+          {missingRequired.length > 0
+            ? `Supplier API missing ${missingRequired.length} required env var${missingRequired.length === 1 ? "" : "s"}`
+            : "All required Skanka5 env vars detected on this server"}
+        </p>
+        <ul className="mt-2 grid gap-1 text-xs sm:grid-cols-2">
+          {envChecks.map((c) => (
+            <li key={c.name} className="flex items-center justify-between gap-2">
+              <code className="rounded bg-white/60 px-1.5 py-0.5">{c.name}</code>
+              <span
+                className={`font-bold ${
+                  c.present
+                    ? "text-emerald-700"
+                    : c.required
+                      ? "text-red-700"
+                      : "text-amber-700"
+                }`}
+              >
+                {c.present ? "✓ set" : c.required ? "✗ missing (required)" : "○ not set (optional)"}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {missingRequired.length > 0 && (
+          <p className="mt-3 rounded-lg bg-white/50 p-2 text-xs">
+            <strong>Vercel checklist:</strong> Project → Settings → Environment Variables. Make sure
+            each missing var is added with the <strong>Production</strong> scope ticked, then go to{" "}
+            <strong>Deployments → ⋯ → Redeploy</strong> on the latest deploy. Env vars added after a
+            deploy do not retro-apply.
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       {unsignedMode && (
         <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-4 text-sm text-red-900">
