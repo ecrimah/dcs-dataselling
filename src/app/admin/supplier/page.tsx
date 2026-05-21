@@ -26,6 +26,7 @@ export default async function SupplierConsolePage() {
 
   const configured = isSkanka5Configured();
   const webhookConfigured = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
+  const unsignedMode = process.env.SKANKA5_ALLOW_UNSIGNED_WEBHOOKS === "1";
 
   return (
     <div className="space-y-6">
@@ -67,6 +68,19 @@ export default async function SupplierConsolePage() {
             <code className="rounded bg-amber-200/60 px-1">SKANKA5_NETWORK_ID_MTN</code> (plus
             Telecel / AT) in your environment. Without this, paid orders stay <strong>queued</strong>{" "}
             until you fulfil them manually.
+          </p>
+        </div>
+      )}
+
+      {unsignedMode && (
+        <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-4 text-sm text-red-900">
+          <p className="font-bold uppercase tracking-wide">⚠ Unsigned webhook mode is ON</p>
+          <p className="mt-1 text-xs">
+            <code className="rounded bg-red-200/60 px-1">SKANKA5_ALLOW_UNSIGNED_WEBHOOKS=1</code> is
+            set. Webhooks are being accepted without verifying{" "}
+            <code className="rounded bg-red-200/60 px-1">X-Skanka5-Signature</code>. Anyone who knows
+            your endpoint URL can mark orders as fulfilled. Turn this off the moment you have a real{" "}
+            <code className="rounded bg-red-200/60 px-1">SKANKA5_WEBHOOK_SECRET</code>.
           </p>
         </div>
       )}
