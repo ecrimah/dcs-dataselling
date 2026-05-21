@@ -52,16 +52,21 @@ export default async function VendorDashboardPage() {
       {activeListings === 0 && (
         <div className="card-elevated p-6">
           <Badge>Get started</Badge>
-          <h3 className="mt-3 text-lg font-bold">Activate your first bundles</h3>
+          <h3 className="mt-3 text-lg font-bold">Order your first data bundle</h3>
           <p className="mt-1 text-sm text-muted">
-            Pick from the DCS wholesale catalogue, set your markup, and start earning.
+            Browse the DCS wholesale catalogue, place orders, then set your markup to resell.
           </p>
-          <Button className="mt-4" asChild>
-            <Link href="/vendor/dashboard/catalogue">
-              Open catalogue
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href="/vendor/dashboard/wholesale">
+                Buy data
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href="/vendor/dashboard/catalogue">Set resale pricing</Link>
+            </Button>
+          </div>
         </div>
       )}
 

@@ -22,10 +22,13 @@ export default async function CataloguePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold">Catalogue & Pricing</h2>
+        <h2 className="text-xl font-bold">Resale Pricing</h2>
         <p className="mt-1 text-sm text-muted">
-          Activate bundles from the DCS wholesale catalogue and set your markup.
-          Your earnings = markup − platform fee ({vendor.commissionRate}%).
+          Choose which products to sell on your store and set your markup. Buy stock first under{" "}
+          <a href="/vendor/dashboard/wholesale" className="font-semibold text-gold-dark hover:underline">
+            Buy Data
+          </a>
+          .
         </p>
       </div>
       <CatalogueEditor

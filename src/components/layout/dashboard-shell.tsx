@@ -6,10 +6,6 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  Wallet,
-  BarChart3,
-  Users,
-  Settings,
   Bell,
   LogOut,
   Menu,
@@ -18,6 +14,9 @@ import {
   Store,
   Tag,
   Layers,
+  Users,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
@@ -34,13 +33,10 @@ interface NavItem {
 
 const VENDOR_NAV: NavItem[] = [
   { href: "/vendor/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/vendor/dashboard/orders", label: "Orders & Queue", icon: ShoppingCart },
-  { href: "/vendor/dashboard/catalogue", label: "Catalogue & Pricing", icon: Tag },
+  { href: "/vendor/dashboard/wholesale", label: "Buy Data", icon: Layers },
+  { href: "/vendor/dashboard/orders", label: "My Orders", icon: ShoppingCart },
+  { href: "/vendor/dashboard/catalogue", label: "Resale Pricing", icon: Tag },
   { href: "/vendor/dashboard/storefront", label: "Storefront", icon: Store },
-  { href: "/vendor/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/vendor/dashboard/customers", label: "Customers", icon: Users },
-  { href: "/vendor/dashboard/payouts", label: "Payouts", icon: Wallet },
-  { href: "/vendor/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -95,7 +91,7 @@ export function DashboardShell({ role, title, children }: DashboardShellProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-cyan-500/10 text-cyan-700"
+                    ? "bg-gold/10 text-gold-dark"
                     : "text-muted hover:bg-slate-100 hover:text-foreground",
                 )}
               >

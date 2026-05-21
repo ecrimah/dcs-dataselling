@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { markSetupPaymentPaid } from "@/lib/payments/setup-fee";
+import { markWalletTopupPaid } from "@/lib/payments/wallet";
+import { markWholesaleOrderPaid } from "@/lib/payments/wholesale-order";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -37,6 +39,16 @@ export async function POST(request: Request) {
     const meta = event.data.metadata ?? {};
     if (meta.type === "vendor_setup") {
       await markSetupPaymentPaid(event.data.reference, event.data.reference);
+      return NextResponse.json({ received: true });
+    }
+
+    if (meta.type === "wholesale_order") {
+      await markWholesaleOrderPaid(event.data.reference, event.data.reference);
+      return NextResponse.json({ received: true });
+    }
+
+    if (meta.type === "wallet_topup") {
+      await markWalletTopupPaid(event.data.reference, event.data.reference);
       return NextResponse.json({ received: true });
     }
 
