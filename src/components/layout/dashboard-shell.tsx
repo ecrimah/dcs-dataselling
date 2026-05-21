@@ -17,6 +17,7 @@ import {
   Users,
   BarChart3,
   Settings,
+  Headphones,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
@@ -44,6 +45,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin/vendors", label: "Vendor Governance", icon: Users },
   { href: "/admin/wholesale", label: "Wholesale Catalogue", icon: Layers },
   { href: "/admin/operations", label: "Operations", icon: Shield },
+  { href: "/admin/agent-ops", label: "Agent Operations", icon: Headphones },
   { href: "/admin/orders", label: "All Orders", icon: ShoppingCart },
   { href: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
   { href: "/admin/promotions", label: "Promotions", icon: Package },

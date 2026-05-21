@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DollarSign, ShoppingCart, Store } from "lucide-react";
+import { DollarSign, ShoppingCart, Store, Headphones } from "lucide-react";
 import { WholesaleOverviewMini } from "@/components/wholesale/wholesale-overview-mini";
 import { StatCard } from "@/components/ui/stat-card";
 import {
@@ -7,6 +7,7 @@ import {
   fetchAdminTopCustomers,
   fetchAdminVendors,
 } from "@/lib/data/admin-queries";
+import { fetchAdminAgentOpsSummary } from "@/lib/data/admin-agent-ops";
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { formatGHS, formatCompact } from "@/lib/format";
@@ -23,11 +24,12 @@ export default async function AdminOverviewPage() {
     );
   }
 
-  const [metrics, vendors, topCustomers, wholesale] = await Promise.all([
+  const [metrics, vendors, topCustomers, wholesale, agentOps] = await Promise.all([
     fetchAdminOverview(),
     fetchAdminVendors(),
     fetchAdminTopCustomers(5),
     fetchWholesaleCatalogue(),
+    fetchAdminAgentOpsSummary(),
   ]);
 
   const pendingVendors = vendors.filter((v) => v.status === "pending");
@@ -65,32 +67,75 @@ export default async function AdminOverviewPage() {
           <WholesaleOverviewMini wholesale={wholesale} variant="admin" />
         </div>
 
-        <div className="card-elevated p-5 lg:col-span-2">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="font-semibold">Vendor governance</h2>
-            <Link href="/admin/vendors" className="text-xs font-semibold text-gold-dark hover:underline">
-              View all
-            </Link>
+        <div className="space-y-6 lg:col-span-2">
+          <div className="card-elevated p-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-semibold">Vendor governance</h2>
+              <Link href="/admin/vendors" className="text-xs font-semibold text-gold-dark hover:underline">
+                View all
+              </Link>
+            </div>
+            {topByOrders.length === 0 ? (
+              <p className="mt-4 text-sm text-muted">No vendors yet.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {topByOrders.map((v) => (
+                  <li key={v.id} className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{v.business_name}</span>
+                    <Badge variant={v.status === "approved" ? "success" : "warning"}>
+                      {v.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {pendingVendors.length > 0 && (
+              <p className="mt-4 text-xs text-warning">
+                {pendingVendors.length} vendor(s) awaiting approval
+              </p>
+            )}
           </div>
-          {topByOrders.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">No vendors yet.</p>
-          ) : (
-            <ul className="mt-4 space-y-3">
-              {topByOrders.map((v) => (
-                <li key={v.id} className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{v.business_name}</span>
-                  <Badge variant={v.status === "approved" ? "success" : "warning"}>
-                    {v.status}
-                  </Badge>
-                </li>
-              ))}
+
+          <div className="card-elevated p-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-semibold">Agent operations</h2>
+              <Link
+                href="/admin/agent-ops"
+                className="text-xs font-semibold text-gold-dark hover:underline"
+              >
+                Manage
+              </Link>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li className="flex items-center justify-between">
+                <span className="text-muted">Pending reward payouts</span>
+                <span className="font-semibold">{agentOps.pendingWithdrawals}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-muted">Open complaints</span>
+                <span className="font-semibold">{agentOps.openComplaints}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-muted">MTN AFA pending</span>
+                <span className="font-semibold">{agentOps.pendingMtnAfa}</span>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-muted">Active ClaimIt codes</span>
+                <span className="font-semibold">{agentOps.activePromoCodes}</span>
+              </li>
             </ul>
-          )}
-          {pendingVendors.length > 0 && (
-            <p className="mt-4 text-xs text-warning">
-              {pendingVendors.length} vendor(s) awaiting approval
-            </p>
-          )}
+            {(agentOps.pendingWithdrawals > 0 ||
+              agentOps.openComplaints > 0 ||
+              agentOps.pendingMtnAfa > 0) && (
+              <Link
+                href="/admin/agent-ops"
+                className="mt-4 flex items-center gap-2 text-xs font-semibold text-warning hover:underline"
+              >
+                <Headphones className="h-3.5 w-3.5" />
+                Action required in agent operations
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

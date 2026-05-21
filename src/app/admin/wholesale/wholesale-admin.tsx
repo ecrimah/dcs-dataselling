@@ -28,6 +28,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
     wholesalePrice: 5,
     suggestedRetail: 7,
     minMarkup: 0.5,
+    productLine: "standard" as "standard" | "ishare" | "bigtime",
   });
 
   async function saveRow(row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow>) {
@@ -44,6 +45,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
           active: draft.active ?? row.active,
           popular: draft.popular ?? row.popular,
           name: draft.name ?? row.name,
+          productLine: draft.productLine ?? row.productLine ?? "standard",
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
@@ -98,6 +100,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
                 setNewBundle((b) => ({
                   ...b,
                   network: e.target.value as "mtn" | "telecel" | "at",
+                  productLine: e.target.value === "at" ? b.productLine : "standard",
                 }))
               }
             >
@@ -175,6 +178,25 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
               }
             />
           </label>
+          {newBundle.network === "at" && (
+            <label className="text-xs font-medium text-muted">
+              Product line
+              <select
+                className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+                value={newBundle.productLine}
+                onChange={(e) =>
+                  setNewBundle((b) => ({
+                    ...b,
+                    productLine: e.target.value as "standard" | "ishare" | "bigtime",
+                  }))
+                }
+              >
+                <option value="standard">Standard</option>
+                <option value="ishare">iShare</option>
+                <option value="bigtime">BigTime</option>
+              </select>
+            </label>
+          )}
           <div className="flex items-end sm:col-span-2 lg:col-span-1">
             <Button className="w-full" onClick={addBundle} disabled={pending === "new"}>
               {pending === "new" ? "Saving…" : "Create bundle"}
@@ -197,6 +219,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
                   <th className="px-4 py-3 font-medium">Wholesale</th>
                   <th className="px-4 py-3 font-medium">Suggested retail</th>
                   <th className="px-4 py-3 font-medium">Min markup</th>
+                  <th className="px-4 py-3 font-medium">Line</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium" />
                 </tr>
@@ -233,13 +256,17 @@ function WholesaleRowEditor({
   const [minMarkup, setMinMarkup] = useState(row.minMarkup);
   const [active, setActive] = useState(row.active);
   const [popular, setPopular] = useState(row.popular);
+  const [productLine, setProductLine] = useState<"standard" | "ishare" | "bigtime">(
+    row.productLine ?? "standard",
+  );
 
   const dirty =
     wholesalePrice !== row.wholesalePrice ||
     suggestedRetail !== row.suggestedRetail ||
     minMarkup !== row.minMarkup ||
     active !== row.active ||
-    popular !== row.popular;
+    popular !== row.popular ||
+    (row.network === "at" && productLine !== (row.productLine ?? "standard"));
 
   return (
     <tr className="border-b border-border/60 last:border-0">
@@ -282,6 +309,23 @@ function WholesaleRowEditor({
         />
       </td>
       <td className="px-4 py-3">
+        {row.network === "at" ? (
+          <select
+            className="rounded-lg border border-border px-2 py-1.5 text-xs"
+            value={productLine}
+            onChange={(e) =>
+              setProductLine(e.target.value as "standard" | "ishare" | "bigtime")
+            }
+          >
+            <option value="standard">Standard</option>
+            <option value="ishare">iShare</option>
+            <option value="bigtime">BigTime</option>
+          </select>
+        ) : (
+          <span className="text-xs text-muted">—</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
         <div className="flex flex-col gap-1.5">
           <label className="flex items-center gap-1.5 text-xs">
             <input
@@ -313,6 +357,7 @@ function WholesaleRowEditor({
               minMarkup,
               active,
               popular,
+              productLine: row.network === "at" ? productLine : "standard",
             })
           }
         >

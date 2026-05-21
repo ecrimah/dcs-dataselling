@@ -12,6 +12,7 @@ const schema = z.object({
   suggestedRetail: z.number().positive(),
   minMarkup: z.number().min(0).default(0.5),
   maxMarkup: z.number().positive().nullable().optional(),
+  productLine: z.enum(["standard", "ishare", "bigtime"]).nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
       max_markup: body.maxMarkup ?? null,
       active: true,
       popular: false,
+      product_line:
+        body.productLine ?? (body.network === "at" ? "standard" : "standard"),
     })
     .select("id")
     .single();
