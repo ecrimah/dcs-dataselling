@@ -1,25 +1,21 @@
 import "server-only";
 
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
-import {
-  isSkanka5Configured,
-  submitBulkOrder,
-  submitSingleOrder,
-  type Skanka5NetworkSlug,
-  type Skanka5OrderRow,
-} from "@/lib/suppliers/skanka5";
+import { getSupplierForNetwork } from "./registry";
+import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
 /**
- * Dispatch a paid customer storefront order to Skanka5.
- * Called from the Paystack webhook after the order is marked `queued`.
+ * Dispatch a paid customer storefront order to the correct supplier for its
+ * network. Called from the Paystack webhook after the order is marked `queued`.
  *
  * Behaviour:
- *  - Supplier accepted    -> status `processing`, record supplier_reference / order_code
- *  - Supplier rejected    -> status `failed`, record error (admin can retry / refund)
+ *  - Supplier accepted    -> status `processing`, record supplier_reference
+ *  - Supplier rejected    -> status `failed`, record error (admin can retry)
  *  - Supplier unreachable -> leave status `queued`, record error (retry-able)
+ *  - Supplier is manual   -> leave status `queued`, supplier_status="awaiting_manual"
  */
 export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<void> {
-  if (!hasSupabaseConfig() || !isSkanka5Configured()) return;
+  if (!hasSupabaseConfig()) return;
 
   const service = createServiceClient();
   const { data, error } = await service
@@ -45,8 +41,8 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
     recipient_phone: string;
     supplier_reference: string | null;
     bundles:
-      | { network: Skanka5NetworkSlug; data_mb: number }
-      | { network: Skanka5NetworkSlug; data_mb: number }[]
+      | { network: SupplierNetworkSlug; data_mb: number }
+      | { network: SupplierNetworkSlug; data_mb: number }[]
       | null;
   };
 
@@ -58,7 +54,6 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
     await service
       .from("orders")
       .update({
-        supplier: "skanka5",
         supplier_status: "failed",
         supplier_error: "Bundle missing",
       })
@@ -66,7 +61,9 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
     return;
   }
 
-  const result = await submitSingleOrder({
+  const supplier = getSupplierForNetwork(bundle.network);
+
+  const result = await supplier.submitSingle({
     network: bundle.network,
     msisdn: row.recipient_phone,
     volumeMb: bundle.data_mb,
@@ -74,29 +71,41 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
     scope: "customer_order",
   });
 
-  if (!result.ok) {
+  if (result.manual) {
     await service
       .from("orders")
       .update({
-        supplier: "skanka5",
-        supplier_status: "failed",
-        supplier_error: result.error.slice(0, 500),
+        supplier: supplier.id,
+        supplier_status: "awaiting_manual",
+        supplier_error: null,
         supplier_submitted_at: new Date().toISOString(),
       })
       .eq("id", row.id);
     return;
   }
 
-  const first = result.data.orders?.[0];
+  if (!result.ok) {
+    await service
+      .from("orders")
+      .update({
+        supplier: supplier.id,
+        supplier_status: "failed",
+        supplier_error: (result.error ?? "Unknown supplier error").slice(0, 500),
+        supplier_submitted_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
+    return;
+  }
+
   await service
     .from("orders")
     .update({
       status: "processing",
-      supplier: "skanka5",
-      supplier_reference: result.data.reference,
-      supplier_order_code: first?.order_code ?? null,
-      supplier_status: first?.status ?? result.data.status,
-      supplier_response: result.data as unknown as object,
+      supplier: supplier.id,
+      supplier_reference: result.reference ?? null,
+      supplier_order_code: result.orderCode ?? null,
+      supplier_status: result.status ?? "accepted",
+      supplier_response: (result.rawResponse as object | undefined) ?? null,
       supplier_submitted_at: new Date().toISOString(),
       supplier_error: null,
     })
@@ -104,11 +113,12 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
 }
 
 /**
- * Dispatch a paid vendor wholesale order to Skanka5 as a bulk submission.
- * Called from `markWholesaleOrderPaid` (both wallet-debit and Paystack paths).
+ * Dispatch a paid vendor wholesale order. Items are grouped by network and
+ * each group is submitted to the supplier configured for that network.
+ * A single wholesale order can therefore touch multiple suppliers.
  */
 export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise<void> {
-  if (!hasSupabaseConfig() || !isSkanka5Configured()) return;
+  if (!hasSupabaseConfig()) return;
 
   const service = createServiceClient();
 
@@ -136,8 +146,8 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
     recipient_phone: string;
     quantity: number;
     wholesale_bundles:
-      | { network: Skanka5NetworkSlug; data_mb: number }
-      | { network: Skanka5NetworkSlug; data_mb: number }[]
+      | { network: SupplierNetworkSlug; data_mb: number }
+      | { network: SupplierNetworkSlug; data_mb: number }[]
       | null;
   };
   const row = order as {
@@ -156,8 +166,7 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
     return { itemId: it.id, phone: it.recipient_phone, quantity: it.quantity, wb };
   });
 
-  // Group items by network so we can call submitBulkOrder per network.
-  const byNetwork = new Map<Skanka5NetworkSlug, typeof items>();
+  const byNetwork = new Map<SupplierNetworkSlug, typeof items>();
   for (const it of items) {
     if (!it.wb) continue;
     const list = byNetwork.get(it.wb.network) ?? [];
@@ -169,7 +178,6 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
     await service
       .from("wholesale_orders")
       .update({
-        supplier: "skanka5",
         supplier_status: "failed",
         supplier_error: "No items with mapped network",
       })
@@ -177,11 +185,24 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
     return;
   }
 
-  const submissions: { network: string; ok: boolean; reference?: string; error?: string }[] = [];
+  interface Submission {
+    network: SupplierNetworkSlug;
+    supplierId: string;
+    ok: boolean;
+    manual?: boolean;
+    reference?: string;
+    error?: string;
+  }
+  const submissions: Submission[] = [];
+  const suppliersUsed = new Set<string>();
   let anyAccepted = false;
   let anyFailed = false;
+  let anyManual = false;
 
   for (const [network, groupItems] of byNetwork.entries()) {
+    const supplier: SupplierClient = getSupplierForNetwork(network);
+    suppliersUsed.add(supplier.id);
+
     // Expand quantities (each unit is a separate MSISDN delivery)
     const recipients: Array<{ msisdn: string; volumeMb: number }> = [];
     for (const it of groupItems) {
@@ -191,22 +212,37 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
       }
     }
 
-    const result = await submitBulkOrder({
+    const result = await supplier.submitBulk({
       network,
       recipients,
       reference: `${row.reference}-${network}`,
       scope: "wholesale_order",
     });
 
+    if (result.manual) {
+      anyManual = true;
+      submissions.push({ network, supplierId: supplier.id, ok: true, manual: true });
+      for (const it of groupItems) {
+        await service
+          .from("wholesale_order_items")
+          .update({
+            supplier_status: "awaiting_manual",
+            supplier_error: null,
+          })
+          .eq("id", it.itemId);
+      }
+      continue;
+    }
+
     if (!result.ok) {
       anyFailed = true;
-      submissions.push({ network, ok: false, error: result.error });
+      submissions.push({ network, supplierId: supplier.id, ok: false, error: result.error });
       for (const it of groupItems) {
         await service
           .from("wholesale_order_items")
           .update({
             supplier_status: "failed",
-            supplier_error: result.error.slice(0, 500),
+            supplier_error: (result.error ?? "Unknown supplier error").slice(0, 500),
           })
           .eq("id", it.itemId);
       }
@@ -214,53 +250,72 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
     }
 
     anyAccepted = true;
-    submissions.push({ network, ok: true, reference: result.data.reference });
+    submissions.push({
+      network,
+      supplierId: supplier.id,
+      ok: true,
+      reference: result.reference,
+    });
 
-    // Map supplier `orders` rows back to our items. Since recipients were expanded
-    // by quantity, we assign sequentially.
+    // Map supplier `orders` rows back to our items. Recipients were expanded by
+    // quantity so we assign sequentially. If the supplier didn't return per-row
+    // codes, we still flag the items as accepted.
+    const supplierOrders = result.orders ?? [];
     let idx = 0;
     for (const it of groupItems) {
-      const slice = result.data.orders.slice(idx, idx + it.quantity);
+      const slice = supplierOrders.slice(idx, idx + it.quantity);
       idx += it.quantity;
       await service
         .from("wholesale_order_items")
         .update({
           supplier_order_code: slice[0]?.order_code ?? null,
-          supplier_status: slice[0]?.status ?? "accepted",
-          supplier_response: slice as unknown as object,
+          supplier_status: slice[0]?.status ?? result.status ?? "accepted",
+          supplier_response: slice.length > 0 ? (slice as unknown as object) : null,
           supplier_error: null,
         })
         .eq("id", it.itemId);
     }
   }
 
+  const supplierLabel = Array.from(suppliersUsed).join(",");
+  const aggregateRef = submissions
+    .filter((s) => s.reference)
+    .map((s) => `${s.network}:${s.reference}`)
+    .join(",");
+
+  let parentStatus: string;
+  if (anyAccepted && !anyFailed && !anyManual) parentStatus = "processing";
+  else if (!anyAccepted && anyManual && !anyFailed) parentStatus = "queued"; // fully manual
+  else if (anyAccepted || anyManual) parentStatus = "processing"; // partial automation
+  else parentStatus = "failed";
+
+  let aggregateStatus: string;
+  if (anyAccepted && !anyFailed && !anyManual) aggregateStatus = "accepted";
+  else if (!anyAccepted && anyManual && !anyFailed) aggregateStatus = "awaiting_manual";
+  else if (anyFailed && (anyAccepted || anyManual)) aggregateStatus = "partial";
+  else aggregateStatus = "failed";
+
   await service
     .from("wholesale_orders")
     .update({
-      status: anyAccepted ? "processing" : "failed",
-      supplier: "skanka5",
-      supplier_reference: submissions
-        .filter((s) => s.reference)
-        .map((s) => `${s.network}:${s.reference}`)
-        .join(",") || null,
-      supplier_status: anyAccepted && !anyFailed ? "accepted" : anyFailed ? "partial" : "failed",
+      status: parentStatus,
+      supplier: supplierLabel || null,
+      supplier_reference: aggregateRef || null,
+      supplier_status: aggregateStatus,
       supplier_response: submissions as unknown as object,
       supplier_submitted_at: new Date().toISOString(),
       supplier_error: anyFailed
-        ? submissions.filter((s) => !s.ok).map((s) => `${s.network}: ${s.error}`).join("; ").slice(0, 500)
+        ? submissions
+            .filter((s) => !s.ok)
+            .map((s) => `${s.network} (${s.supplierId}): ${s.error}`)
+            .join("; ")
+            .slice(0, 500)
         : null,
     })
     .eq("id", row.id);
 }
 
-/** Resolve fulfilment of items returned by a Skanka5 webhook batch. */
-export interface SupplierItemUpdate {
-  supplier_reference: string;
-  order_code?: string;
-  msisdn?: string;
-  status?: string;
-}
-
+/** Resolve fulfilment of items returned by a supplier webhook batch. */
 export async function resolveSupplierItemsProcessed(args: {
   supplierReference: string;
   orderCodes: string[];
@@ -302,7 +357,6 @@ export async function resolveSupplierItemsProcessed(args: {
       .select("id, wholesale_order_id");
     wholesaleItemsFulfilled = (itemHits as unknown as { id: string }[] | null)?.length ?? 0;
 
-    // Roll up parent wholesale_orders if all items are fulfilled
     const parentIds = Array.from(
       new Set(
         ((itemHits as unknown as { wholesale_order_id: string }[] | null) ?? []).map(

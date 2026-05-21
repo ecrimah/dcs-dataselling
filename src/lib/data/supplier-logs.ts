@@ -26,6 +26,7 @@ export interface SupplierLogSummary {
   };
   pendingDispatch: number; // customer orders queued but never submitted
   failedSupplier: number; // orders/wholesale_orders with supplier_status=failed
+  awaitingManual: number; // orders waiting for human fulfilment (no automated supplier)
 }
 
 export async function fetchSupplierLogs(limit = 100): Promise<SupplierLogRow[]> {
@@ -81,19 +82,29 @@ export async function fetchSupplierSummary(): Promise<SupplierLogSummary> {
     last24h: { submits: 0, submitFailures: 0, webhooks: 0, statusPolls: 0 },
     pendingDispatch: 0,
     failedSupplier: 0,
+    awaitingManual: 0,
   };
   if (!hasSupabaseConfig()) return empty;
   const service = createServiceClient();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const [{ count: total }, recentRes, pendingRes, failedRes, failedWholesaleRes] = await Promise.all([
+  const [
+    { count: total },
+    recentRes,
+    pendingRes,
+    failedRes,
+    failedWholesaleRes,
+    manualOrdersRes,
+    manualItemsRes,
+  ] = await Promise.all([
     service.from("supplier_logs").select("*", { count: "exact", head: true }),
     service.from("supplier_logs").select("event_type, ok").gte("created_at", since),
     service
       .from("orders")
       .select("id", { count: "exact", head: true })
       .eq("status", "queued")
-      .is("supplier_reference", null),
+      .is("supplier_reference", null)
+      .is("supplier_status", null),
     service
       .from("orders")
       .select("id", { count: "exact", head: true })
@@ -102,6 +113,14 @@ export async function fetchSupplierSummary(): Promise<SupplierLogSummary> {
       .from("wholesale_orders")
       .select("id", { count: "exact", head: true })
       .eq("supplier_status", "failed"),
+    service
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("supplier_status", "awaiting_manual"),
+    service
+      .from("wholesale_order_items")
+      .select("id", { count: "exact", head: true })
+      .eq("supplier_status", "awaiting_manual"),
   ]);
 
   const rows = (recentRes.data ?? []) as { event_type: string; ok: boolean | null }[];
@@ -122,7 +141,69 @@ export async function fetchSupplierSummary(): Promise<SupplierLogSummary> {
     last24h: { submits, submitFailures, webhooks, statusPolls },
     pendingDispatch: pendingRes.count ?? 0,
     failedSupplier: (failedRes.count ?? 0) + (failedWholesaleRes.count ?? 0),
+    awaitingManual: (manualOrdersRes.count ?? 0) + (manualItemsRes.count ?? 0),
   };
+}
+
+export interface ManualOrderRow {
+  scope: "customer_order" | "wholesale_order";
+  id: string;
+  reference: string;
+  recipientPhone: string;
+  network: string;
+  dataMb: number;
+  bundleName: string;
+  supplierId: string | null;
+  createdAt: string;
+}
+
+export async function fetchAwaitingManualOrders(): Promise<ManualOrderRow[]> {
+  if (!hasSupabaseConfig()) return [];
+  const service = createServiceClient();
+
+  const { data, error } = await service
+    .from("orders")
+    .select(
+      `
+      id, reference, recipient_phone, supplier, created_at,
+      bundles ( network, data_mb, name )
+    `,
+    )
+    .eq("supplier_status", "awaiting_manual")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("[fetchAwaitingManualOrders]", error);
+    return [];
+  }
+
+  type Row = {
+    id: string;
+    reference: string;
+    recipient_phone: string;
+    supplier: string | null;
+    created_at: string;
+    bundles:
+      | { network: string; data_mb: number; name: string }
+      | { network: string; data_mb: number; name: string }[]
+      | null;
+  };
+
+  return ((data ?? []) as Row[]).map((r) => {
+    const b = Array.isArray(r.bundles) ? r.bundles[0] : r.bundles;
+    return {
+      scope: "customer_order" as const,
+      id: r.id,
+      reference: r.reference,
+      recipientPhone: r.recipient_phone,
+      network: b?.network ?? "—",
+      dataMb: b?.data_mb ?? 0,
+      bundleName: b?.name ?? "—",
+      supplierId: r.supplier,
+      createdAt: r.created_at,
+    };
+  });
 }
 
 export interface FailedOrderRow {

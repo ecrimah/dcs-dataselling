@@ -2,15 +2,18 @@ import { redirect } from "next/navigation";
 
 import { requireRole } from "@/lib/auth/session";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
+import { getNetworkSupplierMatrix } from "@/lib/suppliers/registry";
 import {
   fetchSupplierLogs,
   fetchSupplierSummary,
   fetchFailedSupplierOrders,
+  fetchAwaitingManualOrders,
 } from "@/lib/data/supplier-logs";
 
 import { SupplierPingButton } from "./supplier-ping-button";
 import { SupplierLogTable } from "./supplier-log-table";
 import { FailedOrderList } from "./failed-order-list";
+import { AwaitingManualList } from "./awaiting-manual-list";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +21,20 @@ export default async function SupplierConsolePage() {
   const profile = await requireRole(["admin", "ops"]);
   if (!profile) redirect("/auth/login");
 
-  const [summary, logs, failed] = await Promise.all([
+  const [summary, logs, failed, manualQueue] = await Promise.all([
     fetchSupplierSummary(),
     fetchSupplierLogs(100),
     fetchFailedSupplierOrders(),
+    fetchAwaitingManualOrders(),
   ]);
 
   const configured = isSkanka5Configured();
   const webhookConfigured = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
   const unsignedMode = process.env.SKANKA5_ALLOW_UNSIGNED_WEBHOOKS === "1";
+
+  const matrix = getNetworkSupplierMatrix();
+  const automatedNetworks = matrix.filter((m) => !m.manual).length;
+  const manualNetworks = matrix.filter((m) => m.manual).length;
 
   const envChecks: Array<{ name: string; present: boolean; required: boolean }> = [
     { name: "SKANKA5_API_KEY", present: Boolean(process.env.SKANKA5_API_KEY), required: true },
@@ -37,17 +45,109 @@ export default async function SupplierConsolePage() {
   ];
   const missingRequired = envChecks.filter((c) => c.required && !c.present);
 
+  const NETWORK_LABEL: Record<(typeof matrix)[number]["network"], string> = {
+    mtn: "MTN",
+    telecel: "Telecel",
+    at: "AirtelTigo",
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Supplier Console — Skanka5</h2>
+          <h2 className="text-xl font-bold text-foreground">Supplier Console</h2>
           <p className="mt-1 text-sm text-muted">
-            Live status of automated data fulfilment via{" "}
-            <code className="rounded bg-slate-100 px-1">agent.skanka5.com</code>. Every submit,
-            poll, and webhook is recorded.
+            Per-network routing for automated data fulfilment. Every submit, poll,
+            and webhook is recorded.
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700">
+            Automated · {automatedNetworks}/{matrix.length}
+          </span>
+          {manualNetworks > 0 && (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-700">
+              Manual · {manualNetworks}
+            </span>
+          )}
+        </div>
+      </header>
+
+      <section className="card-elevated p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
+              Network → Supplier routing
+            </h3>
+            <p className="mt-1 text-xs text-muted">
+              Each network is dispatched to its own supplier. Manual networks stay in{" "}
+              <code className="rounded bg-slate-100 px-1">queued</code> until an admin
+              fulfils them or until you wire up an automated supplier.
+            </p>
+          </div>
+        </div>
+        <ul className="mt-4 divide-y divide-border">
+          {matrix.map((row) => (
+            <li
+              key={row.network}
+              className="flex flex-wrap items-center justify-between gap-3 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-flex h-8 min-w-[64px] items-center justify-center rounded-lg px-2 text-[11px] font-bold ${
+                    row.network === "mtn"
+                      ? "bg-amber-400 text-slate-900"
+                      : row.network === "telecel"
+                        ? "bg-red-500 text-white"
+                        : "bg-red-600 text-white"
+                  }`}
+                >
+                  {NETWORK_LABEL[row.network]}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {row.supplierLabel}
+                  </p>
+                  <p className="text-[11px] text-muted">
+                    <code className="rounded bg-slate-100 px-1">SUPPLIER_FOR_{row.network.toUpperCase()}</code>{" "}
+                    · source: {row.source}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {row.manual ? (
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                    Awaiting integration
+                  </span>
+                ) : row.configured ? (
+                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                    Connected
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-red-700">
+                    Misconfigured
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {manualNetworks > 0 && (
+          <p className="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+            <strong>Heads up:</strong> {manualNetworks} network
+            {manualNetworks === 1 ? " is" : "s are"} on manual fulfilment. Paid orders
+            for those networks will stay in <code className="rounded bg-amber-200/60 px-1">queued</code>{" "}
+            with <code className="rounded bg-amber-200/60 px-1">supplier_status = awaiting_manual</code>{" "}
+            until you implement a supplier client for them and set the matching{" "}
+            <code className="rounded bg-amber-200/60 px-1">SUPPLIER_FOR_*</code> env var.
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted">
+          Skanka5 (MTN) — credentials & webhook
+        </h3>
         <div className="flex flex-wrap gap-2">
           <span
             className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
@@ -66,7 +166,7 @@ export default async function SupplierConsolePage() {
             Webhook · {webhookConfigured ? "Signed" : "No secret"}
           </span>
         </div>
-      </header>
+      </section>
 
       <div
         className={`rounded-2xl border p-4 text-sm ${
@@ -133,11 +233,34 @@ export default async function SupplierConsolePage() {
           accent={summary.last24h.submitFailures > 0 ? "text-red-600" : undefined}
         />
         <Metric
-          label="Webhooks · 24h"
-          value={summary.last24h.webhooks.toLocaleString()}
-          accent="text-emerald-600"
+          label="Awaiting manual"
+          value={summary.awaitingManual.toLocaleString()}
+          accent={summary.awaitingManual > 0 ? "text-amber-600" : undefined}
         />
       </section>
+
+      {summary.awaitingManual > 0 && (
+        <section className="card-elevated p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
+                Awaiting manual fulfilment
+              </h3>
+              <p className="mt-1 text-xs text-muted">
+                These customer orders were paid but their network has no automated
+                supplier yet. Recharge the buyer with whichever method you have, then
+                click <strong>Fulfilled</strong> here to send the delivery SMS.
+              </p>
+            </div>
+            <span className="num rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+              {manualQueue.length} order{manualQueue.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="mt-4">
+            <AwaitingManualList orders={manualQueue} />
+          </div>
+        </section>
+      )}
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         <div className="card-elevated p-5">
