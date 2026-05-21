@@ -24,6 +24,7 @@ import {
   Settings,
   Layers,
   MessageCircle,
+  Cable,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -164,6 +165,12 @@ const NAV_SECTIONS: NavSection[] = [
         label: "SMS Debugger",
         icon: MessageCircle,
         match: (p) => p.startsWith("/admin/sms-debugger"),
+      },
+      {
+        href: "/admin/supplier",
+        label: "Supplier (Skanka5)",
+        icon: Cable,
+        match: (p) => p.startsWith("/admin/supplier"),
       },
       {
         href: "/admin/settings",

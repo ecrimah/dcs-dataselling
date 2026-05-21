@@ -1,6 +1,7 @@
 import "server-only";
 import { SITE } from "@/lib/constants";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { dispatchWholesaleOrderToSupplier } from "@/lib/suppliers/dispatch";
 import type { WholesaleBundle } from "@/types";
 
 export function generateWholesaleOrderReference(): string {
@@ -133,6 +134,10 @@ export async function markWholesaleOrderPaid(reference: string, paymentReference
     .from("wholesale_order_items")
     .update({ status: "queued" })
     .eq("wholesale_order_id", o.id);
+
+  // Hand the order to the supplier (Skanka5). Failures are surfaced via
+  // wholesale_orders.supplier_error and admin can retry from /admin/orders.
+  void dispatchWholesaleOrderToSupplier(o.id);
 }
 
 interface WholesaleOrderRow {

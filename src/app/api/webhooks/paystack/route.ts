@@ -5,6 +5,7 @@ import { markWalletTopupPaid } from "@/lib/payments/wallet";
 import { markWholesaleOrderPaid } from "@/lib/payments/wholesale-order";
 import { smsOrderPaymentReceived } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
+import { dispatchCustomerOrderToSupplier } from "@/lib/suppliers/dispatch";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -103,6 +104,10 @@ export async function POST(request: Request) {
         reference: o.reference,
         bundleLabel,
       });
+
+      // Fire-and-forget dispatch to supplier (Skanka5). If it fails, the order
+      // stays `queued` with supplier_error set so admin can retry.
+      void dispatchCustomerOrderToSupplier(o.id);
     }
   }
 

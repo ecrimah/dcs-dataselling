@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE } from "@/lib/constants";
 import { isArkeselConfigured } from "@/lib/notifications/arkesel";
+import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,8 @@ export default function AdminSettingsPage() {
   const supabaseOk = hasSupabaseConfig();
   const paystackOk = Boolean(process.env.PAYSTACK_SECRET_KEY?.startsWith("sk_"));
   const arkeselOk = isArkeselConfigured();
+  const skanka5Ok = isSkanka5Configured();
+  const skanka5WebhookOk = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
 
   return (
     <div className="space-y-6">
@@ -38,6 +41,16 @@ export default function AdminSettingsPage() {
             ok={arkeselOk}
             hint="Set ARKESEL_API_KEY and ARKESEL_SENDER_ID in .env.local"
           />
+          <StatusRow
+            label="Skanka5 supplier"
+            ok={skanka5Ok}
+            hint="Set SKANKA5_API_KEY and SKANKA5_NETWORK_ID_MTN in .env.local"
+          />
+          <StatusRow
+            label="Skanka5 webhook signing"
+            ok={skanka5WebhookOk}
+            hint="Set SKANKA5_WEBHOOK_SECRET to verify supplier callbacks"
+          />
         </ul>
       </section>
 
@@ -57,6 +70,11 @@ export default function AdminSettingsPage() {
           <li>
             <Link href="/admin/sms-debugger" className="hover:underline">
               SMS debugger →
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin/supplier" className="hover:underline">
+              Supplier (Skanka5) console →
             </Link>
           </li>
         </ul>
