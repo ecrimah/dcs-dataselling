@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { DollarSign, ShoppingCart, Store } from "lucide-react";
+import { AdminWholesalePreview } from "@/components/admin/admin-wholesale-preview";
 import { StatCard } from "@/components/ui/stat-card";
 import {
   fetchAdminOverview,
   fetchAdminTopCustomers,
   fetchAdminVendors,
 } from "@/lib/data/admin-queries";
+import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { formatGHS, formatCompact } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +23,11 @@ export default async function AdminOverviewPage() {
     );
   }
 
-  const [metrics, vendors, topCustomers] = await Promise.all([
+  const [metrics, vendors, topCustomers, wholesale] = await Promise.all([
     fetchAdminOverview(),
     fetchAdminVendors(),
     fetchAdminTopCustomers(5),
+    fetchWholesaleCatalogue(),
   ]);
 
   const pendingVendors = vendors.filter((v) => v.status === "pending");
@@ -57,20 +60,15 @@ export default async function AdminOverviewPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card-elevated p-5">
-          <h2 className="font-semibold">Payment performance</h2>
-          <div className="mt-6 space-y-4">
-            <MetricBar label="Success rate" value={metrics?.successRate ?? 0} />
-            <MetricBar label="Paystack" value={metrics?.paystackShare ?? 0} />
-            <MetricBar label="Moolre" value={metrics?.moolreShare ?? 0} />
-          </div>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <AdminWholesalePreview wholesale={wholesale} />
         </div>
 
-        <div className="card-elevated p-5">
+        <div className="card-elevated p-5 lg:col-span-2">
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-semibold">Vendor governance</h2>
-            <Link href="/admin/vendors" className="text-xs font-semibold text-cyan-700 hover:underline">
+            <Link href="/admin/vendors" className="text-xs font-semibold text-gold-dark hover:underline">
               View all
             </Link>
           </div>
@@ -96,32 +94,43 @@ export default async function AdminOverviewPage() {
         </div>
       </div>
 
-      <div className="card-elevated p-5">
-        <h2 className="font-semibold">Top customers</h2>
-        {topCustomers.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No customer orders recorded yet.</p>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-muted">
-                  <th className="pb-3 font-medium">Customer</th>
-                  <th className="pb-3 font-medium">Orders</th>
-                  <th className="pb-3 font-medium">Spend</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topCustomers.map((c) => (
-                  <tr key={c.userId} className="border-b border-border/50">
-                    <td className="py-3 font-medium">{c.name}</td>
-                    <td className="py-3">{c.orders}</td>
-                    <td className="py-3">{formatGHS(c.spend)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="card-elevated p-5">
+          <h2 className="font-semibold">Payment performance</h2>
+          <div className="mt-6 space-y-4">
+            <MetricBar label="Success rate" value={metrics?.successRate ?? 0} />
+            <MetricBar label="Paystack" value={metrics?.paystackShare ?? 0} />
+            <MetricBar label="Moolre" value={metrics?.moolreShare ?? 0} />
           </div>
-        )}
+        </div>
+
+        <div className="card-elevated p-5">
+          <h2 className="font-semibold">Top customers</h2>
+          {topCustomers.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">No customer orders recorded yet.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-muted">
+                    <th className="pb-3 font-medium">Customer</th>
+                    <th className="pb-3 font-medium">Orders</th>
+                    <th className="pb-3 font-medium">Spend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCustomers.map((c) => (
+                    <tr key={c.userId} className="border-b border-border/50">
+                      <td className="py-3 font-medium">{c.name}</td>
+                      <td className="py-3">{c.orders}</td>
+                      <td className="py-3">{formatGHS(c.spend)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
