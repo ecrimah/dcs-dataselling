@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DollarSign, ShoppingCart, Store } from "lucide-react";
-import { AdminWholesalePreview } from "@/components/admin/admin-wholesale-preview";
+import { WholesaleOverviewMini } from "@/components/wholesale/wholesale-overview-mini";
 import { StatCard } from "@/components/ui/stat-card";
 import {
   fetchAdminOverview,
@@ -62,7 +62,7 @@ export default async function AdminOverviewPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <AdminWholesalePreview wholesale={wholesale} />
+          <WholesaleOverviewMini wholesale={wholesale} variant="admin" />
         </div>
 
         <div className="card-elevated p-5 lg:col-span-2">

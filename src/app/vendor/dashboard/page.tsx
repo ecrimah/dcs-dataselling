@@ -5,15 +5,16 @@ import {
   Package,
   ShoppingCart,
   TrendingUp,
-  ArrowRight,
 } from "lucide-react";
+import { WholesaleOverviewMini } from "@/components/wholesale/wholesale-overview-mini";
 import { StatCard } from "@/components/ui/stat-card";
 import { formatGHS, formatCompact } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchVendorDashboardStats } from "@/lib/data/queries";
-import { fetchVendorListings } from "@/lib/data/wholesale";
+import { fetchVendorListings, fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 
 export const dynamic = "force-dynamic";
@@ -30,9 +31,11 @@ export default async function VendorDashboardPage() {
     );
   }
 
-  const [listings, dashStats] = await Promise.all([
+  const [listings, dashStats, wholesale, wallet] = await Promise.all([
     fetchVendorListings(vendor.id),
     fetchVendorDashboardStats(vendor.id),
+    fetchWholesaleCatalogue(),
+    getOrCreateVendorWallet(vendor.id),
   ]);
   const activeListings = listings.filter((l) => l.active).length;
 
@@ -49,24 +52,22 @@ export default async function VendorDashboardPage() {
         <StatCard label="Active listings" value={String(activeListings)} icon={Package} />
       </div>
 
+      <WholesaleOverviewMini
+        wholesale={wholesale}
+        variant="vendor"
+        walletBalance={wallet.balance}
+      />
+
       {activeListings === 0 && (
-        <div className="card-elevated p-6">
+        <div className="card-elevated p-5">
           <Badge>Get started</Badge>
-          <h3 className="mt-3 text-lg font-bold">Order your first data bundle</h3>
+          <h3 className="mt-2 text-base font-bold">Set your resale prices</h3>
           <p className="mt-1 text-sm text-muted">
-            Browse the DCS wholesale catalogue, place orders, then set your markup to resell.
+            After buying data above, activate bundles and add markup on your store.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href="/vendor/dashboard/wholesale">
-                Buy data
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="secondary" asChild>
-              <Link href="/vendor/dashboard/catalogue">Set resale pricing</Link>
-            </Button>
-          </div>
+          <Button className="mt-3" variant="secondary" asChild>
+            <Link href="/vendor/dashboard/catalogue">Set resale pricing</Link>
+          </Button>
         </div>
       )}
 
