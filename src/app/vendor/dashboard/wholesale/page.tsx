@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { WholesaleTerminal } from "@/components/vendor/wholesale-terminal";
 import { getCurrentVendor } from "@/lib/auth/session";
+import type { NetworkId } from "@/lib/constants";
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
 import { getOrCreateVendorWallet } from "@/lib/payments/wallet";
 
@@ -10,7 +11,13 @@ export const dynamic = "force-dynamic";
 export default async function WholesaleBuyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ topup?: string; ref?: string }>;
+  searchParams: Promise<{
+    topup?: string;
+    ref?: string;
+    network?: string;
+    line?: string;
+    mode?: string;
+  }>;
 }) {
   const vendor = await getCurrentVendor();
   if (!vendor) redirect("/auth/login");
@@ -19,25 +26,28 @@ export default async function WholesaleBuyPage({
     return <SetupFeeGate />;
   }
 
-  const [wholesale, wallet, sp] = await Promise.all([
+  const sp = await searchParams;
+  const [wholesale, wallet] = await Promise.all([
     fetchWholesaleCatalogue(),
     getOrCreateVendorWallet(vendor.id),
-    searchParams,
   ]);
 
+  const networkParam = sp.network as NetworkId | undefined;
+  const initialNetwork =
+    networkParam && ["mtn", "telecel", "at"].includes(networkParam) ? networkParam : "all";
+  const initialLine =
+    sp.line === "ishare" || sp.line === "bigtime" ? sp.line : undefined;
+  const initialMode = sp.mode === "bulk" ? "bulk" : "shop";
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold">Buy Data</h2>
-        <p className="mt-1 text-sm text-muted">
-          Top up your wallet, pick products, and place orders instantly.
-        </p>
-      </div>
-      <WholesaleTerminal
-        wholesale={wholesale}
-        initialBalance={wallet.balance}
-        topupCallback={sp.topup === "1" ? sp.ref : undefined}
-      />
-    </div>
+    <WholesaleTerminal
+      wholesale={wholesale}
+      initialBalance={wallet.balance}
+      topupCallback={sp.ref ? sp.ref : undefined}
+      initialNetwork={initialNetwork}
+      initialLine={initialLine}
+      initialMode={initialMode}
+      openTopupOnMount={sp.topup === "1" && !sp.ref}
+    />
   );
 }

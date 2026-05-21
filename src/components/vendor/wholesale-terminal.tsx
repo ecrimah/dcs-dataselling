@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FileSpreadsheet,
   Loader2,
-  MessageCircle,
   Phone,
   Plus,
   ShoppingCart,
@@ -13,7 +12,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { SITE } from "@/lib/constants";
 import type { NetworkId } from "@/lib/constants";
 import { formatDataAmount, formatGHS } from "@/lib/format";
 import { NetworkBadge } from "@/components/marketplace/network-badge";
@@ -35,9 +33,12 @@ interface Props {
   wholesale: WholesaleBundle[];
   initialBalance: number;
   topupCallback?: string;
+  initialNetwork?: NetworkFilter;
+  initialLine?: "ishare" | "bigtime";
+  initialMode?: Mode;
+  openTopupOnMount?: boolean;
 }
 
-const WA_LINK = `https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`;
 const TOPUP_PRESETS = [50, 100, 200, 500];
 
 function phoneValid(raw: string) {
@@ -48,14 +49,23 @@ function normalizeInput(raw: string) {
   return raw.replace(/\D/g, "").slice(0, 10);
 }
 
-export function WholesaleTerminal({ wholesale, initialBalance, topupCallback }: Props) {
+export function WholesaleTerminal({
+  wholesale,
+  initialBalance,
+  topupCallback,
+  initialNetwork = "all",
+  initialLine,
+  initialMode = "shop",
+  openTopupOnMount = false,
+}: Props) {
   const [balance, setBalance] = useState(initialBalance);
-  const [mode, setMode] = useState<Mode>("shop");
-  const [network, setNetwork] = useState<NetworkFilter>("all");
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [network, setNetwork] = useState<NetworkFilter>(initialNetwork);
+  const [lineFilter] = useState<"ishare" | "bigtime" | undefined>(initialLine);
   const [phones, setPhones] = useState<Record<string, string>>({});
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [topupOpen, setTopupOpen] = useState(false);
+  const [topupOpen, setTopupOpen] = useState(openTopupOnMount);
   const [topupAmount, setTopupAmount] = useState("100");
   const [loading, setLoading] = useState(false);
 
@@ -96,9 +106,18 @@ export function WholesaleTerminal({ wholesale, initialBalance, topupCallback }: 
   }, [topupCallback, refreshBalance]);
 
   const filtered = useMemo(() => {
-    if (network === "all") return wholesale;
-    return wholesale.filter((w) => w.network === network);
-  }, [wholesale, network]);
+    let items = network === "all" ? wholesale : wholesale.filter((w) => w.network === network);
+    if (lineFilter && network === "at") {
+      const q = lineFilter === "ishare" ? "ishare" : "bigtime";
+      items = items.filter(
+        (w) =>
+          w.name.toLowerCase().includes(q) ||
+          w.sku.toLowerCase().includes(q) ||
+          (lineFilter === "ishare" && !w.name.toLowerCase().includes("bigtime")),
+      );
+    }
+    return items;
+  }, [wholesale, network, lineFilter]);
 
   const cartTotal = useMemo(
     () =>
@@ -627,17 +646,6 @@ export function WholesaleTerminal({ wholesale, initialBalance, topupCallback }: 
           </div>
         </div>
       )}
-
-      {/* Floating WhatsApp */}
-      <a
-        href={WA_LINK}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/30 transition-transform hover:scale-105 sm:bottom-8 sm:right-8"
-        aria-label="WhatsApp support"
-      >
-        <MessageCircle className="h-7 w-7" />
-      </a>
     </div>
   );
 }

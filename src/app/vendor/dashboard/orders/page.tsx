@@ -4,7 +4,6 @@ import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentVendor } from "@/lib/auth/session";
-import { fetchVendorDashboardStats } from "@/lib/data/queries";
 import { fetchVendorWholesaleOrders } from "@/lib/payments/wholesale-order";
 import { formatDataAmount, formatGHS, formatPhone } from "@/lib/format";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -59,7 +58,7 @@ export default async function VendorOrdersPage({
   ]);
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8 text-white">
       {params.paid === "1" && (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800">
           Payment received{params.ref ? ` — ref ${params.ref}` : ""}. Your order is queued for
@@ -69,8 +68,8 @@ export default async function VendorOrdersPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold">My Orders</h2>
-          <p className="mt-1 text-sm text-muted">
+          <h2 className="text-xl font-bold text-white">My Orders</h2>
+          <p className="mt-1 text-sm text-white/55">
             Wholesale supply orders you placed with DCS, and customer orders through your store.
           </p>
         </div>
