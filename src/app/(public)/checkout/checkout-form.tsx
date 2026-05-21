@@ -58,7 +58,7 @@ export function CheckoutForm({ bundle }: Props) {
             Open your agent&apos;s store link to pick a bundle and continue checkout.
           </p>
           <Button className="mt-5" asChild>
-            <Link href="/buy">
+            <Link href="/">
               Open agent store
               <ArrowRight className="h-4 w-4" />
             </Link>

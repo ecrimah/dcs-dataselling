@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { fetchAdminWholesaleOrders } from "@/lib/data/admin-agent-ops";
 import { Badge } from "@/components/ui/badge";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { formatDistanceToNow } from "date-fns";
@@ -41,20 +42,28 @@ export default async function AdminOrdersPage() {
   }
 
   let orders: OrderRow[] = [];
+  let wholesaleOrders: Awaited<ReturnType<typeof fetchAdminWholesaleOrders>> = [];
 
   {
     const service = createServiceClient();
-    const { data, error } = await service
-      .from("orders")
-      .select(
-        `
+    const [customerData, wholesale] = await Promise.all([
+      service
+        .from("orders")
+        .select(
+          `
         id, reference, recipient_phone, amount, status, payment_provider, created_at,
         vendors!inner ( business_name, slug ),
         bundles ( name )
       `,
-      )
-      .order("created_at", { ascending: false })
-      .limit(100);
+        )
+        .order("created_at", { ascending: false })
+        .limit(100),
+      fetchAdminWholesaleOrders(50),
+    ]);
+
+    wholesaleOrders = wholesale;
+
+    const { data, error } = customerData;
 
     if (!error && data) {
       orders = data.map((row) => {
@@ -88,14 +97,68 @@ export default async function AdminOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-bold">All orders</h2>
-        <p className="mt-1 text-sm text-muted">{orders.length} recent orders</p>
+        <h2 className="text-xl font-bold">Orders</h2>
+        <p className="mt-1 text-sm text-muted">
+          Agent supply orders and customer storefront orders — mirrors{" "}
+          <span className="font-mono">/vendor/dashboard/orders</span>
+        </p>
       </div>
 
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
+          Wholesale orders (agents → DCS)
+        </h3>
+        {wholesaleOrders.length === 0 ? (
+          <div className="card-elevated p-8 text-center text-muted">No wholesale orders yet.</div>
+        ) : (
+          <div className="card-elevated overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
+                    <th className="px-4 py-3 font-medium">Reference</th>
+                    <th className="px-4 py-3 font-medium">Agent</th>
+                    <th className="px-4 py-3 font-medium">Amount</th>
+                    <th className="px-4 py-3 font-medium">Lines</th>
+                    <th className="px-4 py-3 font-medium">Source</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">When</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wholesaleOrders.map((o) => (
+                    <tr key={o.id} className="border-b border-border/60 last:border-0">
+                      <td className="px-4 py-3 font-mono text-xs font-semibold">{o.reference}</td>
+                      <td className="px-4 py-3">{o.vendor_name}</td>
+                      <td className="px-4 py-3 num font-medium">{formatGHS(o.total_amount)}</td>
+                      <td className="px-4 py-3">{o.item_count}</td>
+                      <td className="px-4 py-3 capitalize text-muted">{o.source}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={o.status === "fulfilled" ? "success" : "warning"}>
+                          {o.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted">
+                        {formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
+          Customer orders (agent stores)
+        </h3>
+
       {orders.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-muted">No orders yet.</div>
+        <div className="card-elevated p-8 text-center text-muted">No customer orders yet.</div>
       ) : (
       <div className="card-elevated overflow-hidden">
         <div className="overflow-x-auto">
@@ -139,6 +202,7 @@ export default async function AdminOrdersPage() {
         </div>
       </div>
       )}
+      </section>
     </div>
   );
 }

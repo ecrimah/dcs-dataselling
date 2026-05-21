@@ -209,14 +209,14 @@ export default function SupportPage() {
               </p>
             </div>
             <Link
-              href="/buy"
+              href="/create-store"
               className="inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
                 boxShadow: "0 6px 18px rgba(212, 175, 55, 0.3)",
               }}
             >
-              Buy data
+              Sell on DCS
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

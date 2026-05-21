@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { formatGHS, formatPhone } from "@/lib/format";
 import {
+  fetchAdminAgentRewardBalances,
   fetchAdminMtnAfaApplications,
   fetchAdminPromoCodes,
   fetchAdminRewardWithdrawals,
@@ -27,12 +28,13 @@ export default async function AdminAgentOpsPage() {
     );
   }
 
-  const [promos, withdrawals, complaints, mtnAfa, apiKeys] = await Promise.all([
+  const [promos, withdrawals, complaints, mtnAfa, apiKeys, rewardBalances] = await Promise.all([
     fetchAdminPromoCodes(),
     fetchAdminRewardWithdrawals(),
     fetchAdminVendorComplaints(),
     fetchAdminMtnAfaApplications(),
     fetchAdminVendorApiKeys(),
+    fetchAdminAgentRewardBalances(),
   ]);
 
   const pendingWithdrawals = withdrawals.filter((w) =>
@@ -46,8 +48,8 @@ export default async function AdminAgentOpsPage() {
       <div>
         <h2 className="text-xl font-bold">Agent operations</h2>
         <p className="mt-1 text-sm text-muted">
-          Manage ClaimIt promos, reward payouts, agent complaints, MTN AFA, and developer keys —
-          mirrors the vendor More menu.
+          Manage agent Account and Extra Services items — rewards, ClaimIt, complaints, MTN AFA,
+          and developer keys. Sidebar links map to each section below.
         </p>
       </div>
 
@@ -58,8 +60,42 @@ export default async function AdminAgentOpsPage() {
         <Metric label="Active promo codes" value={String(promos.filter((p) => p.active).length)} />
       </div>
 
+      {/* Agent reward balances */}
+      <section id="rewards" className="scroll-mt-6 card-elevated p-5">
+        <h3 className="font-semibold">Agent rewards</h3>
+        <p className="mt-1 text-xs text-muted">
+          Wallet and reward balances — mirrors{" "}
+          <span className="font-mono">/vendor/dashboard/rewards</span>
+        </p>
+
+        {rewardBalances.length === 0 ? (
+          <p className="mt-4 text-sm text-muted">No agent balances recorded yet.</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-muted">
+                  <th className="pb-3 font-medium">Agent</th>
+                  <th className="pb-3 font-medium">Wallet</th>
+                  <th className="pb-3 font-medium">Reward balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rewardBalances.map((r) => (
+                  <tr key={r.id} className="border-b border-border/50">
+                    <td className="py-3 font-medium">{r.vendor_name}</td>
+                    <td className="py-3 num">{formatGHS(r.wallet_balance)}</td>
+                    <td className="py-3 num font-semibold">{formatGHS(r.reward_balance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       {/* ClaimIt promo codes */}
-      <section className="card-elevated p-5">
+      <section id="claimit" className="scroll-mt-6 card-elevated p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="font-semibold">ClaimIt promo codes</h3>
@@ -105,7 +141,7 @@ export default async function AdminAgentOpsPage() {
       </section>
 
       {/* Reward withdrawals */}
-      <section className="card-elevated p-5">
+      <section id="withdrawals" className="scroll-mt-6 card-elevated p-5">
         <h3 className="font-semibold">Reward withdrawals</h3>
         <p className="mt-1 text-xs text-muted">
           Agents request MoMo payouts from{" "}
@@ -151,7 +187,7 @@ export default async function AdminAgentOpsPage() {
       </section>
 
       {/* Complaints */}
-      <section className="card-elevated p-5">
+      <section id="complaints" className="scroll-mt-6 card-elevated p-5">
         <h3 className="font-semibold">Agent complaints</h3>
         <p className="mt-1 text-xs text-muted">
           Inbox from <span className="font-mono">/vendor/dashboard/complaints</span>
@@ -197,7 +233,7 @@ export default async function AdminAgentOpsPage() {
       </section>
 
       {/* MTN AFA */}
-      <section className="card-elevated p-5">
+      <section id="mtn-afa" className="scroll-mt-6 card-elevated p-5">
         <h3 className="font-semibold">MTN AFA applications</h3>
         <p className="mt-1 text-xs text-muted">
           Review agent IDs from <span className="font-mono">/vendor/dashboard/mtn-afa</span>
@@ -241,7 +277,7 @@ export default async function AdminAgentOpsPage() {
       </section>
 
       {/* Developer API keys */}
-      <section className="card-elevated p-5">
+      <section id="developer" className="scroll-mt-6 card-elevated p-5">
         <h3 className="font-semibold">Developer API keys</h3>
         <p className="mt-1 text-xs text-muted">
           Keys created at <span className="font-mono">/vendor/dashboard/developer</span> (prefix only)

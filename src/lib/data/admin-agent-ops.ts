@@ -271,3 +271,141 @@ export async function fetchAdminVendorApiKeys(): Promise<AdminVendorApiKeyRow[]>
     };
   });
 }
+
+export interface AdminWalletLedgerRow {
+  id: string;
+  vendor_name: string;
+  amount: number;
+  entry_type: string;
+  reference: string | null;
+  note: string | null;
+  balance_after: number | null;
+  created_at: string;
+}
+
+export interface AdminAgentRewardRow {
+  id: string;
+  vendor_name: string;
+  reward_balance: number;
+  wallet_balance: number;
+}
+
+export interface AdminWholesaleOrderRow {
+  id: string;
+  reference: string;
+  vendor_name: string;
+  status: string;
+  total_amount: number;
+  item_count: number;
+  source: string;
+  created_at: string;
+}
+
+export async function fetchAdminWalletLedger(limit = 100): Promise<AdminWalletLedgerRow[]> {
+  if (!hasSupabaseConfig()) return [];
+  const service = createServiceClient();
+  const { data } = await service
+    .from("wallet_ledger")
+    .select(
+      `
+      id, amount, entry_type, reference, note, balance_after, created_at,
+      vendors!inner ( business_name )
+    `,
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      amount: number;
+      entry_type: string;
+      reference: string | null;
+      note: string | null;
+      balance_after: number | null;
+      created_at: string;
+      vendors: { business_name: string } | { business_name: string }[];
+    };
+    return {
+      id: r.id,
+      vendor_name: vendorName(r.vendors),
+      amount: Number(r.amount),
+      entry_type: r.entry_type,
+      reference: r.reference,
+      note: r.note,
+      balance_after: r.balance_after != null ? Number(r.balance_after) : null,
+      created_at: r.created_at,
+    };
+  });
+}
+
+export async function fetchAdminAgentRewardBalances(): Promise<AdminAgentRewardRow[]> {
+  if (!hasSupabaseConfig()) return [];
+  const service = createServiceClient();
+  const { data } = await service
+    .from("vendors")
+    .select(
+      `
+      id, business_name, reward_balance,
+      wallets ( balance )
+    `,
+    )
+    .order("reward_balance", { ascending: false })
+    .limit(50);
+
+  return (data ?? [])
+    .map((row) => {
+      const r = row as {
+        id: string;
+        business_name: string;
+        reward_balance: number;
+        wallets: { balance: number } | { balance: number }[] | null;
+      };
+      const wallet = Array.isArray(r.wallets) ? r.wallets[0] : r.wallets;
+      return {
+        id: r.id,
+        vendor_name: r.business_name,
+        reward_balance: Number(r.reward_balance),
+        wallet_balance: Number(wallet?.balance ?? 0),
+      };
+    })
+    .filter((r) => r.reward_balance > 0 || r.wallet_balance > 0);
+}
+
+export async function fetchAdminWholesaleOrders(limit = 50): Promise<AdminWholesaleOrderRow[]> {
+  if (!hasSupabaseConfig()) return [];
+  const service = createServiceClient();
+  const { data } = await service
+    .from("wholesale_orders")
+    .select(
+      `
+      id, reference, status, total_amount, item_count, source, created_at,
+      vendors!inner ( business_name )
+    `,
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? []).map((row) => {
+    const r = row as {
+      id: string;
+      reference: string;
+      status: string;
+      total_amount: number;
+      item_count: number;
+      source: string;
+      created_at: string;
+      vendors: { business_name: string } | { business_name: string }[];
+    };
+    return {
+      id: r.id,
+      reference: r.reference,
+      vendor_name: vendorName(r.vendors),
+      status: r.status,
+      total_amount: Number(r.total_amount),
+      item_count: r.item_count,
+      source: r.source,
+      created_at: r.created_at,
+    };
+  });
+}

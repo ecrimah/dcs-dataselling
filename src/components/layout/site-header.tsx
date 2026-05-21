@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { DcsLogo } from "@/components/brand/dcs-logo";
 
 const NAV = [
-  { href: "/buy", label: "Buy Data" },
   { href: "/create-store", label: "Sell on DCS" },
   { href: "/support", label: "Support" },
 ];
@@ -108,7 +107,7 @@ export function SiteHeader() {
               <ChevronDown className="h-3 w-3" />
             </Link>
             <Link
-              href="/buy"
+              href="/create-store"
               className="group relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all hover:brightness-105"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
@@ -116,7 +115,7 @@ export function SiteHeader() {
                   "0 6px 18px rgba(212, 175, 55, 0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
               }}
             >
-              <span>Buy data</span>
+              <span>Sell on DCS</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -174,14 +173,14 @@ export function SiteHeader() {
               Sign in
             </Link>
             <Link
-              href="/buy"
+              href="/create-store"
               className="rounded-full px-4 py-2 text-center text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4AF37 0%, #F4D160 100%)",
               }}
               onClick={() => setOpen(false)}
             >
-              Buy data →
+              Sell on DCS →
             </Link>
           </div>
         </div>

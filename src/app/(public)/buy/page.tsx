@@ -1,3 +1,11 @@
+import { redirect } from "next/navigation";
+
+/** Buy page disabled — customers open their agent's store link directly. */
+export default function BuyPage() {
+  redirect("/");
+}
+
+/*
 import Link from "next/link";
 import { ArrowRight, Store, ShieldCheck } from "lucide-react";
 import { PageHero } from "@/components/layout/page-hero";
@@ -80,3 +88,4 @@ export default function BuyPage() {
     </div>
   );
 }
+*/

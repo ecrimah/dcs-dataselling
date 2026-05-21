@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-    { url: `${base}/buy`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    // { url: `${base}/buy`, ... } — buy page disabled
     {
       url: `${base}/create-store`,
       lastModified: new Date(),

@@ -78,10 +78,10 @@ export default function LoginPage() {
             <DcsLogo size={36} />
           </Link>
           <Link
-            href="/buy"
+            href="/support"
             className="text-xs font-semibold text-cyan-700 hover:text-cyan-600"
           >
-            Buy data →
+            Support →
           </Link>
         </div>
 
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button variant="secondary" size="sm" className="w-full" asChild>
-                  <Link href="/buy">Buy data</Link>
+                  <Link href="/support">Get support</Link>
                 </Button>
                 <Button variant="secondary" size="sm" className="w-full" asChild>
                   <Link href="/create-store">

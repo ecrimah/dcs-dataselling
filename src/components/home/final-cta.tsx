@@ -28,17 +28,17 @@ export function FinalCta() {
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
             <Button size="sm" asChild>
-              <Link href="/buy">
-                Buy through your agent
+              <Link href="/create-store">
+                Create your store
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
             <Button size="sm" variant="outline" asChild>
-              <Link href="/create-store">Create your store</Link>
+              <Link href="/support">Get support</Link>
             </Button>
           </div>
           <p className="mt-4 text-[11px] text-slate-400">
-            No signup needed to buy · 5-min setup to sell
+            Customers buy via their agent&apos;s link · 5-min setup to sell
           </p>
         </div>
       </div>
