@@ -26,6 +26,7 @@ import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
 import { DcsLogo } from "@/components/brand/dcs-logo";
 import { AgentFabStack } from "@/components/vendor/agent-fab-stack";
+import { useVendorCart } from "@/components/vendor/vendor-cart-context";
 import { cn } from "@/lib/utils";
 
 const BOTTOM_NAV = [
@@ -66,7 +67,6 @@ interface AgentShellProps {
   vendorName: string;
   businessName: string;
   tier: string;
-  cartCount?: number;
   children: React.ReactNode;
 }
 
@@ -74,10 +74,10 @@ export function AgentShell({
   vendorName,
   businessName,
   tier,
-  cartCount = 0,
   children,
 }: AgentShellProps) {
   const pathname = usePathname();
+  const { count: cartCount } = useVendorCart();
   const [moreOpen, setMoreOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -153,7 +153,7 @@ export function AgentShell({
                 <Bell className="h-5 w-5 text-white/60" />
               </button>
               <Link
-                href="/vendor/dashboard/wholesale"
+                href="/vendor/dashboard/wholesale?cart=1"
                 className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gold text-navy-950 shadow-lg"
                 aria-label="Cart"
               >

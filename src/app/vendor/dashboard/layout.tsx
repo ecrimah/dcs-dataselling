@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AgentShell } from "@/components/vendor/agent-shell";
+import { VendorCartProvider } from "@/components/vendor/vendor-cart-context";
 import { getCurrentProfile, getCurrentVendor } from "@/lib/auth/session";
 
 export default async function VendorDashboardLayout({
@@ -20,12 +21,10 @@ export default async function VendorDashboardLayout({
         : "Agent";
 
   return (
-    <AgentShell
-      vendorName={vendorName}
-      businessName={vendor.businessName}
-      tier={tierLabel}
-    >
-      {children}
-    </AgentShell>
+    <VendorCartProvider>
+      <AgentShell vendorName={vendorName} businessName={vendor.businessName} tier={tierLabel}>
+        {children}
+      </AgentShell>
+    </VendorCartProvider>
   );
 }

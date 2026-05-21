@@ -17,6 +17,7 @@ export default async function WholesaleBuyPage({
     network?: string;
     line?: string;
     mode?: string;
+    cart?: string;
   }>;
 }) {
   const vendor = await getCurrentVendor();
@@ -48,6 +49,7 @@ export default async function WholesaleBuyPage({
       initialLine={initialLine}
       initialMode={initialMode}
       openTopupOnMount={sp.topup === "1" && !sp.ref}
+      openCartOnMount={sp.cart === "1"}
     />
   );
 }

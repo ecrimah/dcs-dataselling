@@ -16,9 +16,11 @@ interface WholesaleRow {
   max_markup: number | null;
   popular: boolean;
   active: boolean;
+  product_line?: string | null;
 }
 
 function rowToWholesale(row: WholesaleRow): WholesaleBundle {
+  const line = row.product_line as WholesaleBundle["productLine"];
   return {
     id: row.id,
     sku: row.sku,
@@ -31,6 +33,7 @@ function rowToWholesale(row: WholesaleRow): WholesaleBundle {
     minMarkup: Number(row.min_markup),
     maxMarkup: row.max_markup ? Number(row.max_markup) : null,
     popular: row.popular,
+    productLine: line ?? null,
   };
 }
 
@@ -40,7 +43,7 @@ export async function fetchWholesaleCatalogue(activeOnly = true): Promise<Wholes
   let query = supabase
     .from("wholesale_bundles")
     .select(
-      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active",
+      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line",
     )
     .order("network")
     .order("data_mb");
@@ -58,7 +61,7 @@ export async function fetchAdminWholesaleCatalogue(): Promise<AdminWholesaleRow[
   const { data, error } = await supabase
     .from("wholesale_bundles")
     .select(
-      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active",
+      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line",
     )
     .order("network")
     .order("data_mb");

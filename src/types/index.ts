@@ -53,6 +53,7 @@ export interface WholesaleBundle {
   minMarkup: number;
   maxMarkup: number | null;
   popular: boolean;
+  productLine?: "standard" | "ishare" | "bigtime" | null;
 }
 
 export interface VendorListing {

@@ -18,16 +18,11 @@ import { NetworkBadge } from "@/components/marketplace/network-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useVendorCart } from "@/components/vendor/vendor-cart-context";
 import type { WholesaleBundle } from "@/types";
 
 type NetworkFilter = "all" | NetworkId;
 type Mode = "shop" | "bulk";
-
-interface CartLine {
-  key: string;
-  bundleId: string;
-  phone: string;
-}
 
 interface Props {
   wholesale: WholesaleBundle[];
@@ -37,6 +32,7 @@ interface Props {
   initialLine?: "ishare" | "bigtime";
   initialMode?: Mode;
   openTopupOnMount?: boolean;
+  openCartOnMount?: boolean;
 }
 
 const TOPUP_PRESETS = [50, 100, 200, 500];
@@ -57,14 +53,15 @@ export function WholesaleTerminal({
   initialLine,
   initialMode = "shop",
   openTopupOnMount = false,
+  openCartOnMount = false,
 }: Props) {
+  const { cart, addLine, removeLine, clearCart } = useVendorCart();
   const [balance, setBalance] = useState(initialBalance);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [network, setNetwork] = useState<NetworkFilter>(initialNetwork);
   const [lineFilter] = useState<"ishare" | "bigtime" | undefined>(initialLine);
   const [phones, setPhones] = useState<Record<string, string>>({});
-  const [cart, setCart] = useState<CartLine[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(openCartOnMount);
   const [topupOpen, setTopupOpen] = useState(openTopupOnMount);
   const [topupAmount, setTopupAmount] = useState("100");
   const [loading, setLoading] = useState(false);
@@ -108,13 +105,14 @@ export function WholesaleTerminal({
   const filtered = useMemo(() => {
     let items = network === "all" ? wholesale : wholesale.filter((w) => w.network === network);
     if (lineFilter && network === "at") {
-      const q = lineFilter === "ishare" ? "ishare" : "bigtime";
-      items = items.filter(
-        (w) =>
+      items = items.filter((w) => {
+        if (w.productLine) return w.productLine === lineFilter;
+        const q = lineFilter === "ishare" ? "ishare" : "bigtime";
+        return (
           w.name.toLowerCase().includes(q) ||
-          w.sku.toLowerCase().includes(q) ||
-          (lineFilter === "ishare" && !w.name.toLowerCase().includes("bigtime")),
-      );
+          w.sku.toLowerCase().includes(q)
+        );
+      });
     }
     return items;
   }, [wholesale, network, lineFilter]);
@@ -142,15 +140,12 @@ export function WholesaleTerminal({
       toast.error("Enter a valid 10-digit phone number");
       return;
     }
-    setCart((prev) => [
-      ...prev,
-      { key: `${bundle.id}-${phone}-${Date.now()}`, bundleId: bundle.id, phone },
-    ]);
+    addLine({ bundleId: bundle.id, phone });
     toast.success("Added to cart");
   }
 
   function removeFromCart(key: string) {
-    setCart((prev) => prev.filter((c) => c.key !== key));
+    removeLine(key);
   }
 
   async function startTopup() {
@@ -206,7 +201,7 @@ export function WholesaleTerminal({
         return;
       }
       if (!res.ok) throw new Error(data.error ?? "Checkout failed");
-      setCart([]);
+      clearCart();
       setCartOpen(false);
       setBalance(Number(data.balance ?? balance - cartTotal));
       toast.success(`Order placed · ${data.reference}`);
