@@ -36,6 +36,7 @@ yarn-error.log*
 
 # cursor / local
 .cursor/
+tmp-audio/
 
 # vercel
 .vercel

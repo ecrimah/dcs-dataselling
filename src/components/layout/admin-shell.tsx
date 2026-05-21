@@ -23,6 +23,7 @@ import {
   BarChart3,
   Settings,
   Layers,
+  MessageCircle,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -157,6 +158,12 @@ const NAV_SECTIONS: NavSection[] = [
         label: "Analytics",
         icon: BarChart3,
         match: (p) => p.startsWith("/admin/analytics"),
+      },
+      {
+        href: "/admin/sms-debugger",
+        label: "SMS Debugger",
+        icon: MessageCircle,
+        match: (p) => p.startsWith("/admin/sms-debugger"),
       },
       {
         href: "/admin/settings",

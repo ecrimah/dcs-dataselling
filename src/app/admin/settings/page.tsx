@@ -54,14 +54,11 @@ export default function AdminSettingsPage() {
               Vendor governance →
             </Link>
           </li>
-          {/* Public buy page disabled — customers use agent store links */}
-          {/*
           <li>
-            <Link href="/buy" className="hover:underline">
-              Public buy page →
+            <Link href="/admin/sms-debugger" className="hover:underline">
+              SMS debugger →
             </Link>
           </li>
-          */}
         </ul>
         <p className="mt-4 text-xs text-muted">
           Payment keys and service role secrets are managed via environment variables only —
