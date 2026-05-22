@@ -184,11 +184,20 @@ function hashApiKey(key: string) {
   return crypto.createHash("sha256").update(key).digest("hex");
 }
 
-export async function createVendorApiKey(vendorId: string, name: string) {
+export async function createVendorApiKey(
+  vendorId: string,
+  name: string,
+  options: { expiresInDays?: number } = {},
+) {
   if (!hasSupabaseConfig()) throw new Error("Database not configured");
   const plain = `dcs_${crypto.randomBytes(24).toString("hex")}`;
   const prefix = plain.slice(0, 12);
   const service = createServiceClient();
+
+  const expiresAt =
+    options.expiresInDays && options.expiresInDays > 0
+      ? new Date(Date.now() + options.expiresInDays * 24 * 60 * 60 * 1000).toISOString()
+      : null;
 
   const { data, error } = await service
     .from("vendor_api_keys")
@@ -198,12 +207,22 @@ export async function createVendorApiKey(vendorId: string, name: string) {
       key_hash: hashApiKey(plain),
       key_prefix: prefix,
       active: true,
+      expires_at: expiresAt,
     })
-    .select("id, name, key_prefix, created_at")
+    .select("id, name, key_prefix, created_at, expires_at")
     .single();
 
   if (error || !data) throw new Error("Could not create API key");
-  return { ...(data as { id: string; name: string; key_prefix: string; created_at: string }), key: plain };
+  return {
+    ...(data as {
+      id: string;
+      name: string;
+      key_prefix: string;
+      created_at: string;
+      expires_at: string | null;
+    }),
+    key: plain,
+  };
 }
 
 export async function fetchVendorApiKeys(vendorId: string) {
@@ -229,7 +248,7 @@ export async function revokeVendorApiKey(vendorId: string, keyId: string) {
   const service = createServiceClient();
   await service
     .from("vendor_api_keys")
-    .update({ active: false })
+    .update({ active: false, revoked_at: new Date().toISOString() })
     .eq("id", keyId)
     .eq("vendor_id", vendorId);
 }

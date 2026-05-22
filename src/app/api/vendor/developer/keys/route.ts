@@ -18,7 +18,10 @@ export async function GET() {
   return NextResponse.json({ keys });
 }
 
-const createSchema = z.object({ name: z.string().max(60).optional() });
+const createSchema = z.object({
+  name: z.string().max(60).optional(),
+  expires_in_days: z.number().int().min(1).max(365).optional(),
+});
 
 export async function POST(request: Request) {
   if (!hasSupabaseConfig()) {
@@ -30,7 +33,9 @@ export async function POST(request: Request) {
 
   try {
     const body = createSchema.parse(await request.json().catch(() => ({})));
-    const key = await createVendorApiKey(ctx.vendorId, body.name ?? "Default");
+    const key = await createVendorApiKey(ctx.vendorId, body.name ?? "Default", {
+      expiresInDays: body.expires_in_days,
+    });
     return NextResponse.json({ success: true, key });
   } catch (e) {
     return NextResponse.json(

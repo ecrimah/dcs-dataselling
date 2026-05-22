@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { deliverVendorWebhook } from "@/lib/notifications/vendor-webhook";
 import { getSupplierForNetwork } from "./registry";
 import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
@@ -377,14 +378,93 @@ export async function resolveSupplierItemsProcessed(args: {
           .from("wholesale_orders")
           .update({ status: "fulfilled", fulfilled_at: now })
           .eq("id", parentId);
+        await fireVendorWebhookForWholesaleOrder(parentId, "order.fulfilled");
       } else if (anyFailed && rows.every((r) => ["fulfilled", "failed"].includes(r.status))) {
         await service
           .from("wholesale_orders")
           .update({ status: "failed" })
           .eq("id", parentId);
+        await fireVendorWebhookForWholesaleOrder(parentId, "order.failed");
       }
     }
   }
 
   return { customerOrdersFulfilled, wholesaleItemsFulfilled };
+}
+
+async function fireVendorWebhookForWholesaleOrder(
+  wholesaleOrderId: string,
+  event: "order.fulfilled" | "order.failed",
+): Promise<void> {
+  if (!hasSupabaseConfig()) return;
+  const service = createServiceClient();
+  const { data } = await service
+    .from("wholesale_orders")
+    .select(
+      `
+      id, reference, vendor_id, status, total_amount, item_count, created_at, fulfilled_at,
+      wholesale_order_items (
+        recipient_phone, quantity, unit_price, line_total, status, supplier_status,
+        wholesale_bundles ( sku, name, network, data_mb )
+      )
+    `,
+    )
+    .eq("id", wholesaleOrderId)
+    .maybeSingle();
+
+  if (!data) return;
+
+  type Item = {
+    recipient_phone: string;
+    quantity: number;
+    unit_price: number;
+    line_total: number;
+    status: string;
+    supplier_status: string | null;
+    wholesale_bundles:
+      | { sku: string; name: string; network: string; data_mb: number }
+      | { sku: string; name: string; network: string; data_mb: number }[]
+      | null;
+  };
+  type Row = {
+    id: string;
+    reference: string;
+    vendor_id: string;
+    status: string;
+    total_amount: number;
+    item_count: number;
+    created_at: string;
+    fulfilled_at: string | null;
+    wholesale_order_items: Item[];
+  };
+  const o = data as Row;
+
+  await deliverVendorWebhook({
+    vendorId: o.vendor_id,
+    event,
+    reference: o.reference,
+    data: {
+      order_id: o.id,
+      reference: o.reference,
+      status: o.status,
+      total: Number(o.total_amount),
+      item_count: o.item_count,
+      created_at: o.created_at,
+      fulfilled_at: o.fulfilled_at,
+      items: (o.wholesale_order_items ?? []).map((it) => {
+        const b = Array.isArray(it.wholesale_bundles)
+          ? it.wholesale_bundles[0]
+          : it.wholesale_bundles;
+        return {
+          recipient_phone: it.recipient_phone,
+          quantity: it.quantity,
+          line_total: Number(it.line_total),
+          status: it.status,
+          bundle: b
+            ? { sku: b.sku, name: b.name, network: b.network, data_mb: b.data_mb }
+            : null,
+        };
+      }),
+    },
+  });
 }

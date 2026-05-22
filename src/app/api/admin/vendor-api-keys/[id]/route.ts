@@ -17,7 +17,10 @@ export async function DELETE(
 
   const { id } = await params;
   const service = createServiceClient();
-  const { error } = await service.from("vendor_api_keys").update({ active: false }).eq("id", id);
+  const { error } = await service
+    .from("vendor_api_keys")
+    .update({ active: false, revoked_at: new Date().toISOString() })
+    .eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
