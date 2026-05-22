@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
+import { ArrowRight, Check, Copy, MessageCircle, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -50,10 +50,31 @@ export function StorefrontActions({ storeUrl, businessName, whatsappNumber }: Pr
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Primary CTA: jump to bundles */}
+      <a
+        href="#bundles"
+        className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 px-5 text-sm font-black uppercase tracking-wide text-slate-900 shadow-md shadow-amber-400/35 transition-all hover:shadow-amber-400/50 hover:brightness-105"
+      >
+        Buy data now
+        <ArrowRight className="h-4 w-4" />
+      </a>
+
+      {whatsappNumber && (
+        <a
+          href={buildWhatsappLink(whatsappNumber, waMessage)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-bold text-white shadow-md shadow-emerald-500/30 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/50"
+        >
+          <MessageCircle className="h-4 w-4" />
+          WhatsApp
+        </a>
+      )}
+
       <button
         type="button"
         onClick={share}
-        className="inline-flex h-10 items-center gap-2 rounded-xl bg-white/15 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+        className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
       >
         <Share2 className="h-4 w-4" />
         Share
@@ -61,22 +82,11 @@ export function StorefrontActions({ storeUrl, businessName, whatsappNumber }: Pr
       <button
         type="button"
         onClick={copyLink}
-        className="inline-flex h-10 items-center gap-2 rounded-xl bg-white/15 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+        className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         {copied ? "Copied" : "Copy link"}
       </button>
-      {whatsappNumber && (
-        <a
-          href={buildWhatsappLink(whatsappNumber, waMessage)}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-600"
-        >
-          <MessageCircle className="h-4 w-4" />
-          WhatsApp
-        </a>
-      )}
     </div>
   );
 }
