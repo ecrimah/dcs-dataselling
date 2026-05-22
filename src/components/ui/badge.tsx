@@ -2,16 +2,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors",
   {
     variants: {
       variant: {
-        default: "border border-gold/25 bg-gold/10 text-gold-dark",
-        success: "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700",
-        warning: "border border-gold/30 bg-gold/15 text-gold-dark",
-        danger: "border border-red-500/20 bg-red-500/10 text-red-700",
-        neutral: "border border-border bg-surface-soft text-muted",
-        verified: "border border-gold/35 bg-gold/15 text-royal",
+        // Vault chip variants (dark surface)
+        default: "border border-gold/25 bg-gold/14 text-[#f4d160]",
+        success: "border border-emerald-500/30 bg-emerald-500/14 text-emerald-300",
+        warning: "border border-amber-500/30 bg-amber-500/14 text-amber-300",
+        danger: "border border-rose-500/30 bg-rose-500/14 text-rose-300",
+        neutral: "border border-white/8 bg-white/5 text-white/65",
+        verified: "border border-gold/35 bg-gold/18 text-[#fff5cd]",
+        sky: "border border-sky-500/30 bg-sky-500/14 text-sky-300",
+        violet: "border border-violet-500/30 bg-violet-500/14 text-violet-300",
       },
     },
     defaultVariants: { variant: "default" },

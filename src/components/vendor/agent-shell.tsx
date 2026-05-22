@@ -20,6 +20,7 @@ import {
   User,
   Menu,
   Bell,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -171,7 +172,7 @@ function AgentSidebarNav({
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title}>
-            <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-white/30">
+            <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-white/30">
               {section.title}
             </p>
             <ul className="space-y-0.5">
@@ -180,13 +181,13 @@ function AgentSidebarNav({
                   <Link
                     href="/vendor/dashboard/wholesale?cart=1"
                     onClick={onNavigate}
-                    className="flex items-center justify-between rounded-xl bg-navy-950 px-3 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:ring-gold/30"
+                    className="group flex items-center justify-between rounded-xl border border-gold/25 bg-gradient-to-r from-gold/10 to-transparent px-3 py-2.5 text-sm font-semibold text-white transition hover:border-gold/45"
                   >
                     <span className="flex items-center gap-3">
                       <ShoppingCart className="h-4 w-4 text-gold" />
                       Cart
                     </span>
-                    <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-gold px-1.5 text-xs font-bold text-navy-950">
+                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-gold px-1.5 text-[10px] font-bold text-navy-950">
                       {cartCount}
                     </span>
                   </Link>
@@ -200,14 +201,22 @@ function AgentSidebarNav({
                       href={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                        "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                         active
-                          ? "bg-gold text-navy-950 shadow-md shadow-gold/20"
+                          ? "bg-gradient-to-r from-gold/20 via-gold/10 to-transparent text-gold"
                           : "text-white/55 hover:bg-white/5 hover:text-white",
                       )}
                     >
-                      <item.icon className={cn("h-4 w-4 shrink-0", active && "text-navy-950")} />
-                      {item.label}
+                      {active && (
+                        <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-gold" />
+                      )}
+                      <item.icon
+                        className={cn(
+                          "h-4 w-4 shrink-0",
+                          active ? "text-gold" : "text-white/50 group-hover:text-white/80",
+                        )}
+                      />
+                      <span className="truncate">{item.label}</span>
                     </Link>
                   </li>
                 );
@@ -217,22 +226,23 @@ function AgentSidebarNav({
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-white/10 p-3">
-        <div className="mb-3 flex items-center gap-3 rounded-xl px-3 py-2">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
-            <User className="h-5 w-5 text-white/70" />
+      <div className="shrink-0 border-t border-white/[0.06] p-3">
+        <div className="mb-2 flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2.5">
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold-glow text-xs font-bold text-navy-950 ring-2 ring-gold/40">
+            {vendorName.slice(0, 2).toUpperCase()}
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-navy-950 bg-emerald-400" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold uppercase tracking-wide">{vendorName}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">{tier}</p>
+            <p className="truncate text-xs font-bold text-white">{vendorName}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gold/80">{tier}</p>
           </div>
         </div>
         <form action={signOut}>
           <button
             type="submit"
-            className="w-full px-3 py-1 text-left text-sm font-semibold text-red-400 hover:text-red-300"
+            className="w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300"
           >
-            Logout
+            Sign out
           </button>
         </form>
       </div>
@@ -256,13 +266,14 @@ function AgentSidebar({
   className?: string;
 }) {
   return (
-    <aside className={cn("flex h-full w-64 flex-col border-r border-white/10 bg-navy-900", className)}>
+    <aside className={cn("vault-sidebar flex h-full w-64 flex-col border-r", className)}>
       <Link
         href="/vendor/dashboard"
         onClick={onNavigate}
-        className="flex h-16 shrink-0 items-center border-b border-white/10 px-4"
+        className="flex h-16 shrink-0 items-center gap-2 border-b border-white/[0.06] px-4"
       >
-        <DcsLogo size={36} className="max-w-full" />
+        <DcsLogo size={32} className="max-w-full" />
+        <span className="ml-1 chip chip-gold">Agent</span>
       </Link>
       <AgentSidebarNav
         pathname={pathname}
@@ -292,7 +303,7 @@ export function AgentShell({
   void businessName;
 
   return (
-    <div className="vendor-agent-theme flex min-h-screen flex-col bg-navy-950 text-white lg:flex-row">
+    <div className="vendor-agent-theme vault-surface flex min-h-screen flex-col text-white lg:flex-row">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AgentSidebar
@@ -305,37 +316,44 @@ export function AgentShell({
 
       <div className="flex flex-1 flex-col lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-navy-900/95 backdrop-blur-md">
-          <div className="flex items-center justify-between gap-2 px-4 py-2">
-            <div className="flex min-w-0 items-center gap-2">
+        <header className="vault-chrome sticky top-0 z-30 border-b">
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <button
+              type="button"
+              className="rounded-lg p-2 text-white/70 hover:bg-white/5 lg:hidden"
+              onClick={openSidebar}
+              aria-label="Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <span className="inline-flex items-center gap-1.5 chip chip-emerald">
+              <span className="dot dot-emerald dot-pulse" />
+              Open · 24/7
+            </span>
+
+            <div className="search-dark ml-auto hidden w-64 md:flex">
+              <Search className="h-3.5 w-3.5" />
+              <input type="text" placeholder="Search bundles, refs, customers…" aria-label="Search" />
+              <span className="kbd">⌘K</span>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2 md:ml-0">
               <button
                 type="button"
-                className="rounded-lg p-2 hover:bg-white/10 lg:hidden"
-                onClick={openSidebar}
-                aria-label="Menu"
+                className="relative rounded-lg p-2 text-white/70 hover:bg-white/5"
+                aria-label="Notifications"
               >
-                <Menu className="h-5 w-5" />
-              </button>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Open
-              </span>
-              <span className="hidden truncate text-[10px] font-semibold uppercase tracking-wide text-white/45 sm:inline">
-                We are available
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button type="button" className="relative rounded-full p-2 hover:bg-white/10" aria-label="Notifications">
-                <Bell className="h-5 w-5 text-white/60" />
+                <Bell className="h-5 w-5" />
+                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold" />
               </button>
               <Link
                 href="/vendor/dashboard/wholesale?cart=1"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gold text-navy-950 shadow-lg lg:hidden"
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-gold to-gold-glow text-navy-950 shadow-lg shadow-gold/30 lg:hidden"
                 aria-label="Cart"
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-4 w-4" />
                 {cartCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-navy-950 px-1 text-[9px] font-bold text-gold">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-navy-950 bg-navy-950 px-1 text-[9px] font-bold text-gold">
                     {cartCount}
                   </span>
                 )}
@@ -355,39 +373,50 @@ export function AgentShell({
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-navy-900/98 backdrop-blur-md lg:hidden">
+        <nav className="vault-chrome fixed bottom-0 left-0 right-0 z-40 border-t lg:hidden">
           <ul className="grid grid-cols-4">
             {BOTTOM_NAV.map((item) => {
               const active =
                 item.href === "#sidebar" ? sidebarOpen : item.match(pathname);
+              const inner = (
+                <>
+                  <div
+                    className={cn(
+                      "relative flex h-7 w-7 items-center justify-center rounded-lg transition",
+                      active && "bg-gold/15",
+                    )}
+                  >
+                    <item.icon
+                      className={cn("h-4 w-4", active ? "text-gold" : "text-white/55")}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[9px] font-bold uppercase tracking-wider",
+                      active ? "text-gold" : "text-white/50",
+                    )}
+                  >
+                    {item.label}
+                  </span>
+                </>
+              );
               if (item.href === "#sidebar") {
                 return (
                   <li key={item.label}>
                     <button
                       type="button"
                       onClick={openSidebar}
-                      className={cn(
-                        "flex w-full flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold",
-                        active ? "text-gold" : "text-white/45",
-                      )}
+                      className="flex w-full flex-col items-center gap-1 py-2"
                     >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
+                      {inner}
                     </button>
                   </li>
                 );
               }
               return (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold",
-                      active ? "text-gold" : "text-white/45",
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
+                  <Link href={item.href} className="flex flex-col items-center gap-1 py-2">
+                    {inner}
                   </Link>
                 </li>
               );

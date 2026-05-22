@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Check, ChevronRight, Copy, Terminal } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Lang = "curl" | "node" | "python";
 
@@ -215,10 +216,8 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
   return (
     <div className="grid gap-3 lg:grid-cols-[260px_1fr]">
       {/* Side nav */}
-      <nav className="card-elevated max-h-[70vh] overflow-y-auto p-2">
-        <p className="px-2 pb-2 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/45">
-          Endpoints
-        </p>
+      <nav className="panel max-h-[72vh] overflow-y-auto p-2">
+        <p className="eyebrow-section px-2 pb-2 pt-1">Endpoints</p>
         <ul className="space-y-0.5">
           {ENDPOINTS.map((e) => {
             const active = e.id === selectedId;
@@ -227,49 +226,53 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
                 <button
                   type="button"
                   onClick={() => setSelectedId(e.id)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition ${
-                    active ? "bg-gold/10 text-white" : "text-white/65 hover:bg-white/5"
-                  }`}
+                  className={cn(
+                    "group flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition",
+                    active
+                      ? "bg-gradient-to-r from-gold/15 to-transparent text-white"
+                      : "text-white/65 hover:bg-white/5 hover:text-white",
+                  )}
                 >
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5">
                       <span
-                        className={`rounded px-1 py-0.5 text-[9px] font-bold ${
-                          e.method === "GET" ? "bg-sky-500/15 text-sky-300" : "bg-emerald-500/15 text-emerald-300"
-                        }`}
+                        className={cn("chip", e.method === "GET" ? "chip-sky" : "chip-emerald")}
                       >
                         {e.method}
                       </span>
                       <span className="truncate font-semibold">{e.title}</span>
                     </p>
-                    <code className="mt-0.5 block truncate font-mono text-[10px] text-white/45">
+                    <code className="mt-0.5 block truncate font-mono text-[10px] text-white/40">
                       {e.path}
                     </code>
                   </div>
-                  <ChevronRight className={`h-3 w-3 shrink-0 transition ${active ? "text-gold" : "text-white/30"}`} />
+                  <ChevronRight
+                    className={cn(
+                      "h-3 w-3 shrink-0 transition",
+                      active ? "text-gold" : "text-white/25",
+                    )}
+                  />
                 </button>
               </li>
             );
           })}
         </ul>
 
-        <p className="mt-3 px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">
-          References
-        </p>
-        <ul className="space-y-0.5 px-2 text-[11px]">
-          <li className="rounded-lg bg-white/5 px-2 py-1.5">
+        <p className="eyebrow-section px-2 pb-1 pt-3">References</p>
+        <ul className="space-y-1 px-2 text-[11px]">
+          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
             <p className="font-semibold text-white">Auth</p>
-            <code className="mt-0.5 block font-mono text-[10px] text-white/55">
+            <code className="mt-0.5 block font-mono text-[10px] text-white/50">
               Authorization: Bearer dcs_…
             </code>
           </li>
-          <li className="rounded-lg bg-white/5 px-2 py-1.5">
+          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
             <p className="font-semibold text-white">Base URL</p>
-            <code className="mt-0.5 block break-all font-mono text-[10px] text-white/55">
+            <code className="mt-0.5 block break-all font-mono text-[10px] text-white/50">
               {apiBase}
             </code>
           </li>
-          <li className="rounded-lg bg-white/5 px-2 py-1.5">
+          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
             <p className="font-semibold text-white">Currency</p>
             <span className="text-white/55">GHS (Ghanaian Cedi)</span>
           </li>
@@ -278,13 +281,9 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
 
       {/* Detail */}
       <div className="space-y-3">
-        <div className="card-elevated p-4">
+        <div className="panel-solid panel-ribbon p-5">
           <div className="flex items-center gap-2">
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                endpoint.method === "GET" ? "bg-sky-500/15 text-sky-300" : "bg-emerald-500/15 text-emerald-300"
-              }`}
-            >
+            <span className={cn("chip", endpoint.method === "GET" ? "chip-sky" : "chip-emerald")}>
               {endpoint.method}
             </span>
             <code className="font-mono text-sm text-white">{endpoint.path}</code>
@@ -294,23 +293,24 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
         </div>
 
         {/* Code sample */}
-        <div className="card-elevated overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
+        <div className="panel overflow-hidden">
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Terminal className="h-3.5 w-3.5 text-gold" />
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/65">
-                Request
-              </p>
+              <p className="eyebrow-section flex-1">Request</p>
             </div>
-            <div className="flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
+            <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
               {(["curl", "node", "python"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   type="button"
                   onClick={() => setLang(l)}
-                  className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                    lang === l ? "bg-gold text-navy-950" : "text-white/55 hover:text-white"
-                  }`}
+                  className={cn(
+                    "rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition",
+                    lang === l
+                      ? "bg-gold text-navy-950"
+                      : "text-white/55 hover:text-white",
+                  )}
                 >
                   {langLabel(l)}
                 </button>
@@ -321,27 +321,21 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
         </div>
 
         {endpoint.request?.note && (
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200">
-            {endpoint.request.note}
-          </div>
+          <div className="panel-gold p-3 text-xs text-amber-100">{endpoint.request.note}</div>
         )}
 
         {/* Response */}
-        <div className="card-elevated overflow-hidden">
-          <div className="border-b border-white/10 px-4 py-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/65">
-              Response
-            </p>
+        <div className="panel overflow-hidden">
+          <div className="border-b border-white/[0.06] px-4 py-2.5">
+            <p className="eyebrow-section">Response</p>
           </div>
           <CodeBlock code={JSON.stringify(endpoint.response, null, 2)} language="json" />
         </div>
 
         {/* Common errors */}
-        <div className="card-elevated p-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-white/55">
-            Common error codes
-          </h4>
-          <ul className="mt-2 space-y-1.5 text-xs">
+        <div className="panel p-5">
+          <p className="eyebrow-section">Common error codes</p>
+          <ul className="mt-3 space-y-2 text-xs">
             <ErrorRow status={401} code="missing_key | invalid_key | revoked | expired" desc="API key is missing, malformed, or no longer valid." />
             <ErrorRow status={402} code="insufficient_funds" desc="Wallet balance is below the order total. Top up to retry." />
             <ErrorRow status={404} code="bundle_not_found | not_found" desc="The SKU or reference does not exist or is inactive." />
@@ -360,10 +354,8 @@ function langLabel(l: Lang): string {
 
 function ErrorRow({ status, code, desc }: { status: number; code: string; desc: string }) {
   return (
-    <li className="flex flex-wrap items-start gap-2 text-white/65">
-      <span className="rounded bg-red-500/15 px-1.5 py-0.5 text-[10px] font-bold text-red-300">
-        {status}
-      </span>
+    <li className="flex flex-wrap items-start gap-2">
+      <span className="chip chip-rose">{status}</span>
       <code className="font-mono text-[11px] text-white">{code}</code>
       <span className="text-[11px] text-white/55">— {desc}</span>
     </li>
@@ -374,7 +366,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="relative">
-      <pre className="overflow-x-auto bg-navy-950 p-4 font-mono text-[11px] leading-relaxed text-emerald-200">
+      <pre className="code-vault overflow-x-auto rounded-none border-0 p-4">
         <code>{code}</code>
       </pre>
       <button
@@ -384,7 +376,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         }}
-        className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-navy-900/90 px-2 py-1 text-[10px] font-bold text-white/65 hover:text-white"
+        className="absolute right-2 top-2 flex items-center gap-1 rounded-lg border border-white/10 bg-navy-950/95 px-2 py-1 text-[10px] font-bold text-white/65 hover:text-white"
         aria-label={`Copy ${language ?? "code"}`}
       >
         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

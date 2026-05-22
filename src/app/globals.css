@@ -382,3 +382,459 @@ body {
   overflow: hidden;
   background: white;
 }
+
+/* =================================================================
+   VAULT — Dark dashboard design system
+   Unified visual language for vendor + admin consoles.
+   ================================================================= */
+
+/* Root surface: dark navy with subtle aurora. Used as the dashboard body. */
+.vault-surface {
+  background:
+    radial-gradient(at 12% 8%, rgba(212, 175, 55, 0.06) 0px, transparent 45%),
+    radial-gradient(at 88% 92%, rgba(212, 175, 55, 0.04) 0px, transparent 50%),
+    radial-gradient(at 70% 18%, rgba(26, 92, 158, 0.18) 0px, transparent 55%),
+    linear-gradient(180deg, #071a36 0%, #061528 60%, #050f1f 100%);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Sticky topbar + sidebar fill */
+.vault-chrome {
+  background: rgba(10, 24, 48, 0.85);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.vault-sidebar {
+  background:
+    linear-gradient(180deg, rgba(212, 175, 55, 0.04) 0%, transparent 30%),
+    linear-gradient(180deg, #081f3f 0%, #061528 100%);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ----- Cards / panels ----- */
+.panel {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    border-color 0.25s var(--ease-out-expo),
+    background-color 0.25s var(--ease-out-expo),
+    transform 0.25s var(--ease-out-expo);
+}
+.panel:hover {
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.panel-solid {
+  background: linear-gradient(160deg, rgba(13, 38, 76, 0.95) 0%, rgba(8, 23, 49, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.panel-hairline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+}
+
+.panel-gold {
+  background:
+    radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.18) 0px, transparent 60%),
+    linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(8, 23, 49, 0.6) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 1rem;
+}
+
+.panel-emerald {
+  background:
+    radial-gradient(at 0% 0%, rgba(45, 138, 94, 0.18) 0px, transparent 60%),
+    linear-gradient(135deg, rgba(45, 138, 94, 0.08) 0%, rgba(8, 23, 49, 0.6) 100%);
+  border: 1px solid rgba(45, 138, 94, 0.3);
+  border-radius: 1rem;
+}
+
+.panel-rose {
+  background:
+    radial-gradient(at 0% 0%, rgba(197, 48, 48, 0.18) 0px, transparent 60%),
+    linear-gradient(135deg, rgba(197, 48, 48, 0.08) 0%, rgba(8, 23, 49, 0.6) 100%);
+  border: 1px solid rgba(197, 48, 48, 0.3);
+  border-radius: 1rem;
+}
+
+/* ----- Eyebrow / section header ----- */
+.eyebrow-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+.eyebrow-section::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent);
+}
+
+/* ----- Big tabular metric numbers ----- */
+.metric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+}
+.metric-sm { font-size: clamp(1.25rem, 1.6vw, 1.625rem); }
+.metric-md { font-size: clamp(1.625rem, 2.2vw, 2.25rem); }
+.metric-lg { font-size: clamp(2rem, 3vw, 3rem); }
+.metric-xl { font-size: clamp(2.5rem, 4vw, 4rem); }
+
+/* ----- Chips ----- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.chip-gold     { background: rgba(212, 175, 55, 0.14); color: #f4d160; border: 1px solid rgba(212, 175, 55, 0.25); }
+.chip-emerald  { background: rgba(45, 138, 94, 0.14);  color: #6ee7b7; border: 1px solid rgba(45, 138, 94, 0.3); }
+.chip-rose     { background: rgba(197, 48, 48, 0.14);  color: #fca5a5; border: 1px solid rgba(197, 48, 48, 0.32); }
+.chip-amber    { background: rgba(201, 162, 39, 0.14); color: #fcd34d; border: 1px solid rgba(201, 162, 39, 0.3); }
+.chip-sky      { background: rgba(56, 189, 248, 0.14); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.28); }
+.chip-violet   { background: rgba(139, 92, 246, 0.14); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+.chip-muted    { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); }
+
+/* ----- Status dots with optional pulse ----- */
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.dot-emerald { background: #34d399; box-shadow: 0 0 0 2px rgba(45, 138, 94, 0.2); }
+.dot-gold    { background: #f4d160; box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2); }
+.dot-rose    { background: #f87171; box-shadow: 0 0 0 2px rgba(197, 48, 48, 0.2); }
+.dot-amber   { background: #fbbf24; box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.2); }
+.dot-muted   { background: rgba(255, 255, 255, 0.4); }
+
+.dot-pulse {
+  position: relative;
+}
+.dot-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: inherit;
+  opacity: 0.6;
+  animation: ping-ring 1.8s var(--ease-out-quart) infinite;
+}
+
+/* ----- Buttons ----- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1rem;
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f4d160 100%);
+  color: #081f3f;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 4px 16px rgba(212, 175, 55, 0.3);
+}
+.btn-gold:hover:not(:disabled) {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-danger {
+  background: rgba(197, 48, 48, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(197, 48, 48, 0.32);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(197, 48, 48, 0.18);
+}
+
+.btn-emerald {
+  background: rgba(45, 138, 94, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(45, 138, 94, 0.4);
+}
+.btn-emerald:hover:not(:disabled) {
+  background: rgba(45, 138, 94, 0.22);
+}
+
+/* ----- Inputs ----- */
+.input-dark {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: #fff;
+  font-size: 0.8125rem;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.input-dark::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+}
+.input-dark:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
+}
+
+/* Search field with leading icon */
+.search-dark {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.search-dark:hover {
+  border-color: rgba(212, 175, 55, 0.3);
+}
+.search-dark:focus-within {
+  border-color: rgba(212, 175, 55, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+.search-dark input {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #fff;
+  font-size: 0.8125rem;
+  flex: 1;
+  min-width: 0;
+}
+.search-dark input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Keyboard shortcut badge */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom-width: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+}
+
+/* ----- Tabs ----- */
+.tab-rail {
+  position: relative;
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+}
+.tab-rail::-webkit-scrollbar { display: none; }
+.tab-rail-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+.tab-rail-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+.tab-rail-btn-active {
+  color: #f4d160;
+}
+.tab-rail-btn-active::after {
+  content: "";
+  position: absolute;
+  left: 0.375rem;
+  right: 0.375rem;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, #d4af37, #f4d160);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ----- List rows / table styling ----- */
+.row-hover {
+  transition: background-color 0.2s ease;
+}
+.row-hover:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.divide-vault > * + * {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Data table — uniform dark styling */
+.table-dark {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-dark thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: left;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(8, 23, 49, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.table-dark tbody td {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.table-dark tbody tr {
+  transition: background-color 0.15s ease;
+}
+.table-dark tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+.table-dark tbody tr:last-child td { border-bottom: 0; }
+
+/* ----- Code blocks ----- */
+.code-vault {
+  background: #050f1f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: #c9eccd;
+  overflow-x: auto;
+}
+.code-inline {
+  background: rgba(255, 255, 255, 0.07);
+  color: #f4d160;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 0.3125rem;
+}
+
+/* ----- Aurora text (gold gradient) ----- */
+.text-vault-aurora {
+  background: linear-gradient(120deg, #d4af37 0%, #f4d160 45%, #fff5cd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ----- Subtle inner highlight ribbon (top of premium cards) ----- */
+.panel-ribbon {
+  position: relative;
+  overflow: hidden;
+}
+.panel-ribbon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.6) 50%, transparent 100%);
+}
+
+/* ----- Scrollbar inside vault ----- */
+.vault-surface ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.vault-surface ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.vault-surface ::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.3);
+}
+
+/* ----- Animated dashed underline for "live" feeling ----- */
+@keyframes vault-dash {
+  to { background-position: 14px 0; }
+}
+.live-underline {
+  background-image: linear-gradient(90deg, rgba(212, 175, 55, 0.7) 50%, transparent 50%);
+  background-size: 14px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  animation: vault-dash 1.4s linear infinite;
+  padding-bottom: 4px;
+}
