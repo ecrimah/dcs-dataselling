@@ -235,7 +235,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="vault-surface flex min-h-screen">
+    <div className="flex min-h-screen bg-[#f7f9fc] text-foreground">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AdminSidebar pathname={pathname} adminName={adminName} adminRole={adminRole} />
@@ -287,7 +287,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="page-canvas flex-1">{children}</main>
       </div>
 
       {/* Mobile sidebar */}

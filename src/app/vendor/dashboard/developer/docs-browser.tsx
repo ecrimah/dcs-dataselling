@@ -229,8 +229,8 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
                   className={cn(
                     "group flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition",
                     active
-                      ? "bg-gradient-to-r from-gold/15 to-transparent text-white"
-                      : "text-white/65 hover:bg-white/5 hover:text-white",
+                      ? "bg-amber-50 text-foreground"
+                      : "text-muted hover:bg-slate-50 hover:text-foreground",
                   )}
                 >
                   <div className="min-w-0">
@@ -242,14 +242,14 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
                       </span>
                       <span className="truncate font-semibold">{e.title}</span>
                     </p>
-                    <code className="mt-0.5 block truncate font-mono text-[10px] text-white/40">
+                    <code className="mt-0.5 block truncate font-mono text-[10px] text-muted">
                       {e.path}
                     </code>
                   </div>
                   <ChevronRight
                     className={cn(
                       "h-3 w-3 shrink-0 transition",
-                      active ? "text-gold" : "text-white/25",
+                      active ? "text-amber-600" : "text-muted-soft",
                     )}
                   />
                 </button>
@@ -260,46 +260,46 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
 
         <p className="eyebrow-section px-2 pb-1 pt-3">References</p>
         <ul className="space-y-1 px-2 text-[11px]">
-          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
-            <p className="font-semibold text-white">Auth</p>
-            <code className="mt-0.5 block font-mono text-[10px] text-white/50">
+          <li className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <p className="font-semibold text-foreground">Auth</p>
+            <code className="mt-0.5 block font-mono text-[10px] text-muted">
               Authorization: Bearer dcs_…
             </code>
           </li>
-          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
-            <p className="font-semibold text-white">Base URL</p>
-            <code className="mt-0.5 block break-all font-mono text-[10px] text-white/50">
+          <li className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <p className="font-semibold text-foreground">Base URL</p>
+            <code className="mt-0.5 block break-all font-mono text-[10px] text-muted">
               {apiBase}
             </code>
           </li>
-          <li className="rounded-lg bg-white/[0.04] px-2 py-1.5">
-            <p className="font-semibold text-white">Currency</p>
-            <span className="text-white/55">GHS (Ghanaian Cedi)</span>
+          <li className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <p className="font-semibold text-foreground">Currency</p>
+            <span className="text-muted">GHS (Ghanaian Cedi)</span>
           </li>
         </ul>
       </nav>
 
       {/* Detail */}
       <div className="space-y-3">
-        <div className="panel-solid panel-ribbon p-5">
+        <div className="surface-card p-5">
           <div className="flex items-center gap-2">
             <span className={cn("chip", endpoint.method === "GET" ? "chip-sky" : "chip-emerald")}>
               {endpoint.method}
             </span>
-            <code className="font-mono text-sm text-white">{endpoint.path}</code>
+            <code className="font-mono text-sm text-foreground">{endpoint.path}</code>
           </div>
-          <h3 className="mt-2 text-lg font-bold text-white">{endpoint.title}</h3>
-          <p className="mt-1 text-sm text-white/65">{endpoint.description}</p>
+          <h3 className="mt-2 text-lg font-bold text-foreground">{endpoint.title}</h3>
+          <p className="mt-1 text-sm text-muted">{endpoint.description}</p>
         </div>
 
         {/* Code sample */}
-        <div className="panel overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+        <div className="surface-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Terminal className="h-3.5 w-3.5 text-gold" />
-              <p className="eyebrow-section flex-1">Request</p>
+              <Terminal className="h-3.5 w-3.5 text-amber-600" />
+              <p className="eyebrow-light">Request</p>
             </div>
-            <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] p-0.5">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-slate-50 p-0.5">
               {(["curl", "node", "python"] as Lang[]).map((l) => (
                 <button
                   key={l}
@@ -308,8 +308,8 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
                   className={cn(
                     "rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition",
                     lang === l
-                      ? "bg-gold text-navy-950"
-                      : "text-white/55 hover:text-white",
+                      ? "bg-foreground text-white"
+                      : "text-muted hover:text-foreground",
                   )}
                 >
                   {langLabel(l)}
@@ -321,20 +321,30 @@ export function DocsBrowser({ apiBase }: { apiBase: string }) {
         </div>
 
         {endpoint.request?.note && (
-          <div className="panel-gold p-3 text-xs text-amber-100">{endpoint.request.note}</div>
+          <div
+            className="rounded-2xl border p-3 text-xs"
+            style={{
+              background:
+                "linear-gradient(135deg, #fff8e1 0%, #fffaf0 60%, #ffffff 100%)",
+              borderColor: "rgba(212, 175, 55, 0.35)",
+              color: "#7c5400",
+            }}
+          >
+            {endpoint.request.note}
+          </div>
         )}
 
         {/* Response */}
-        <div className="panel overflow-hidden">
-          <div className="border-b border-white/[0.06] px-4 py-2.5">
-            <p className="eyebrow-section">Response</p>
+        <div className="surface-card overflow-hidden">
+          <div className="border-b border-border px-4 py-2.5">
+            <p className="eyebrow-light">Response</p>
           </div>
           <CodeBlock code={JSON.stringify(endpoint.response, null, 2)} language="json" />
         </div>
 
         {/* Common errors */}
-        <div className="panel p-5">
-          <p className="eyebrow-section">Common error codes</p>
+        <div className="surface-card p-5">
+          <p className="eyebrow-light">Common error codes</p>
           <ul className="mt-3 space-y-2 text-xs">
             <ErrorRow status={401} code="missing_key | invalid_key | revoked | expired" desc="API key is missing, malformed, or no longer valid." />
             <ErrorRow status={402} code="insufficient_funds" desc="Wallet balance is below the order total. Top up to retry." />
@@ -356,8 +366,8 @@ function ErrorRow({ status, code, desc }: { status: number; code: string; desc: 
   return (
     <li className="flex flex-wrap items-start gap-2">
       <span className="chip chip-rose">{status}</span>
-      <code className="font-mono text-[11px] text-white">{code}</code>
-      <span className="text-[11px] text-white/55">— {desc}</span>
+      <code className="font-mono text-[11px] text-foreground">{code}</code>
+      <span className="text-[11px] text-muted">— {desc}</span>
     </li>
   );
 }
@@ -376,7 +386,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         }}
-        className="absolute right-2 top-2 flex items-center gap-1 rounded-lg border border-white/10 bg-navy-950/95 px-2 py-1 text-[10px] font-bold text-white/65 hover:text-white"
+        className="absolute right-2 top-2 flex items-center gap-1 rounded-lg border border-white/15 bg-slate-900/85 px-2 py-1 text-[10px] font-bold text-white/85 backdrop-blur hover:text-white"
         aria-label={`Copy ${language ?? "code"}`}
       >
         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

@@ -838,3 +838,626 @@ body {
   animation: vault-dash 1.4s linear infinite;
   padding-bottom: 4px;
 }
+
+/* ============================================================
+   STOREFRONT DESIGN SYSTEM ("Marquee")
+   A light, premium, marketing-grade aesthetic — same DNA as
+   the public storefront. Use this for dashboard PAGE BODIES.
+   The shell (sidebar/topbar) can stay dark; pages render on
+   a light slate canvas with white cards that "pop".
+   ============================================================ */
+
+/* ----- Page canvases ----- */
+.page-canvas {
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(10, 46, 93, 0.04), transparent 70%),
+    #f7f9fc;
+  color: var(--foreground);
+  min-height: 100%;
+}
+
+/* Hero band — navy gradient with subtle radial highlights, like the storefront's hero */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(60% 80% at 80% 0%, rgba(255, 255, 255, 0.10) 0px, transparent 60%),
+    radial-gradient(50% 60% at 10% 100%, rgba(0, 0, 0, 0.30) 0px, transparent 60%),
+    linear-gradient(135deg, #061d45 0%, #0a2e5d 55%, #0e3c7a 100%);
+}
+.page-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 70%);
+}
+.page-hero > * { position: relative; z-index: 1; }
+
+/* Subtle gold ribbon at the top of hero */
+.page-hero-ribbon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.8) 50%, transparent 100%);
+  z-index: 2;
+}
+
+/* White cards that sit on the light page */
+.surface-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 17, 0.04),
+    0 4px 16px rgba(10, 46, 93, 0.06);
+  transition:
+    box-shadow 0.3s var(--ease-out-expo),
+    border-color 0.3s var(--ease-out-expo),
+    transform 0.3s var(--ease-out-expo);
+}
+.surface-card:hover {
+  box-shadow:
+    0 4px 8px rgba(17, 17, 17, 0.06),
+    0 12px 32px rgba(10, 46, 93, 0.10);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+.surface-card-flat {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+/* Stat strip — overlaps hero (use with -mt-6 sm:-mt-8) */
+.stat-strip {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow:
+    0 2px 4px rgba(17, 17, 17, 0.04),
+    0 12px 32px rgba(10, 46, 93, 0.10);
+  overflow: hidden;
+}
+.stat-strip > * + * {
+  border-left: 1px solid var(--border);
+}
+@media (max-width: 640px) {
+  .stat-strip > *:nth-child(odd) { border-left: 0; }
+  .stat-strip > *:nth-child(n+3) { border-top: 1px solid var(--border); }
+}
+
+.stat-cell {
+  padding: 1rem 1.25rem;
+}
+.stat-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat-value {
+  margin-top: 0.25rem;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.1;
+  color: var(--foreground);
+}
+@media (min-width: 640px) {
+  .stat-value { font-size: 1.5rem; }
+}
+.stat-value.is-emerald { color: #047857; }
+.stat-value.is-gold { color: #b8860b; }
+.stat-value.is-rose { color: #b91c1c; }
+.stat-value.is-muted { color: var(--muted-soft); }
+
+/* Trust / feature card (like the storefront's "Secure payments" tiles) */
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition:
+    box-shadow 0.3s var(--ease-out-expo),
+    border-color 0.3s var(--ease-out-expo);
+}
+.feature-card:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 8px 24px rgba(10, 46, 93, 0.08);
+}
+.feature-icon {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+}
+.feature-icon-emerald { background: #ecfdf5; color: #047857; }
+.feature-icon-gold    { background: #fef7e0; color: #b8860b; }
+.feature-icon-sky     { background: #eff6ff; color: #1d4ed8; }
+.feature-icon-violet  { background: #f5f3ff; color: #6d28d9; }
+.feature-icon-rose    { background: #fef2f2; color: #b91c1c; }
+.feature-icon-slate   { background: #f1f5f9; color: #334155; }
+
+/* Eyebrow label used on light backgrounds */
+.eyebrow-light {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Pill / chip on light surfaces */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+.pill-emerald { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.pill-gold    { background: #fef7e0; color: #92400e; border-color: rgba(212, 175, 55, 0.35); }
+.pill-sky     { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.pill-rose    { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.pill-violet  { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.pill-slate   { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+.pill-dark    { background: #0a2e5d; color: #fff; border-color: rgba(255,255,255,0.15); }
+
+/* Pill row containing a leading dot */
+.pill .dot { width: 0.45rem; height: 0.45rem; border-radius: 9999px; }
+.pill .dot-emerald { background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+.pill .dot-rose    { background: #ef4444; }
+.pill .dot-amber   { background: #f59e0b; }
+.pill .dot-sky     { background: #3b82f6; }
+
+/* CTA buttons on light pages */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  transition: all 0.2s var(--ease-out-expo);
+  white-space: nowrap;
+}
+.cta-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f4d160 100%);
+  color: #111;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+.cta-gold:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.cta-dark {
+  background: #0a2e5d;
+  color: #fff;
+}
+.cta-dark:hover { background: #061d45; }
+.cta-ghost {
+  background: #fff;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.cta-ghost:hover { border-color: rgba(212, 175, 55, 0.4); }
+.cta-emerald {
+  background: #047857;
+  color: #fff;
+}
+.cta-emerald:hover { background: #065f46; }
+
+/* Section headers used inside pages */
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+.section-subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+/* Row item used inside surface-card lists (alternates subtle bg on hover) */
+.row-light {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: background 0.2s var(--ease-out-expo);
+}
+.row-light + .row-light { border-top: 1px solid var(--border); }
+.row-light:hover { background: #f7f9fc; }
+
+/* Light-mode input */
+.input-light {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: border-color 0.2s var(--ease-out-expo), box-shadow 0.2s var(--ease-out-expo);
+}
+.input-light:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+/* Status bar (top of public storefront — "All systems operational ·  Avg fulfillment <2 min") */
+.status-bar {
+  background: #061d45;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Code block on light surfaces */
+.code-light {
+  background: #0b1733;
+  color: #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  border: 1px solid #1e293b;
+}
+
+/* Divider that fades */
+.fade-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* Table for light pages */
+.table-light {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table-light thead th {
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.75rem 1rem;
+  background: #f7f9fc;
+  border-bottom: 1px solid var(--border);
+}
+.table-light tbody td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+.table-light tbody tr:last-child td { border-bottom: 0; }
+.table-light tbody tr:hover { background: #f7f9fc; }
+
+/* Big metric used inside surface-card hero */
+.bignum {
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  line-height: 1;
+}
+.bignum-xl { font-size: 2.25rem; }
+.bignum-2xl { font-size: 2.75rem; }
+.bignum-3xl { font-size: 3.25rem; }
+.bignum.is-gold { color: #b8860b; }
+.bignum.is-emerald { color: #047857; }
+
+/* Soft brand strip (used to add narrative copy at top of pages) */
+.brand-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ============================================================
+   PAGE-CANVAS OVERRIDES
+   When dark-theme "vault" components are dropped onto a light
+   .page-canvas (the dashboard body), they auto-flip to the
+   storefront aesthetic: white cards, navy text, emerald/gold
+   accents. This lets us reuse all existing components without
+   touching markup.
+   ============================================================ */
+
+.page-canvas {
+  color: var(--foreground);
+}
+
+/* ---- Panels become white cards ---- */
+.page-canvas .panel,
+.page-canvas .panel-solid,
+.page-canvas .panel-hairline {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 17, 0.04),
+    0 4px 16px rgba(10, 46, 93, 0.06);
+  color: var(--foreground);
+}
+.page-canvas .panel:hover,
+.page-canvas .panel-solid:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow:
+    0 4px 8px rgba(17, 17, 17, 0.06),
+    0 12px 32px rgba(10, 46, 93, 0.10);
+}
+.page-canvas .panel-gold {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffaf0 60%, #fff 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 1rem;
+  color: var(--foreground);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.08);
+}
+.page-canvas .panel-emerald {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 1rem;
+  color: #064e3b;
+}
+.page-canvas .panel-rose {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  color: #7f1d1d;
+}
+.page-canvas .panel-ribbon { overflow: hidden; }
+.page-canvas .panel-ribbon::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.55) 50%, transparent 100%);
+}
+
+/* ---- Eyebrow / muted text on light ---- */
+.page-canvas .eyebrow-section {
+  color: var(--muted);
+}
+
+/* ---- Chips on light ---- */
+.page-canvas .chip {
+  border-width: 1px;
+  border-style: solid;
+}
+.page-canvas .chip-emerald { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.page-canvas .chip-gold    { background: #fef7e0; color: #92400e; border-color: rgba(212, 175, 55, 0.35); }
+.page-canvas .chip-sky     { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.page-canvas .chip-rose    { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.page-canvas .chip-violet  { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.page-canvas .chip-amber   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.page-canvas .chip-muted   { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+
+/* ---- Buttons on light ---- */
+.page-canvas .btn { border: 1px solid transparent; }
+.page-canvas .btn-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f4d160 100%);
+  color: #111;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.32);
+}
+.page-canvas .btn-gold:hover { filter: brightness(1.04); }
+.page-canvas .btn-ghost {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--foreground);
+}
+.page-canvas .btn-ghost:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  background: #fff;
+}
+.page-canvas .btn-emerald {
+  background: #047857;
+  color: #fff;
+}
+.page-canvas .btn-emerald:hover { background: #065f46; }
+.page-canvas .btn-danger {
+  background: #fff;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.page-canvas .btn-danger:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+/* ---- Metrics on light ---- */
+.page-canvas .metric { color: var(--foreground); }
+.page-canvas .metric.text-emerald-300,
+.page-canvas .metric.text-emerald-400 { color: #047857; }
+.page-canvas .metric.text-amber-300 { color: #b45309; }
+.page-canvas .metric.text-rose-300,
+.page-canvas .metric.text-rose-400 { color: #b91c1c; }
+.page-canvas .metric.text-gold { color: #b8860b; }
+.page-canvas .metric.text-vault-aurora {
+  background: linear-gradient(120deg, #b8860b 0%, #d4af37 50%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Code on light ---- */
+.page-canvas .code-vault {
+  background: #0b1733;
+  color: #e2e8f0;
+  border-color: #1e293b;
+}
+.page-canvas .code-inline {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 0.75rem;
+}
+
+/* ---- Inputs on light ---- */
+.page-canvas .input-dark {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+}
+.page-canvas .input-dark::placeholder { color: var(--muted-soft); }
+.page-canvas .input-dark:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+/* ---- Tab rail on light ---- */
+.page-canvas .tab-rail {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
+  padding: 0.25rem;
+  display: inline-flex;
+  gap: 0.125rem;
+  overflow-x: auto;
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.03);
+}
+.page-canvas .tab-rail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.625rem;
+  color: var(--muted);
+  background: transparent;
+  white-space: nowrap;
+  transition: all 0.2s var(--ease-out-expo);
+}
+.page-canvas .tab-rail-btn:hover { color: var(--foreground); background: #f7f9fc; }
+.page-canvas .tab-rail-btn-active {
+  background: #0a2e5d;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(10, 46, 93, 0.20);
+}
+.page-canvas .tab-rail-btn-active:hover { background: #0a2e5d; color: #fff; }
+
+/* ---- Row hover on light ---- */
+.page-canvas .row-hover { transition: background 0.2s var(--ease-out-expo); color: var(--foreground); }
+.page-canvas .row-hover:hover { background: #f7f9fc; }
+
+/* ---- Dividers on light ---- */
+.page-canvas .divide-vault > * + * {
+  border-color: var(--border);
+}
+
+/* ---- Search-dark inside light pages becomes a clean light search ---- */
+.page-canvas .search-dark {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  border-radius: 0.75rem;
+}
+.page-canvas .search-dark input { color: var(--foreground); }
+.page-canvas .search-dark input::placeholder { color: var(--muted-soft); }
+.page-canvas .search-dark .kbd {
+  background: #f1f5f9;
+  color: var(--muted);
+  border: 1px solid #e2e8f0;
+}
+
+/* ---- Dot indicators ---- */
+.page-canvas .dot-emerald { background: #10b981; }
+.page-canvas .dot-amber { background: #f59e0b; }
+.page-canvas .dot-rose { background: #ef4444; }
+
+/* ---- Tables ---- */
+.page-canvas .table-dark { background: #fff; color: var(--foreground); border-radius: 1rem; overflow: hidden; }
+.page-canvas .table-dark thead th {
+  background: #f7f9fc;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  padding: 0.75rem 1rem;
+}
+.page-canvas .table-dark tbody td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.875rem 1rem;
+  color: var(--foreground);
+}
+.page-canvas .table-dark tbody tr:last-child td { border-bottom: 0; }
+.page-canvas .table-dark tbody tr:hover { background: #f7f9fc; }
+
+/* ---- White-on-white safety net: any leftover white text inside a light page-canvas becomes dark.
+   Tailwind classes like text-white, text-white/65 etc. lose their meaning on a light page.
+   The .page-hero rules below intentionally re-whiten text only inside the hero band. ---- */
+.page-canvas .text-white {
+  color: var(--foreground);
+}
+.page-canvas [class*="text-white/"] {
+  color: var(--muted);
+}
+/* Same for divider/border tokens that were tuned for dark surfaces */
+.page-canvas [class*="border-white/"] {
+  border-color: var(--border);
+}
+.page-canvas [class*="bg-white/"] {
+  background-color: transparent;
+}
+/* Avoid the lone "bg-white/X" rule killing actual solid white backgrounds */
+.page-canvas .bg-white {
+  background-color: #fff;
+}
+
+/* ---- Hero band keeps its dark text overrides intact (white-on-navy) ----
+   These have HIGHER specificity than the page-canvas safety net, so they
+   win the cascade for hero descendants. ---- */
+.page-canvas .page-hero .text-white { color: #fff; }
+.page-canvas .page-hero [class*="text-white/"] { color: rgba(255,255,255,0.85); }
+.page-canvas .page-hero [class*="border-white/"] { border-color: rgba(255,255,255,0.15); }
+.page-canvas .page-hero [class*="bg-white/"] { background-color: rgba(255,255,255,0.06); }
+.page-canvas .page-hero .panel,
+.page-canvas .page-hero .panel-solid,
+.page-canvas .page-hero .panel-hairline {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* Aurora text on light pages becomes amber/gold gradient (no white highlight) */
+.page-canvas .text-vault-aurora {
+  background: linear-gradient(120deg, #b8860b 0%, #d4af37 50%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

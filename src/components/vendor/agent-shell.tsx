@@ -303,7 +303,7 @@ export function AgentShell({
   void businessName;
 
   return (
-    <div className="vendor-agent-theme vault-surface flex min-h-screen flex-col text-white lg:flex-row">
+    <div className="vendor-agent-theme flex min-h-screen flex-col bg-[#f7f9fc] text-foreground lg:flex-row">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AgentSidebar
@@ -364,8 +364,8 @@ export function AgentShell({
 
         <main
           className={cn(
-            "relative flex-1",
-            isAgentHome ? "p-0 pb-24 lg:p-4 lg:pb-6" : "p-4 pb-24 lg:p-6 lg:pb-6",
+            "page-canvas relative flex-1 pb-24 lg:pb-6",
+            isAgentHome ? "p-0 lg:p-0" : "p-0",
           )}
         >
           {children}

@@ -64,60 +64,65 @@ export function DeveloperConsole({
   const activeKey = keys.find((k) => k.active && !k.revoked_at);
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <header className="panel-solid panel-ribbon relative overflow-hidden p-5 sm:p-6">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full"
-          style={{
-            background:
-              "radial-gradient(closest-side, rgba(212, 175, 55, 0.18), transparent)",
-          }}
-        />
-        <div className="relative flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 chip chip-gold">
-              <Code2 className="h-3 w-3" />
-              Developer API
+    <div>
+      {/* Hero band — navy with subtle radials, just like the storefront */}
+      <section className="page-hero page-hero-ribbon">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <span className="brand-strip">
+                <Code2 className="h-3.5 w-3.5" />
+                Developer API
+              </span>
+              <h1 className="mt-2 text-2xl font-bold leading-tight text-white sm:text-[28px]">
+                Sell data <span className="text-amber-300">programmatically</span>
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-[15px]">
+                Issue API keys to bots, downstream resellers, or staff and let them
+                place orders against{" "}
+                <span className="font-semibold text-white">{vendorName}</span>{" "}
+                automatically. Orders debit your wallet and route to the same suppliers
+                that power your dashboard.
+              </p>
             </div>
-            <h1 className="mt-2 text-xl font-bold text-white sm:text-2xl">
-              <span className="text-vault-aurora">Sell data programmatically</span>
-            </h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-white/65">
-              Issue API keys to bots, downstream resellers, or staff and let them
-              place orders against{" "}
-              <span className="font-semibold text-white">{vendorName}</span> automatically.
-              Orders debit your wallet and route to the same suppliers that power
-              your dashboard.
-            </p>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold whitespace-nowrap",
+                activeKey
+                  ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
+                  : "border-amber-400/40 bg-amber-500/15 text-amber-200",
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  activeKey ? "bg-emerald-300" : "bg-amber-300",
+                )}
+              />
+              {activeKey ? "API Live" : "No active key"}
+            </span>
           </div>
-          <span
-            className={cn(
-              "chip whitespace-nowrap",
-              activeKey ? "chip-emerald" : "chip-amber",
-            )}
-          >
-            <span className={cn("dot dot-pulse", activeKey ? "dot-emerald" : "dot-amber")} />
-            {activeKey ? "API Live" : "No active key"}
-          </span>
         </div>
+      </section>
 
-        <div className="relative mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Stat label="Calls 24h" value={summary.total_24h.toLocaleString()} />
-          <Stat
+      {/* Stat strip that overlaps the hero (storefront pattern) */}
+      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
+        <div className="stat-strip grid grid-cols-2 sm:grid-cols-4">
+          <HeroStat label="Calls 24h" value={summary.total_24h.toLocaleString()} />
+          <HeroStat
             label="Errors 24h"
             value={summary.errors_24h.toLocaleString()}
-            tone={summary.errors_24h > 0 ? "warn" : "ok"}
+            tone={summary.errors_24h > 0 ? "rose" : "emerald"}
           />
-          <Stat label="Calls 7d" value={summary.total_7d.toLocaleString()} />
-          <Stat
+          <HeroStat label="Calls 7d" value={summary.total_7d.toLocaleString()} />
+          <HeroStat
             label="Avg latency"
             value={summary.avg_duration_ms != null ? `${summary.avg_duration_ms}ms` : "—"}
           />
         </div>
-      </header>
+      </div>
 
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       {/* Tabs */}
       <div className="tab-rail">
         <TabButton id="overview" current={tab} onClick={setTab} icon={<Activity className="h-3.5 w-3.5" />}>
@@ -162,6 +167,7 @@ export function DeveloperConsole({
       )}
       {tab === "docs" && <DocsBrowser apiBase={apiBase} />}
       {tab === "logs" && <LogsPanel logs={logs} setLogs={setLogs} />}
+      </div>
     </div>
   );
 }
@@ -170,21 +176,27 @@ export function DeveloperConsole({
 // Pieces
 // =================================================================
 
-function Stat({
+function HeroStat({
   label,
   value,
   tone = "neutral",
 }: {
   label: string;
   value: string;
-  tone?: "neutral" | "ok" | "warn";
+  tone?: "neutral" | "emerald" | "rose" | "gold";
 }) {
-  const color =
-    tone === "warn" ? "text-amber-300" : tone === "ok" ? "text-emerald-300" : "text-white";
+  const accent =
+    tone === "emerald"
+      ? "is-emerald"
+      : tone === "rose"
+        ? "is-rose"
+        : tone === "gold"
+          ? "is-gold"
+          : "";
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">{label}</p>
-      <p className={cn("metric metric-sm mt-1", color)}>{value}</p>
+    <div className="stat-cell">
+      <p className="stat-label">{label}</p>
+      <p className={cn("stat-value", accent)}>{value}</p>
     </div>
   );
 }
@@ -352,19 +364,19 @@ function ChecklistCard({
         <div
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded-lg",
-            done ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-white/65",
+            done ? "feature-icon-emerald" : "feature-icon-slate",
           )}
         >
           {done ? <CheckCircle2 className="h-4 w-4" /> : icon}
         </div>
-        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <h3 className="text-sm font-bold text-foreground">{title}</h3>
         {done && <span className="ml-auto chip chip-emerald">Ready</span>}
       </div>
-      <p className="text-xs text-white/60">{status}</p>
+      <p className="text-xs text-muted">{status}</p>
       <button
         type="button"
         onClick={onAction}
-        className="mt-1 self-start text-xs font-bold text-gold hover:underline"
+        className="mt-1 self-start text-xs font-bold text-amber-700 hover:underline"
       >
         {actionLabel} →
       </button>
@@ -645,7 +657,7 @@ function WebhookPanel({
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="h-4 w-4 rounded border-white/20 bg-navy-950 accent-gold"
+            className="h-4 w-4 rounded border-slate-300 accent-gold"
           />
           Deliveries enabled
         </label>

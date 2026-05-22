@@ -38,7 +38,16 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <p className="eyebrow-section flex-1">{label}</p>
         {Icon && (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-gold">
+          <div
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+              tone === "gold"
+                ? "feature-icon-gold"
+                : tone === "emerald"
+                  ? "feature-icon-emerald"
+                  : "feature-icon-slate",
+            )}
+          >
             <Icon className="h-4 w-4" />
           </div>
         )}
@@ -63,7 +72,7 @@ export function StatCard({
               {Math.abs(change)}%
             </span>
           )}
-          {hint && <span className="text-[10px] text-white/40">{hint}</span>}
+          {hint && <span className="text-[10px] text-muted">{hint}</span>}
         </div>
       )}
     </div>
