@@ -14,9 +14,20 @@ import {
 import { SITE } from "@/lib/constants";
 import { PageHero } from "@/components/layout/page-hero";
 
-export const metadata = {
-  title: "Support",
-  description: "Get help with orders, payments, and your DCS account. Fast WhatsApp support.",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Support & Help Center",
+  description:
+    "Need help with a DCS ELITE order, payment, or vendor store? Reach the support team on WhatsApp, email, or read self-serve answers below.",
+  alternates: { canonical: "/support" },
+  openGraph: {
+    title: "DCS ELITE Support — We're here 24/7",
+    description:
+      "Order tracking, refunds, payment help and vendor support. Fast WhatsApp replies, Ghana-based team.",
+    url: `${SITE.url}/support`,
+    type: "website",
+  },
 };
 
 const WA_LINK = `https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`;

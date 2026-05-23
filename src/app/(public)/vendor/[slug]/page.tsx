@@ -23,6 +23,9 @@ import { resolveThemeBackground } from "@/lib/vendor-theme";
 import { SITE } from "@/lib/constants";
 import { formatCompact } from "@/lib/format";
 
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbList, vendorStore } from "@/lib/seo/schema";
+
 import { StorefrontBundles } from "./storefront-bundles";
 import { StorefrontActions } from "./storefront-actions";
 import { StorefrontFAQ } from "./storefront-faq";
@@ -34,18 +37,56 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<import("next").Metadata> {
   const { slug } = await params;
   const vendor = await fetchVendorBySlug(slug);
-  if (!vendor) return { title: "Store Not Found" };
+  if (!vendor) {
+    return {
+      title: "Store Not Found",
+      robots: { index: false, follow: false },
+    };
+  }
+  const url = `${SITE.url}/vendor/${vendor.slug}`;
+  const title = `${vendor.businessName} — Buy MTN, Telecel & AirtelTigo Data in Ghana`;
+  const description =
+    vendor.tagline ??
+    `Buy MTN, Telecel and AirtelTigo data bundles from ${vendor.businessName}. Instant delivery, secure MoMo payments, protected by DCS ELITE.`;
   return {
-    title: `${vendor.businessName} — Buy MTN, Telecel & AirtelTigo Data`,
-    description:
-      vendor.tagline ??
-      `Buy MTN, Telecel and AirtelTigo data bundles from ${vendor.businessName}. Instant delivery, secure MoMo payments, protected by DCS Elite.`,
+    title,
+    description,
+    alternates: { canonical: `/vendor/${vendor.slug}` },
+    keywords: [
+      vendor.businessName,
+      `${vendor.businessName} data`,
+      "buy data Ghana",
+      "MTN data bundle",
+      "Telecel data bundle",
+      "AirtelTigo data bundle",
+      "data store Ghana",
+      "Mobile Money data",
+    ],
     openGraph: {
+      type: "website",
+      title,
+      description,
+      url,
+      siteName: SITE.name,
+      locale: SITE.locale,
+      images: [
+        {
+          url: `${url}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${vendor.businessName} on ${SITE.name}`,
+          type: "image/png",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
       title: vendor.businessName,
-      description: vendor.tagline ?? undefined,
+      description,
+      images: [`${url}/opengraph-image`],
     },
   };
 }
@@ -73,6 +114,24 @@ export default async function VendorStorefrontPage({
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 lg:pb-0">
+      <JsonLd
+        data={[
+          vendorStore({
+            slug: vendor.slug,
+            businessName: vendor.businessName,
+            tagline: vendor.tagline,
+            themeColor: vendor.themeColor,
+            logoUrl: vendor.logoUrl ?? null,
+            rating: vendor.rating,
+            ratingCount: vendor.totalOrders,
+            bundlesOffered: bundles.length,
+          }),
+          breadcrumbList([
+            { name: "Home", url: "/" },
+            { name: vendor.businessName, url: `/vendor/${vendor.slug}` },
+          ]),
+        ]}
+      />
       {/* ===================== HERO ===================== */}
       <section
         className="relative overflow-hidden text-white"

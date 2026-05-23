@@ -1,14 +1,38 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Shield, Sparkles, Zap, Clock } from "lucide-react";
 import { getCurrentVendor, getSessionUser } from "@/lib/auth/session";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
+import { SITE } from "@/lib/constants";
 import { CreateStoreWizard } from "./wizard";
 
-export const metadata = {
-  title: "Create Your Store",
-  description: "Launch your storefront and start earning by selling data bundles to your network.",
+export const metadata: Metadata = {
+  title: "Create Your Data Store — Sell MTN, Telecel & AT Data in Ghana",
+  description:
+    "Launch your branded storefront on DCS ELITE in minutes. Set your own prices, accept Mobile Money, and earn on every MTN, Telecel and AirtelTigo data sale.",
+  alternates: { canonical: "/create-store" },
+  keywords: [
+    "create data store Ghana",
+    "sell data Ghana",
+    "data reseller business Ghana",
+    "MoMo data vendor",
+    "DCS ELITE vendor",
+    "start data business Ghana",
+  ],
+  openGraph: {
+    title: "Sell data with your own DCS ELITE storefront",
+    description:
+      "Branded storefront, instant fulfilment, wholesale wallet, vendor analytics and 24/7 support. Set up in minutes.",
+    url: `${SITE.url}/create-store`,
+    type: "website",
+  },
+  twitter: {
+    title: "Start your own data store on DCS ELITE",
+    description:
+      "Launch a branded data store in minutes. Sell MTN, Telecel & AirtelTigo bundles with secure MoMo payments.",
+  },
 };
 
 export const dynamic = "force-dynamic";

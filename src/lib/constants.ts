@@ -6,13 +6,60 @@ export const SITE = {
   brandLine: "ELITE",
   domain: "dcselite.com",
   tagline: "Ghana's Elite Data Platform",
+  /** Short SEO description (<=160 chars, indexable) */
   description:
-    "Launch your own data store on dcselite.com — private storefronts, secure MoMo payments, and instant fulfilment for MTN, Telecel & AirtelTigo.",
+    "Buy MTN, Telecel & AirtelTigo data bundles in Ghana — or launch your own data store on DCS ELITE. Instant delivery, secure MoMo payments, 24/7 support.",
+  /** Long marketing description for OG/social cards */
+  longDescription:
+    "DCS ELITE is Ghana's elite data platform. Vendors launch their own branded storefront in minutes, customers buy MTN, Telecel and AirtelTigo data bundles with secure MoMo or card payments, and orders are fulfilled instantly via licensed suppliers.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dcselite.com",
+  /** ISO country & locale used for Open Graph + structured data */
+  locale: "en_GH",
+  language: "en",
+  country: "Ghana",
+  countryCode: "GH",
+  currency: "GHS",
+  /** Founders' / publisher details (used in JSON-LD) */
+  legalName: "DCS ELITE",
+  foundingYear: 2025,
   supportWhatsApp: "+233200000000",
   supportEmail: "support@dcselite.com",
+  /** Brand assets */
   logo: "/brand/dcs-elite-logo.png",
   ogImage: "/og.png",
+  /** Social handles (used for Twitter card + sameAs in JSON-LD) */
+  twitterHandle: "@dcselite",
+  socials: {
+    twitter: "https://x.com/dcselite",
+    instagram: "https://instagram.com/dcselite",
+    tiktok: "https://tiktok.com/@dcselite",
+    facebook: "https://facebook.com/dcselite",
+    linkedin: "https://www.linkedin.com/company/dcselite",
+  },
+  /** Brand colours used in PWA manifest and theme-color */
+  themeColor: "#0A2E5D",
+  backgroundColor: "#0A2E5D",
+  /** SEO keyword bank (used in root metadata & expanded in pages) */
+  keywords: [
+    "buy data Ghana",
+    "MTN data bundle",
+    "Telecel data bundle",
+    "AirtelTigo data bundle",
+    "AT data Ghana",
+    "cheap data Ghana",
+    "data reseller Ghana",
+    "data vendor Ghana",
+    "data store Ghana",
+    "MoMo data payment",
+    "Mobile Money data",
+    "instant data delivery",
+    "DCS ELITE",
+    "dcselite",
+    "dcselite.com",
+    "wholesale data Ghana",
+    "AFA bundles MTN",
+    "sell data online Ghana",
+  ],
 } as const;
 
 export const NETWORKS = [

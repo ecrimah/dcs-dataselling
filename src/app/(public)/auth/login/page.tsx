@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { DcsLogo } from "@/components/brand/dcs-logo";
 import { LoginForm } from "@/components/auth/login-form";
 
-export const metadata = { title: "Sign In" };
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description:
+    "Sign in to your DCS ELITE account to manage your data store, track orders, top up your wallet, and view receipts.",
+  alternates: { canonical: "/auth/login" },
+  robots: { index: false, follow: true },
+};
 
 const PERKS = [
   { icon: Package, text: "Track orders and receipts" },

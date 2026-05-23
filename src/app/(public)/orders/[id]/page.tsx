@@ -22,6 +22,14 @@ const STATUS_CONFIG: Record<
   refunded: { label: "Refunded", variant: "neutral" },
 };
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Order Receipt",
+  description: "DCS ELITE order tracking and receipt.",
+  robots: { index: false, follow: false },
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function OrderTrackingPage({

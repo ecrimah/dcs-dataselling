@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /vendor/dashboard/
-Disallow: /vendors
-Disallow: /marketplace
-Disallow: /api/
-
-Sitemap: https://dcselite.com/sitemap.xml

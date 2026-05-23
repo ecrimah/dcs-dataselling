@@ -1,11 +1,15 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { Lock } from "lucide-react";
 import { fetchBundleById } from "@/lib/data/queries";
 import { CheckoutForm } from "./checkout-form";
 
-export const metadata = {
-  title: "Checkout",
-  description: "Complete your data bundle purchase securely.",
+export const metadata: Metadata = {
+  title: "Checkout — Pay with MoMo or Card",
+  description:
+    "Complete your DCS ELITE data bundle purchase securely with Mobile Money or card. Instant delivery on MTN, Telecel and AirtelTigo.",
+  alternates: { canonical: "/checkout" },
+  robots: { index: false, follow: true },
 };
 
 export default async function CheckoutPage({
