@@ -16,8 +16,8 @@ export default async function RewardsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-white">Rewards</h2>
-        <p className="text-sm text-white/55">Earn from referrals and customer sales markup.</p>
+        <h2 className="text-xl font-bold text-foreground">Rewards</h2>
+        <p className="text-sm text-muted">Earn from referrals and customer sales markup.</p>
       </div>
       <RewardsClient
         initialBalance={balance}

@@ -58,7 +58,7 @@ export default async function VendorOrdersPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 text-white">
+    <div className="mx-auto max-w-3xl space-y-8 text-foreground">
       {params.paid === "1" && (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800">
           Payment received{params.ref ? ` — ref ${params.ref}` : ""}. Your order is queued for
@@ -68,8 +68,8 @@ export default async function VendorOrdersPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">My Orders</h2>
-          <p className="mt-1 text-sm text-white/55">
+          <h2 className="text-xl font-bold text-foreground">My Orders</h2>
+          <p className="mt-1 text-sm text-muted">
             Wholesale supply orders you placed with DCS, and customer orders through your store.
           </p>
         </div>

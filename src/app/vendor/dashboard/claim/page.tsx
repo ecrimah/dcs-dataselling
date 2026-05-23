@@ -12,8 +12,8 @@ export default async function ClaimItPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="text-xl font-bold text-white">ClaimIt</h2>
-      <p className="text-sm text-white/55">
+      <h2 className="text-xl font-bold text-foreground">ClaimIt</h2>
+      <p className="text-sm text-muted">
         Enter a promo or reward code from DCS to credit your wallet instantly.
       </p>
       <ClaimItForm />

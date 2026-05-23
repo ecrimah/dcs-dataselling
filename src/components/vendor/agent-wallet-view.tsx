@@ -28,12 +28,12 @@ export function AgentWalletView({ metrics, ledger }: Props) {
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white">Transactions</h2>
-          <p className="text-sm text-white/45">{ledger.length} total transactions</p>
+          <h2 className="text-xl font-bold text-foreground">Transactions</h2>
+          <p className="text-sm text-muted">{ledger.length} total transactions</p>
         </div>
         <a
           href="/api/vendor/wallet/export"
-          className="inline-flex items-center gap-1.5 rounded-xl border border-gold/40 px-3 py-2 text-xs font-bold text-gold"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/50 bg-white px-3 py-2 text-xs font-bold text-amber-700 shadow-sm transition hover:border-amber-500 hover:bg-amber-50"
         >
           <Download className="h-3.5 w-3.5" />
           Export CSV
@@ -112,9 +112,9 @@ export function AgentWalletView({ metrics, ledger }: Props) {
         )}
       </ul>
 
-      <p className="text-center text-xs text-white/35">
+      <p className="text-center text-xs text-muted">
         Need to top up?{" "}
-        <Link href="/vendor/dashboard/wholesale" className="font-bold text-gold">
+        <Link href="/vendor/dashboard/wholesale" className="font-bold text-amber-700">
           Buy Data →
         </Link>
       </p>

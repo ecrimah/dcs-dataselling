@@ -227,7 +227,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="susu-canvas flex min-h-screen">
+    <div className="susu-canvas page-canvas flex min-h-screen">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AdminSidebar pathname={pathname} adminName={adminName} adminRole={adminRole} />

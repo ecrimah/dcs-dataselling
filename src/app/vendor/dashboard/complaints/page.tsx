@@ -17,10 +17,10 @@ export default async function ComplaintsPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="text-xl font-bold text-white">My complaints</h2>
-      <p className="text-sm text-white/55">
+      <h2 className="text-xl font-bold text-foreground">My complaints</h2>
+      <p className="text-sm text-muted">
         Urgent? WhatsApp{" "}
-        <a href={`https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`} className="text-gold">
+        <a href={`https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`} className="font-semibold text-amber-700">
           support
         </a>
         .
@@ -29,7 +29,7 @@ export default async function ComplaintsPage() {
 
       {complaints.length > 0 && (
         <ul className="space-y-2">
-          <p className="text-[10px] font-bold uppercase text-white/40">Your tickets</p>
+          <p className="text-[10px] font-bold uppercase text-muted">Your tickets</p>
           {complaints.map((c) => (
             <li key={c.id} className="rounded-xl border border-white/10 bg-navy-900 p-3 text-sm">
               <div className="flex items-center justify-between gap-2">

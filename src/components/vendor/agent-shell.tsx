@@ -266,7 +266,7 @@ export function AgentShell({
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="vendor-agent-theme susu-canvas flex min-h-screen flex-col lg:flex-row">
+    <div className="vendor-agent-theme susu-canvas page-canvas flex min-h-screen flex-col lg:flex-row">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AgentSidebar

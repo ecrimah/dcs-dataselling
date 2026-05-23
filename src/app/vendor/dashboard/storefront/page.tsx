@@ -32,7 +32,7 @@ export default async function StorefrontPage() {
       </div>
 
       <div
-        className="rounded-2xl p-8 text-white shadow-lg"
+        className="dark-card rounded-2xl p-8 text-white shadow-lg"
         style={{ background: resolveThemeBackground(vendor.themeColor) }}
       >
         <div className="flex items-center gap-4">

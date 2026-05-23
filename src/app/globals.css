@@ -1417,26 +1417,194 @@ body {
 .page-canvas .table-dark tbody tr:last-child td { border-bottom: 0; }
 .page-canvas .table-dark tbody tr:hover { background: #f7f9fc; }
 
-/* ---- White-on-white safety net: any leftover white text inside a light page-canvas becomes dark.
-   Tailwind classes like text-white, text-white/65 etc. lose their meaning on a light page.
-   The .page-hero rules below intentionally re-whiten text only inside the hero band. ---- */
-.page-canvas .text-white {
+/* ---- White-on-white safety net.
+   Flip white text/borders/bg-tints to dark equivalents ONLY inside known-light
+   surfaces (.panel, .surface-card, etc.). Elements with colored backgrounds
+   (bg-emerald-500, bg-gold, bg-navy-*, bg-gradient-*) keep their white tokens.
+   For raw top-level white text on page-canvas with no background, fix at the
+   source by using text-foreground / text-muted instead of text-white. ---- */
+.page-canvas .panel .text-white,
+.page-canvas .panel-solid .text-white,
+.page-canvas .panel-hairline .text-white,
+.page-canvas .panel-gold .text-white,
+.page-canvas .panel-emerald .text-white,
+.page-canvas .panel-rose .text-white,
+.page-canvas .surface-card .text-white,
+.page-canvas .feature-card .text-white,
+.page-canvas .welcome-card .text-white,
+.page-canvas .section-card .text-white,
+.page-canvas .stat-tile .text-white,
+.page-canvas .stat-strip .text-white,
+.page-canvas .card-elevated .text-white {
   color: var(--foreground);
 }
-.page-canvas [class*="text-white/"] {
+.page-canvas .panel [class*="text-white/"],
+.page-canvas .panel-solid [class*="text-white/"],
+.page-canvas .panel-hairline [class*="text-white/"],
+.page-canvas .panel-gold [class*="text-white/"],
+.page-canvas .panel-emerald [class*="text-white/"],
+.page-canvas .panel-rose [class*="text-white/"],
+.page-canvas .surface-card [class*="text-white/"],
+.page-canvas .feature-card [class*="text-white/"],
+.page-canvas .welcome-card [class*="text-white/"],
+.page-canvas .section-card [class*="text-white/"],
+.page-canvas .stat-tile [class*="text-white/"],
+.page-canvas .stat-strip [class*="text-white/"],
+.page-canvas .card-elevated [class*="text-white/"] {
   color: var(--muted);
 }
-/* Same for divider/border tokens that were tuned for dark surfaces */
-.page-canvas [class*="border-white/"] {
+.page-canvas .panel [class*="border-white/"],
+.page-canvas .panel-solid [class*="border-white/"],
+.page-canvas .surface-card [class*="border-white/"],
+.page-canvas .section-card [class*="border-white/"],
+.page-canvas .welcome-card [class*="border-white/"],
+.page-canvas .card-elevated [class*="border-white/"] {
   border-color: var(--border);
 }
-.page-canvas [class*="bg-white/"] {
-  background-color: transparent;
+.page-canvas .panel [class*="bg-white/"],
+.page-canvas .panel-solid [class*="bg-white/"],
+.page-canvas .surface-card [class*="bg-white/"],
+.page-canvas .section-card [class*="bg-white/"],
+.page-canvas .welcome-card [class*="bg-white/"],
+.page-canvas .card-elevated [class*="bg-white/"] {
+  background-color: #f8fafc;
 }
-/* Avoid the lone "bg-white/X" rule killing actual solid white backgrounds */
-.page-canvas .bg-white {
-  background-color: #fff;
+
+/* ---- CARVE-OUTS: any descendant of these dark surfaces keeps white text. ---- */
+.page-canvas .vault-hero-card .text-white,
+.page-canvas .code-vault .text-white,
+.page-canvas .page-hero .text-white,
+.page-canvas .dark-card .text-white,
+.page-canvas [class*="bg-navy"] .text-white {
+  color: #fff;
 }
+.page-canvas .vault-hero-card .text-white\/30,
+.page-canvas .code-vault .text-white\/30,
+.page-canvas .page-hero .text-white\/30,
+.page-canvas .dark-card .text-white\/30,
+.page-canvas [class*="bg-navy"] .text-white\/30 { color: rgba(255, 255, 255, 0.30); }
+.page-canvas .vault-hero-card .text-white\/35,
+.page-canvas .code-vault .text-white\/35,
+.page-canvas .page-hero .text-white\/35,
+.page-canvas .dark-card .text-white\/35,
+.page-canvas [class*="bg-navy"] .text-white\/35 { color: rgba(255, 255, 255, 0.35); }
+.page-canvas .vault-hero-card .text-white\/40,
+.page-canvas .code-vault .text-white\/40,
+.page-canvas .page-hero .text-white\/40,
+.page-canvas .dark-card .text-white\/40,
+.page-canvas [class*="bg-navy"] .text-white\/40 { color: rgba(255, 255, 255, 0.40); }
+.page-canvas .vault-hero-card .text-white\/45,
+.page-canvas .code-vault .text-white\/45,
+.page-canvas .page-hero .text-white\/45,
+.page-canvas .dark-card .text-white\/45,
+.page-canvas [class*="bg-navy"] .text-white\/45 { color: rgba(255, 255, 255, 0.45); }
+.page-canvas .vault-hero-card .text-white\/55,
+.page-canvas .code-vault .text-white\/55,
+.page-canvas .page-hero .text-white\/55,
+.page-canvas .dark-card .text-white\/55,
+.page-canvas [class*="bg-navy"] .text-white\/55 { color: rgba(255, 255, 255, 0.55); }
+.page-canvas .vault-hero-card .text-white\/60,
+.page-canvas .code-vault .text-white\/60,
+.page-canvas .page-hero .text-white\/60,
+.page-canvas .dark-card .text-white\/60,
+.page-canvas [class*="bg-navy"] .text-white\/60 { color: rgba(255, 255, 255, 0.60); }
+.page-canvas .vault-hero-card .text-white\/65,
+.page-canvas .code-vault .text-white\/65,
+.page-canvas .page-hero .text-white\/65,
+.page-canvas .dark-card .text-white\/65,
+.page-canvas [class*="bg-navy"] .text-white\/65 { color: rgba(255, 255, 255, 0.65); }
+.page-canvas .vault-hero-card .text-white\/70,
+.page-canvas .code-vault .text-white\/70,
+.page-canvas .page-hero .text-white\/70,
+.page-canvas .dark-card .text-white\/70,
+.page-canvas [class*="bg-navy"] .text-white\/70 { color: rgba(255, 255, 255, 0.70); }
+.page-canvas .vault-hero-card .text-white\/80,
+.page-canvas .code-vault .text-white\/80,
+.page-canvas .page-hero .text-white\/80,
+.page-canvas .dark-card .text-white\/80,
+.page-canvas [class*="bg-navy"] .text-white\/80 { color: rgba(255, 255, 255, 0.80); }
+.page-canvas .vault-hero-card .text-white\/85,
+.page-canvas .code-vault .text-white\/85,
+.page-canvas .page-hero .text-white\/85,
+.page-canvas .dark-card .text-white\/85,
+.page-canvas [class*="bg-navy"] .text-white\/85 { color: rgba(255, 255, 255, 0.85); }
+.page-canvas .vault-hero-card .text-white\/90,
+.page-canvas .code-vault .text-white\/90,
+.page-canvas .page-hero .text-white\/90,
+.page-canvas .dark-card .text-white\/90,
+.page-canvas [class*="bg-navy"] .text-white\/90 { color: rgba(255, 255, 255, 0.90); }
+
+/* Restore border tints inside dark carve-outs */
+.page-canvas .vault-hero-card [class*="border-white/"],
+.page-canvas .code-vault [class*="border-white/"],
+.page-canvas .page-hero [class*="border-white/"],
+.page-canvas .dark-card [class*="border-white/"],
+.page-canvas [class*="bg-navy"] [class*="border-white/"] {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+.page-canvas .vault-hero-card .border-white\/20,
+.page-canvas .code-vault .border-white\/20,
+.page-canvas .page-hero .border-white\/20,
+.page-canvas .dark-card .border-white\/20,
+.page-canvas [class*="bg-navy"] .border-white\/20 { border-color: rgba(255, 255, 255, 0.20); }
+.page-canvas .vault-hero-card .border-white\/15,
+.page-canvas .code-vault .border-white\/15,
+.page-canvas .page-hero .border-white\/15,
+.page-canvas .dark-card .border-white\/15,
+.page-canvas [class*="bg-navy"] .border-white\/15 { border-color: rgba(255, 255, 255, 0.15); }
+
+/* Restore bg tints inside dark carve-outs */
+.page-canvas .vault-hero-card [class*="bg-white/"],
+.page-canvas .code-vault [class*="bg-white/"],
+.page-canvas .page-hero [class*="bg-white/"],
+.page-canvas .dark-card [class*="bg-white/"],
+.page-canvas [class*="bg-navy"] [class*="bg-white/"] {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.page-canvas .vault-hero-card .bg-white\/10,
+.page-canvas .code-vault .bg-white\/10,
+.page-canvas .page-hero .bg-white\/10,
+.page-canvas .dark-card .bg-white\/10,
+.page-canvas [class*="bg-navy"] .bg-white\/10 { background-color: rgba(255, 255, 255, 0.10); }
+.page-canvas .vault-hero-card .bg-white\/20,
+.page-canvas .code-vault .bg-white\/20,
+.page-canvas .page-hero .bg-white\/20,
+.page-canvas .dark-card .bg-white\/20,
+.page-canvas [class*="bg-navy"] .bg-white\/20 { background-color: rgba(255, 255, 255, 0.20); }
+
+/* Any element with bg-navy-* inside page-canvas gets a default white text color,
+   so descendants without explicit color classes still read white-on-navy. */
+.page-canvas [class*="bg-navy"] {
+  color: rgba(255, 255, 255, 0.92);
+}
+.page-canvas .dark-card,
+.page-canvas .code-vault,
+.page-canvas .vault-hero-card {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Same-element carve-out: when bg-navy-* AND border-white/X (or text-white) are
+   on the SAME element, keep the white tokens intact. */
+.page-canvas [class*="bg-navy"][class*="border-white/"] {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+.page-canvas [class*="bg-navy"].border-white\/15 { border-color: rgba(255, 255, 255, 0.15); }
+.page-canvas [class*="bg-navy"].border-white\/20 { border-color: rgba(255, 255, 255, 0.20); }
+
+.page-canvas [class*="bg-navy"].text-white { color: #fff; }
+.page-canvas [class*="bg-navy"][class*="text-white/"] { color: rgba(255, 255, 255, 0.85); }
+.page-canvas [class*="bg-navy"].text-white\/65 { color: rgba(255, 255, 255, 0.65); }
+.page-canvas [class*="bg-navy"].text-white\/55 { color: rgba(255, 255, 255, 0.55); }
+.page-canvas [class*="bg-navy"].text-white\/45 { color: rgba(255, 255, 255, 0.45); }
+.page-canvas [class*="bg-navy"].text-white\/40 { color: rgba(255, 255, 255, 0.40); }
+.page-canvas [class*="bg-navy"].text-white\/35 { color: rgba(255, 255, 255, 0.35); }
+
+/* Same applies to vault-hero-card / code-vault / dark-card / page-hero
+   when those elements themselves carry white tokens directly */
+.page-canvas .vault-hero-card.text-white,
+.page-canvas .code-vault.text-white,
+.page-canvas .dark-card.text-white,
+.page-canvas .page-hero.text-white { color: #fff; }
 
 /* ---- Hero band keeps its dark text overrides intact (white-on-navy) ----
    These have HIGHER specificity than the page-canvas safety net, so they

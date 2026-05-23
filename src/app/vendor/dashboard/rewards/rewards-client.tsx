@@ -91,7 +91,7 @@ export function RewardsClient({ initialBalance, referralCode, withdrawals }: Pro
 
       {withdrawals.length > 0 && (
         <ul className="space-y-2">
-          <p className="text-[10px] font-bold uppercase text-white/40">Recent withdrawals</p>
+          <p className="text-[10px] font-bold uppercase text-muted">Recent withdrawals</p>
           {withdrawals.map((w) => (
             <li
               key={w.id}

@@ -49,15 +49,15 @@ export function MtnAfaForm({ initial }: Props) {
     <div className="space-y-3">
       {status && (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-white/55">Status:</span>
+          <span className="text-sm text-muted">Status:</span>
           <Badge variant={status === "verified" ? "success" : status === "rejected" ? "danger" : "warning"}>
             {status}
           </Badge>
         </div>
       )}
-      <form onSubmit={submit} className="rounded-2xl border border-yellow-500/30 bg-yellow-500/10 p-4">
-        <p className="text-sm font-semibold text-yellow-200">Agent registration</p>
-        <p className="mt-1 text-xs text-white/55">
+      <form onSubmit={submit} className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
+        <p className="text-sm font-semibold text-amber-900">Agent registration</p>
+        <p className="mt-1 text-xs text-amber-700">
           Submit your MTN agent ID to unlock AFA-priced bundles.
         </p>
         <input

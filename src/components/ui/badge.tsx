@@ -6,15 +6,15 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        // Vault chip variants (dark surface)
-        default: "border border-gold/25 bg-gold/14 text-[#f4d160]",
-        success: "border border-emerald-500/30 bg-emerald-500/14 text-emerald-300",
-        warning: "border border-amber-500/30 bg-amber-500/14 text-amber-300",
-        danger: "border border-rose-500/30 bg-rose-500/14 text-rose-300",
-        neutral: "border border-white/8 bg-white/5 text-white/65",
-        verified: "border border-gold/35 bg-gold/18 text-[#fff5cd]",
-        sky: "border border-sky-500/30 bg-sky-500/14 text-sky-300",
-        violet: "border border-violet-500/30 bg-violet-500/14 text-violet-300",
+        // Dual-tone variants: readable on both light susu canvas and dark navy cards.
+        default: "border border-amber-300 bg-amber-50 text-amber-800",
+        success: "border border-emerald-300 bg-emerald-50 text-emerald-800",
+        warning: "border border-amber-300 bg-amber-50 text-amber-900",
+        danger: "border border-rose-300 bg-rose-50 text-rose-800",
+        neutral: "border border-slate-200 bg-slate-50 text-slate-700",
+        verified: "border border-amber-400 bg-amber-100 text-amber-900",
+        sky: "border border-sky-300 bg-sky-50 text-sky-800",
+        violet: "border border-violet-300 bg-violet-50 text-violet-800",
       },
     },
     defaultVariants: { variant: "default" },

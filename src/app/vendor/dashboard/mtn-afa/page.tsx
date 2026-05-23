@@ -16,8 +16,8 @@ export default async function MtnAfaPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="text-xl font-bold text-white">MTN AFA</h2>
-      <p className="text-sm text-white/55">
+      <h2 className="text-xl font-bold text-foreground">MTN AFA</h2>
+      <p className="text-sm text-muted">
         MTN Always For All (AFA) bundles for verified MTN agents.
       </p>
       <MtnAfaForm initial={status} />

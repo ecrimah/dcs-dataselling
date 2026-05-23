@@ -55,7 +55,7 @@ export default async function ProfilePage() {
         </Link>
         <Link
           href={`https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`}
-          className="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white"
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-foreground shadow-sm hover:border-amber-400/60"
         >
           Support
         </Link>
