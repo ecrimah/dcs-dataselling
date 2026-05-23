@@ -24,7 +24,6 @@ import {
   Layers,
   MessageCircle,
   Cable,
-  Search,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -93,10 +92,10 @@ interface AdminShellProps {
 }
 
 function pageTitleFromPath(pathname: string): string {
-  if (pathname === "/admin") return "Command Center";
-  const segs = pathname.split("/").filter(Boolean); // ["admin","supplier"]
+  if (pathname === "/admin") return "Dashboard";
+  const segs = pathname.split("/").filter(Boolean);
   const last = segs[segs.length - 1] ?? "";
-  if (!last) return "Platform Control";
+  if (!last) return "Admin";
   return last
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
@@ -115,12 +114,23 @@ function AdminSidebarNav({
 }) {
   return (
     <>
+      {/* User chip */}
+      <div className="border-b border-slate-200 p-4">
+        <div className="susu-user-chip">
+          <div className="avatar">{adminName.slice(0, 2).toUpperCase()}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-slate-900">{adminName}</p>
+            <p className="truncate text-xs text-slate-500">
+              {adminRole === "super_admin" ? "admin@dcselite.com" : adminRole}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title}>
-            <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-white/30">
-              {section.title}
-            </p>
+            <p className="nav-section-label mb-2 px-3">{section.title}</p>
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const active = item.match(pathname);
@@ -129,17 +139,9 @@ function AdminSidebarNav({
                     <Link
                       href={item.href}
                       onClick={onNavigate}
-                      className={cn(
-                        "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-gradient-to-r from-gold/20 via-gold/10 to-transparent text-gold"
-                          : "text-white/55 hover:bg-white/5 hover:text-white",
-                      )}
+                      className={cn("nav-link", active && "nav-link-active")}
                     >
-                      {active && (
-                        <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-gold" />
-                      )}
-                      <item.icon className={cn("h-4 w-4 shrink-0", active ? "text-gold" : "text-white/50 group-hover:text-white/80")} />
+                      <item.icon className="nav-icon" />
                       <span className="truncate">{item.label}</span>
                     </Link>
                   </li>
@@ -150,29 +152,17 @@ function AdminSidebarNav({
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-white/[0.06] p-3">
-        <div className="mb-2 flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2.5">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold to-gold-glow text-xs font-bold text-navy-950 ring-2 ring-gold/40">
-            {adminName.slice(0, 2).toUpperCase()}
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-navy-950 bg-emerald-400" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-bold text-white">{adminName}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gold/80">
-              {adminRole}
-            </p>
-          </div>
-        </div>
+      <div className="shrink-0 border-t border-slate-200 p-3">
         <Link
           href="/"
-          className="mb-1 block rounded-lg px-3 py-1.5 text-xs font-medium text-white/50 hover:bg-white/5 hover:text-white"
+          className="mb-1 block rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
         >
           Exit to store
         </Link>
         <form action={signOut}>
           <button
             type="submit"
-            className="w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300"
+            className="w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"
           >
             Sign out
           </button>
@@ -196,14 +186,16 @@ function AdminSidebar({
   className?: string;
 }) {
   return (
-    <aside className={cn("vault-sidebar flex h-full w-64 flex-col border-r", className)}>
+    <aside className={cn("susu-sidebar flex h-full w-64 flex-col border-r", className)}>
       <Link
         href="/admin"
         onClick={onNavigate}
-        className="flex h-16 shrink-0 items-center gap-2 border-b border-white/[0.06] px-4"
+        className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 px-4"
       >
-        <DcsLogo size={32} className="max-w-full" />
-        <span className="ml-1 chip chip-gold">Admin</span>
+        <DcsLogo size={28} className="max-w-full" />
+        <span className="text-sm font-extrabold tracking-tight text-slate-900">
+          DCS Elite
+        </span>
       </Link>
       <AdminSidebarNav
         pathname={pathname}
@@ -235,7 +227,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="flex min-h-screen bg-[#f7f9fc] text-foreground">
+    <div className="susu-canvas flex min-h-screen">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AdminSidebar pathname={pathname} adminName={adminName} adminRole={adminRole} />
@@ -243,51 +235,45 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
 
       <div className="flex flex-1 flex-col lg:pl-64">
         {/* Top bar */}
-        <header className="vault-chrome sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 sm:px-6">
+        <header className="susu-topbar sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="rounded-lg p-2 text-white/70 hover:bg-white/5 lg:hidden"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
             onClick={() => setSidebarOpen(true)}
             aria-label="Menu"
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold/80">
-              Platform Control
-            </p>
-            <h1 className="truncate text-sm font-bold text-white">{title}</h1>
-          </div>
+          <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+            {title}
+          </h1>
 
-          {/* Search */}
-          <div className="search-dark ml-auto hidden w-72 md:flex">
-            <Search className="h-3.5 w-3.5" />
-            <input
-              type="text"
-              placeholder="Search orders, vendors, refs…"
-              aria-label="Search"
-            />
-            <span className="kbd">⌘K</span>
-          </div>
-
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
-            <span className="hidden items-center gap-1.5 chip chip-emerald sm:inline-flex">
-              <span className="dot dot-emerald dot-pulse" />
+          <div className="ml-auto flex items-center gap-2">
+            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 sm:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Live · {time}
             </span>
             <button
               type="button"
-              className="relative rounded-lg p-2 text-white/70 hover:bg-white/5"
+              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold" />
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
             </button>
+            <div className="susu-user-chip hidden h-10 items-center gap-2 px-2 py-1.5 sm:flex">
+              <div className="avatar !h-7 !w-7 !text-[11px]">
+                {adminName.slice(0, 2).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-slate-900">
+                {adminName.split(" ")[0]}
+              </span>
+            </div>
           </div>
         </header>
 
-        <main className="page-canvas flex-1">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
 
       {/* Mobile sidebar */}
@@ -295,7 +281,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             aria-label="Close menu"
             onClick={closeSidebar}
           />

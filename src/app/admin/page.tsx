@@ -1,16 +1,19 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  CheckCircle2,
   DollarSign,
   Headphones,
   ShieldCheck,
   ShoppingCart,
-  Sparkles,
   Store,
+  Trophy,
   Users,
+  Wallet,
   Zap,
 } from "lucide-react";
 import { WholesaleOverviewMini } from "@/components/wholesale/wholesale-overview-mini";
+import { CircleProgress } from "@/components/ui/circle-progress";
 import {
   fetchAdminOverview,
   fetchAdminTopCustomers,
@@ -27,11 +30,11 @@ export default async function AdminOverviewPage() {
   if (!hasSupabaseConfig()) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <div className="surface-card p-8 text-center">
-          <p className="text-sm font-semibold text-foreground">
+        <div className="section-card text-center">
+          <p className="text-sm font-semibold text-slate-900">
             Database not configured
           </p>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-1 text-xs text-slate-500">
             Add Supabase env vars to load admin data.
           </p>
         </div>
@@ -50,321 +53,391 @@ export default async function AdminOverviewPage() {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
   const topByOrders = [...vendors]
     .sort((a, b) => b.total_orders - a.total_orders)
-    .slice(0, 4);
+    .slice(0, 5);
 
   const opsTotal =
     agentOps.pendingWithdrawals +
     agentOps.openComplaints +
     agentOps.pendingMtnAfa;
 
+  const successRate = metrics?.successRate ?? 0;
+  const paystackShare = metrics?.paystackShare ?? 100;
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="page-hero page-hero-ribbon">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <span className="brand-strip">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                Command Center
-              </span>
-              <h1 className="mt-2 text-2xl font-bold leading-tight text-white sm:text-[28px]">
-                Platform <span className="text-amber-300">pulse</span>
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-white/80">
-                Real-time view of GMV, vendor health, and the operations queue
-                across every DCS Elite agent and storefront.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                  All systems operational
-                </span>
-                {pendingVendors.length > 0 && (
-                  <Link
-                    href="/admin/vendors"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-200 transition hover:bg-amber-500/25"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-300" />
-                    {pendingVendors.length} vendor{pendingVendors.length === 1 ? "" : "s"} pending
-                  </Link>
-                )}
-              </div>
-            </div>
+    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
+      {/* ===================== WELCOME ===================== */}
+      <section className="welcome-card">
+        <div className="welcome-chip">
+          <span className="chip-badge">Super admin</span>
+          <span className="live-badge">All systems operational</span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              Welcome back, Admin 👋
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
+              Your real-time view of GMV, vendor health, and the operations queue.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/admin/operations" className="susu-btn-gold">
+              Run reconciliation
+            </Link>
+            <Link href="/admin/vendors" className="susu-btn-ghost">
+              Manage vendors
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Stat strip */}
-      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
-        <div className="stat-strip grid grid-cols-2 sm:grid-cols-4">
-          <div className="stat-cell">
-            <p className="stat-label">GMV (30d)</p>
-            <p className="stat-value is-gold">{formatGHS(metrics?.gmv30d ?? 0)}</p>
-          </div>
-          <div className="stat-cell">
-            <p className="stat-label">Platform revenue</p>
-            <p className="stat-value is-emerald">
-              {formatGHS(metrics?.platformRevenue30d ?? 0)}
+      {/* ===================== VAULT HERO (GMV w/ ring) ===================== */}
+      <section className="vault-hero-card">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="min-w-0 flex-1">
+            <span className="vault-hero-chip">
+              <DollarSign className="h-3.5 w-3.5" />
+              Platform vault
+            </span>
+            <p className="vault-hero-label mt-4">Gross Merchandise Volume (30d)</p>
+            <p className="vault-hero-amount mt-2">
+              {formatGHS(metrics?.gmv30d ?? 0)}
             </p>
-          </div>
-          <div className="stat-cell">
-            <p className="stat-label">Orders today</p>
-            <p className="stat-value">{formatCompact(metrics?.ordersToday ?? 0)}</p>
-          </div>
-          <div className="stat-cell">
-            <p className="stat-label">Active vendors</p>
-            <p className="stat-value">{metrics?.activeVendors ?? 0}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Quick KPI cards row */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiPill
-            icon={<DollarSign className="h-4 w-4" />}
-            label="GMV (30d)"
-            value={formatGHS(metrics?.gmv30d ?? 0)}
-            iconClass="feature-icon-gold"
-          />
-          <KpiPill
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Platform revenue"
-            value={formatGHS(metrics?.platformRevenue30d ?? 0)}
-            iconClass="feature-icon-emerald"
-          />
-          <KpiPill
-            icon={<ShoppingCart className="h-4 w-4" />}
-            label="Orders today"
-            value={formatCompact(metrics?.ordersToday ?? 0)}
-            iconClass="feature-icon-sky"
-          />
-          <KpiPill
-            icon={<Store className="h-4 w-4" />}
-            label="Active vendors"
-            value={String(metrics?.activeVendors ?? 0)}
-            iconClass="feature-icon-violet"
-          />
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <WholesaleOverviewMini wholesale={wholesale} variant="admin" />
-          </div>
-
-          <div className="space-y-4 lg:col-span-2">
-            {/* Vendor governance */}
-            <section className="surface-card p-5">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="eyebrow-light">
-                  <Users className="h-3 w-3" />
-                  Vendor governance
-                </p>
-                <Link
-                  href="/admin/vendors"
-                  className="text-[10px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
-                >
-                  View all <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
-                </Link>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="vault-hero-pill-success">
+                <Zap className="h-3 w-3" />
+                {successRate.toFixed(1)}% payment success
+              </span>
+              <div className="flex items-center gap-1.5 text-xs text-white/65">
+                <span className="font-bold uppercase tracking-[0.14em] text-white/45">
+                  Platform revenue
+                </span>
+                <span className="font-bold text-amber-300">
+                  {formatGHS(metrics?.platformRevenue30d ?? 0)}
+                </span>
               </div>
-              {topByOrders.length === 0 ? (
-                <p className="text-sm text-muted">No vendors yet.</p>
-              ) : (
-                <ul className="-mx-5 divide-y divide-border">
-                  {topByOrders.map((v) => (
-                    <li
-                      key={v.id}
-                      className="flex items-center justify-between gap-2 px-5 py-2.5 text-sm transition hover:bg-slate-50"
-                    >
-                      <span className="truncate font-medium text-foreground">
-                        {v.business_name}
-                      </span>
-                      <span
-                        className={
-                          v.status === "approved"
-                            ? "pill pill-emerald text-[10px]"
-                            : "pill pill-amber text-[10px]"
-                        }
-                      >
-                        {v.status}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {pendingVendors.length > 0 && (
-                <p className="mt-3 text-xs font-semibold text-amber-700">
-                  {pendingVendors.length} vendor
-                  {pendingVendors.length === 1 ? "" : "s"} awaiting approval
-                </p>
-              )}
-            </section>
-
-            {/* Agent operations */}
-            <section
-              className={
-                opsTotal > 0
-                  ? "surface-card p-5"
-                  : "surface-card p-5"
-              }
-              style={
-                opsTotal > 0
-                  ? {
-                      borderColor: "#fecaca",
-                      background:
-                        "linear-gradient(135deg, #fff5f5 0%, #fff 80%)",
-                    }
-                  : undefined
-              }
-            >
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="eyebrow-light">
-                  <Headphones className="h-3 w-3" />
-                  Agent operations
-                </p>
-                <Link
-                  href="/admin/agent-ops"
-                  className="text-[10px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
-                >
-                  Manage <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
-                </Link>
-              </div>
-              <ul className="-mx-5 divide-y divide-border">
-                <OpsRow
-                  label="Pending reward payouts"
-                  value={agentOps.pendingWithdrawals}
-                />
-                <OpsRow
-                  label="Open complaints"
-                  value={agentOps.openComplaints}
-                />
-                <OpsRow label="MTN AFA pending" value={agentOps.pendingMtnAfa} />
-                <OpsRow
-                  label="Active ClaimIt codes"
-                  value={agentOps.activePromoCodes}
-                  tone="muted"
-                />
-              </ul>
-            </section>
-          </div>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <section className="surface-card p-5">
-            <p className="eyebrow-light">Payment performance</p>
-            <div className="mt-5 space-y-4">
-              <MetricBar
-                label="Success rate"
-                value={metrics?.successRate ?? 0}
-                tone="emerald"
-              />
-              <MetricBar
-                label="Paystack share"
-                value={metrics?.paystackShare ?? 100}
-                tone="gold"
-              />
             </div>
-          </section>
+          </div>
 
-          <section className="surface-card overflow-hidden">
-            <div className="px-5 pt-5">
-              <p className="eyebrow-light">Top customers</p>
-            </div>
-            {topCustomers.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-muted">
-                No customer orders recorded yet.
-              </p>
-            ) : (
-              <div className="mt-3 overflow-x-auto">
-                <table className="table-light">
-                  <thead>
-                    <tr>
-                      <th>Customer</th>
-                      <th className="text-right">Orders</th>
-                      <th className="text-right">Spend</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topCustomers.map((c) => (
-                      <tr key={c.userId}>
-                        <td className="font-medium">{c.name}</td>
-                        <td className="text-right tabular-nums">{c.orders}</td>
-                        <td className="text-right font-semibold tabular-nums">
-                          {formatGHS(c.spend)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
+          <CircleProgress
+            value={successRate}
+            label={`${Math.round(successRate)}%`}
+            caption="SUCCESS"
+            size={160}
+          />
         </div>
+      </section>
 
-        {/* Trust strip */}
-        <section className="grid gap-3 sm:grid-cols-3">
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-emerald">
-              <ShieldCheck className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">
-              Settlement security
-            </h3>
-            <p className="mt-1 text-xs text-muted">
-              All payments flow through Paystack with audited reconciliation
-              twice daily.
-            </p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-sky">
-              <Zap className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">
-              Sub-2-minute fulfilment
-            </h3>
-            <p className="mt-1 text-xs text-muted">
-              Skanka5 + manual ops keep MTN, Telecel and AT routes hot 24/7.
-            </p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-violet">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">
-              Vendor incentives
-            </h3>
-            <p className="mt-1 text-xs text-muted">
-              Tier rewards and ClaimIt codes drive volume to top performers.
+      {/* ===================== 4 STAT TILES ===================== */}
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatTile
+          icon={<DollarSign className="h-5 w-5" />}
+          tone="gold"
+          label="GMV (30d)"
+          value={formatGHS(metrics?.gmv30d ?? 0)}
+          hint="Across all stores"
+          valueAccent="gold"
+        />
+        <StatTile
+          icon={<Trophy className="h-5 w-5" />}
+          tone="emerald"
+          label="Platform revenue"
+          value={formatGHS(metrics?.platformRevenue30d ?? 0)}
+          hint="Commission earned"
+          valueAccent="emerald"
+        />
+        <StatTile
+          icon={<ShoppingCart className="h-5 w-5" />}
+          tone="sky"
+          label="Orders today"
+          value={formatCompact(metrics?.ordersToday ?? 0)}
+          hint="Last 24 hours"
+        />
+        <StatTile
+          icon={<Store className="h-5 w-5" />}
+          tone="violet"
+          label="Active vendors"
+          value={String(metrics?.activeVendors ?? 0)}
+          hint="Selling now"
+        />
+      </section>
+
+      {/* ===================== STATUS BANNER ===================== */}
+      {opsTotal === 0 && pendingVendors.length === 0 ? (
+        <section className="banner-success">
+          <span className="banner-icon">
+            <CheckCircle2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h4>You&apos;re completely caught up!</h4>
+            <p>
+              No pending vendors, withdrawals, complaints, or AFA cases in the
+              queue.
             </p>
           </div>
         </section>
+      ) : (
+        <section className="banner-info">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-200 text-amber-900">
+            <Headphones className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h4 className="font-bold text-amber-900">
+              {opsTotal + pendingVendors.length} item
+              {opsTotal + pendingVendors.length === 1 ? "" : "s"} need attention
+            </h4>
+            <p className="text-xs text-amber-800">
+              {pendingVendors.length} vendor approvals · {agentOps.pendingWithdrawals}{" "}
+              withdrawals · {agentOps.openComplaints} complaints ·{" "}
+              {agentOps.pendingMtnAfa} AFA cases
+            </p>
+          </div>
+          <Link href="/admin/agent-ops" className="ml-auto susu-btn-gold shrink-0">
+            Open queue
+          </Link>
+        </section>
+      )}
+
+      {/* ===================== 3 MINI STATS ===================== */}
+      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+        <MiniTile
+          icon={<Wallet className="h-4 w-4" />}
+          tone="amber"
+          label="Paystack share"
+          value={`${Math.round(paystackShare)}%`}
+        />
+        <MiniTile
+          icon={<Zap className="h-4 w-4" />}
+          tone="emerald"
+          label="Success rate"
+          value={`${Math.round(successRate)}%`}
+        />
+        <MiniTile
+          icon={<Users className="h-4 w-4" />}
+          tone="sky"
+          label="Top customers"
+          value={String(topCustomers.length)}
+        />
+      </section>
+
+      {/* ===================== WHOLESALE + GOVERNANCE ===================== */}
+      <section className="grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <WholesaleOverviewMini wholesale={wholesale} variant="admin" />
+        </div>
+        <div className="space-y-4 lg:col-span-2">
+          <div className="section-card">
+            <div className="section-card-header">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-amber-700" />
+                <h3 className="font-extrabold tracking-tight text-slate-900">
+                  Vendor governance
+                </h3>
+              </div>
+              <Link
+                href="/admin/vendors"
+                className="text-[11px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
+              >
+                View all <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+              </Link>
+            </div>
+            {topByOrders.length === 0 ? (
+              <p className="text-sm text-slate-500">No vendors yet.</p>
+            ) : (
+              <ul className="-mx-2 divide-y divide-slate-100">
+                {topByOrders.map((v) => (
+                  <li
+                    key={v.id}
+                    className="flex items-center justify-between gap-2 px-2 py-2.5 text-sm"
+                  >
+                    <span className="truncate font-semibold text-slate-900">
+                      {v.business_name}
+                    </span>
+                    <span
+                      className={
+                        v.status === "approved"
+                          ? "susu-pill susu-pill-active"
+                          : "susu-pill susu-pill-warn"
+                      }
+                    >
+                      <span className="dot" />
+                      {v.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Ops queue */}
+          <div className="section-card">
+            <div className="section-card-header">
+              <div className="flex items-center gap-2">
+                <Headphones className="h-4 w-4 text-amber-700" />
+                <h3 className="font-extrabold tracking-tight text-slate-900">
+                  Agent operations
+                </h3>
+              </div>
+              <Link
+                href="/admin/agent-ops"
+                className="text-[11px] font-bold uppercase tracking-wider text-amber-700 hover:underline"
+              >
+                Manage <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+              </Link>
+            </div>
+            <ul className="-mx-2 divide-y divide-slate-100">
+              <OpsRow
+                label="Pending reward payouts"
+                value={agentOps.pendingWithdrawals}
+              />
+              <OpsRow label="Open complaints" value={agentOps.openComplaints} />
+              <OpsRow label="MTN AFA pending" value={agentOps.pendingMtnAfa} />
+              <OpsRow
+                label="Active ClaimIt codes"
+                value={agentOps.activePromoCodes}
+                tone="muted"
+              />
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== TOP CUSTOMERS ===================== */}
+      <section className="section-card overflow-hidden">
+        <div className="section-card-header">
+          <div>
+            <h3 className="font-extrabold tracking-tight text-slate-900">
+              Top customers
+            </h3>
+            <p className="text-sm text-slate-500">
+              By total spend across all stores.
+            </p>
+          </div>
+        </div>
+        {topCustomers.length === 0 ? (
+          <p className="text-sm text-slate-500">No customer orders recorded yet.</p>
+        ) : (
+          <div className="-mx-5 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-y border-slate-100 bg-slate-50">
+                  <th className="px-5 py-2.5 text-left text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                    Customer
+                  </th>
+                  <th className="px-5 py-2.5 text-right text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                    Orders
+                  </th>
+                  <th className="px-5 py-2.5 text-right text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                    Spend
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {topCustomers.map((c) => (
+                  <tr
+                    key={c.userId}
+                    className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50"
+                  >
+                    <td className="px-5 py-3 font-semibold text-slate-900">
+                      {c.name}
+                    </td>
+                    <td className="px-5 py-3 text-right tabular-nums">
+                      {c.orders}
+                    </td>
+                    <td className="px-5 py-3 text-right font-bold tabular-nums text-amber-700">
+                      {formatGHS(c.spend)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ===================== TRUST STRIP ===================== */}
+      <section className="grid gap-3 sm:grid-cols-3">
+        <TrustCard
+          icon={<ShieldCheck className="h-5 w-5" />}
+          title="Settlement security"
+          body="Paystack-secured payments with audited reconciliation twice daily."
+          tone="emerald"
+        />
+        <TrustCard
+          icon={<Zap className="h-5 w-5" />}
+          title="Sub-2-minute fulfilment"
+          body="Skanka5 + manual ops keep MTN, Telecel, AT routes hot 24/7."
+          tone="sky"
+        />
+        <TrustCard
+          icon={<Trophy className="h-5 w-5" />}
+          title="Vendor incentives"
+          body="Tier rewards and ClaimIt codes drive volume to top performers."
+          tone="amber"
+        />
+      </section>
+    </div>
+  );
+}
+
+// ============================================================
+// Subcomponents
+// ============================================================
+
+function StatTile({
+  icon,
+  tone,
+  label,
+  value,
+  hint,
+  valueAccent,
+}: {
+  icon: React.ReactNode;
+  tone: "gold" | "amber" | "sky" | "violet" | "emerald" | "rose";
+  label: string;
+  value: string;
+  hint?: string;
+  valueAccent?: "gold" | "emerald" | "rose";
+}) {
+  return (
+    <div className="stat-tile">
+      <div className={`stat-tile-icon tile-icon-${tone}`}>{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="stat-tile-label">{label}</p>
+        <p
+          className={`stat-tile-value ${
+            valueAccent ? `is-${valueAccent}` : ""
+          }`}
+        >
+          {value}
+        </p>
+        {hint && <p className="stat-tile-hint">{hint}</p>}
       </div>
     </div>
   );
 }
 
-function KpiPill({
+function MiniTile({
   icon,
+  tone,
   label,
   value,
-  iconClass,
 }: {
   icon: React.ReactNode;
+  tone: "amber" | "rose" | "sky" | "emerald" | "violet" | "gold" | "slate";
   label: string;
   value: string;
-  iconClass: string;
 }) {
   return (
-    <div className="surface-card flex items-center gap-3 p-4">
-      <span className={`feature-icon ${iconClass}`}>{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
-          {label}
-        </p>
-        <p className="bignum bignum-xl mt-0.5 text-base text-foreground sm:text-lg">
-          {value}
-        </p>
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+      <div className="flex items-center gap-2">
+        <div className={`stat-tile-icon tile-icon-${tone} !h-9 !w-9`}>{icon}</div>
+        <div>
+          <p className="stat-tile-label text-[10px]">{label}</p>
+          <p className="text-base font-extrabold leading-none text-slate-900 sm:text-lg">
+            {value}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -380,15 +453,15 @@ function OpsRow({
   tone?: "default" | "muted";
 }) {
   return (
-    <li className="flex items-center justify-between px-5 py-2.5 text-sm">
-      <span className="text-muted">{label}</span>
+    <li className="flex items-center justify-between px-2 py-2.5 text-sm">
+      <span className="text-slate-600">{label}</span>
       <span
         className={
           tone === "muted"
-            ? "bignum text-base text-muted"
+            ? "text-base font-extrabold text-slate-400"
             : value > 0
-              ? "bignum text-base text-amber-700"
-              : "bignum text-base is-emerald"
+              ? "text-base font-extrabold text-amber-700"
+              : "text-base font-extrabold text-emerald-700"
         }
       >
         {value}
@@ -397,34 +470,22 @@ function OpsRow({
   );
 }
 
-function MetricBar({
-  label,
-  value,
-  tone = "gold",
+function TrustCard({
+  icon,
+  title,
+  body,
+  tone,
 }: {
-  label: string;
-  value: number;
-  tone?: "gold" | "emerald";
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  tone: "emerald" | "amber" | "sky" | "violet";
 }) {
-  const barGradient =
-    tone === "emerald"
-      ? "linear-gradient(90deg, #10b981 0%, #34d399 100%)"
-      : "linear-gradient(90deg, #d4af37 0%, #f4d160 100%)";
   return (
-    <div>
-      <div className="mb-1.5 flex justify-between text-xs">
-        <span className="text-muted">{label}</span>
-        <span className="font-bold tabular-nums text-foreground">{value}%</span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="h-full rounded-full transition-all"
-          style={{
-            width: `${Math.min(100, value)}%`,
-            background: barGradient,
-          }}
-        />
-      </div>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_8px_24px_rgba(10,46,93,0.08)]">
+      <div className={`stat-tile-icon tile-icon-${tone}`}>{icon}</div>
+      <h3 className="mt-3 text-sm font-bold text-slate-900">{title}</h3>
+      <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
     </div>
   );
 }

@@ -31,6 +31,7 @@ import type {
   WebhookConfig,
   WebhookDeliveryRow,
 } from "@/lib/vendor/developer";
+import { CircleProgress } from "@/components/ui/circle-progress";
 import { cn } from "@/lib/utils";
 
 type TabId = "overview" | "keys" | "webhook" | "docs" | "logs";
@@ -63,66 +64,108 @@ export function DeveloperConsole({
 
   const activeKey = keys.find((k) => k.active && !k.revoked_at);
 
+  const totalErrors = summary.errors_7d;
+  const totalCalls = summary.total_7d;
+  const errorPct = totalCalls > 0 ? (totalErrors / totalCalls) * 100 : 0;
+  const healthPct = Math.max(0, 100 - errorPct);
+
   return (
-    <div>
-      {/* Hero band — navy with subtle radials, just like the storefront */}
-      <section className="page-hero page-hero-ribbon">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <span className="brand-strip">
-                <Code2 className="h-3.5 w-3.5" />
-                Developer API
-              </span>
-              <h1 className="mt-2 text-2xl font-bold leading-tight text-white sm:text-[28px]">
-                Sell data <span className="text-amber-300">programmatically</span>
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-[15px]">
-                Issue API keys to bots, downstream resellers, or staff and let them
-                place orders against{" "}
-                <span className="font-semibold text-white">{vendorName}</span>{" "}
-                automatically. Orders debit your wallet and route to the same suppliers
-                that power your dashboard.
-              </p>
-            </div>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold whitespace-nowrap",
-                activeKey
-                  ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
-                  : "border-amber-400/40 bg-amber-500/15 text-amber-200",
-              )}
+    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
+      {/* Welcome card */}
+      <section className="welcome-card">
+        <div className="welcome-chip">
+          <span className="chip-badge">Developer</span>
+          <span className={activeKey ? "live-badge" : "live-badge"}>
+            {activeKey ? "API live" : "Awaiting first key"}
+          </span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              Sell data programmatically
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
+              Issue API keys to bots, resellers, or staff. Orders debit your wallet
+              and route to the same suppliers that power{" "}
+              <span className="font-bold text-slate-900">{vendorName}</span>.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTab("keys")}
+              className="susu-btn-gold"
             >
-              <span
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  activeKey ? "bg-emerald-300" : "bg-amber-300",
-                )}
-              />
-              {activeKey ? "API Live" : "No active key"}
-            </span>
+              <Code2 className="h-3.5 w-3.5" />
+              {activeKey ? "Manage keys" : "Create first key"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("docs")}
+              className="susu-btn-ghost"
+            >
+              Read docs
+            </button>
           </div>
         </div>
       </section>
 
-      {/* Stat strip that overlaps the hero (storefront pattern) */}
-      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
-        <div className="stat-strip grid grid-cols-2 sm:grid-cols-4">
-          <HeroStat label="Calls 24h" value={summary.total_24h.toLocaleString()} />
-          <HeroStat
-            label="Errors 24h"
-            value={summary.errors_24h.toLocaleString()}
-            tone={summary.errors_24h > 0 ? "rose" : "emerald"}
-          />
-          <HeroStat label="Calls 7d" value={summary.total_7d.toLocaleString()} />
-          <HeroStat
-            label="Avg latency"
-            value={summary.avg_duration_ms != null ? `${summary.avg_duration_ms}ms` : "—"}
-          />
-        </div>
-      </div>
+      {/* Vault hero — API health */}
+      <section className="vault-hero-card">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="min-w-0 flex-1">
+            <span className="vault-hero-chip">
+              <Activity className="h-3.5 w-3.5" />
+              API vault
+            </span>
+            <p className="vault-hero-label mt-4">Calls (7d)</p>
+            <p className="vault-hero-amount mt-2">
+              {summary.total_7d.toLocaleString()}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="vault-hero-pill-success">
+                <Activity className="h-3 w-3" />
+                {totalErrors === 0 ? "Zero errors · healthy" : `${errorPct.toFixed(1)}% error rate`}
+              </span>
+              <div className="flex items-center gap-1.5 text-xs text-white/65">
+                <span className="font-bold uppercase tracking-[0.14em] text-white/45">
+                  Avg latency
+                </span>
+                <span className="font-bold text-amber-300">
+                  {summary.avg_duration_ms != null ? `${summary.avg_duration_ms}ms` : "—"}
+                </span>
+              </div>
+            </div>
+          </div>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+          <HeroRing pct={healthPct} />
+        </div>
+      </section>
+
+      {/* 4 stat tiles */}
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <DevStatTile
+          label="Calls 24h"
+          value={summary.total_24h.toLocaleString()}
+          tone="sky"
+        />
+        <DevStatTile
+          label="Errors 24h"
+          value={summary.errors_24h.toLocaleString()}
+          tone={summary.errors_24h > 0 ? "rose" : "emerald"}
+        />
+        <DevStatTile
+          label="Calls 7d"
+          value={summary.total_7d.toLocaleString()}
+          tone="amber"
+        />
+        <DevStatTile
+          label="Avg latency"
+          value={summary.avg_duration_ms != null ? `${summary.avg_duration_ms}ms` : "—"}
+          tone="violet"
+        />
+      </section>
+
       {/* Tabs */}
       <div className="tab-rail">
         <TabButton id="overview" current={tab} onClick={setTab} icon={<Activity className="h-3.5 w-3.5" />}>
@@ -167,6 +210,39 @@ export function DeveloperConsole({
       )}
       {tab === "docs" && <DocsBrowser apiBase={apiBase} />}
       {tab === "logs" && <LogsPanel logs={logs} setLogs={setLogs} />}
+    </div>
+  );
+}
+
+// Vault ring + dev tile sub-components
+function HeroRing({ pct }: { pct: number }) {
+  return (
+    <CircleProgress
+      value={pct}
+      label={`${Math.round(pct)}%`}
+      caption="HEALTH"
+      size={160}
+    />
+  );
+}
+
+function DevStatTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "amber" | "gold" | "emerald" | "sky" | "violet" | "rose" | "slate";
+}) {
+  return (
+    <div className="stat-tile">
+      <div className={`stat-tile-icon tile-icon-${tone}`}>
+        <Activity className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="stat-tile-label">{label}</p>
+        <p className="stat-tile-value">{value}</p>
       </div>
     </div>
   );
@@ -175,31 +251,6 @@ export function DeveloperConsole({
 // =================================================================
 // Pieces
 // =================================================================
-
-function HeroStat({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  tone?: "neutral" | "emerald" | "rose" | "gold";
-}) {
-  const accent =
-    tone === "emerald"
-      ? "is-emerald"
-      : tone === "rose"
-        ? "is-rose"
-        : tone === "gold"
-          ? "is-gold"
-          : "";
-  return (
-    <div className="stat-cell">
-      <p className="stat-label">{label}</p>
-      <p className={cn("stat-value", accent)}>{value}</p>
-    </div>
-  );
-}
 
 function TabButton({
   id,

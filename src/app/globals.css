@@ -1461,3 +1461,494 @@ body {
   background-clip: text;
   color: transparent;
 }
+
+/* ============================================================
+   SUSU DESIGN SYSTEM
+   A light, cream-accented aesthetic with deep-navy "vault" hero
+   cards and tinted-icon stat tiles. Used for dashboard pages.
+   ============================================================ */
+
+/* Page background — warm off-white, very subtle */
+.susu-canvas {
+  background: #f8fafc;
+  color: var(--foreground);
+  min-height: 100%;
+}
+
+/* ----- Sidebar (light cream/white, amber-tinted active state) ----- */
+.susu-sidebar {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: var(--foreground);
+}
+.susu-sidebar .nav-section-label {
+  color: #94a3b8;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.susu-sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  transition: all 0.2s var(--ease-out-expo);
+}
+.susu-sidebar .nav-link:hover {
+  background: #f1f5f9;
+  color: var(--foreground);
+}
+.susu-sidebar .nav-link-active {
+  background: linear-gradient(90deg, #fef7e0 0%, #fff8eb 100%);
+  color: #92400e;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #d4af37;
+}
+.susu-sidebar .nav-link-active .nav-icon { color: #b8860b; }
+.susu-sidebar .nav-icon {
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+.susu-sidebar .nav-link:hover .nav-icon { color: #64748b; }
+
+/* User chip at top of sidebar */
+.susu-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+.susu-user-chip .avatar {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0a2e5d 0%, #0d3a6e 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+}
+
+/* Light top bar */
+.susu-topbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border-color: #e5e7eb;
+}
+
+/* ----- Welcome card (white, with chip on top, big heading, CTAs right) ----- */
+.welcome-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
+}
+@media (min-width: 640px) {
+  .welcome-card { padding: 2rem; }
+}
+
+.welcome-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.welcome-chip .chip-badge {
+  background: #fef7e0;
+  color: #92400e;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+.welcome-chip .live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #047857;
+  font-weight: 700;
+}
+.welcome-chip .live-badge::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+/* ----- VAULT HERO CARD (the centerpiece) — deep navy with subtle highlights ----- */
+.vault-hero-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  color: #ffffff;
+  background:
+    radial-gradient(60% 60% at 100% 0%, rgba(212, 175, 55, 0.10) 0%, transparent 60%),
+    radial-gradient(50% 50% at 0% 100%, rgba(13, 58, 110, 0.45) 0%, transparent 60%),
+    linear-gradient(135deg, #061d45 0%, #0a2e5d 60%, #0d3a6e 100%);
+  padding: 1.5rem;
+  box-shadow:
+    0 4px 16px rgba(10, 46, 93, 0.20),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+@media (min-width: 640px) {
+  .vault-hero-card { padding: 2rem; }
+}
+.vault-hero-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.6), transparent);
+}
+.vault-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.vault-hero-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+.vault-hero-amount {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+@media (min-width: 640px) {
+  .vault-hero-amount { font-size: 3rem; }
+}
+@media (min-width: 1024px) {
+  .vault-hero-amount { font-size: 3.5rem; }
+}
+.vault-hero-pill-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* ----- STAT TILES (white card with tinted icon box on the left) ----- */
+.stat-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.875rem;
+  padding: 1rem 1.125rem;
+  transition: all 0.2s var(--ease-out-expo);
+}
+.stat-tile:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 8px 24px rgba(10, 46, 93, 0.08);
+}
+.stat-tile-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+}
+.tile-icon-amber   { background: #fef3c7; color: #b45309; }
+.tile-icon-gold    { background: #fef7e0; color: #b8860b; }
+.tile-icon-emerald { background: #d1fae5; color: #047857; }
+.tile-icon-sky     { background: #dbeafe; color: #1d4ed8; }
+.tile-icon-violet  { background: #ede9fe; color: #6d28d9; }
+.tile-icon-rose    { background: #fee2e2; color: #b91c1c; }
+.tile-icon-slate   { background: #f1f5f9; color: #475569; }
+
+.stat-tile-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.stat-tile-value {
+  margin-top: 0.25rem;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+.stat-tile-value.is-gold    { color: #b8860b; }
+.stat-tile-value.is-emerald { color: #047857; }
+.stat-tile-value.is-rose    { color: #b91c1c; }
+.stat-tile-hint {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* ----- Success / info banners ----- */
+.banner-success {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: linear-gradient(90deg, #ecfdf5 0%, #f0fdfa 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+}
+.banner-success .banner-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #047857;
+}
+.banner-success h4 {
+  font-weight: 700;
+  color: #065f46;
+  margin: 0;
+}
+.banner-success p {
+  font-size: 0.8125rem;
+  color: #047857;
+  margin: 0;
+}
+
+.banner-info {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: linear-gradient(90deg, #eff6ff 0%, #f0f9ff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  color: #1e3a8a;
+}
+
+/* ----- Gold progress bar with dot marker ----- */
+.gold-progress {
+  position: relative;
+  height: 0.5rem;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: visible;
+}
+.gold-progress-fill {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #b8860b 0%, #d4af37 50%, #f4d160 100%);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.18);
+}
+.gold-progress-dot {
+  position: absolute;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid #b8860b;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.4);
+}
+
+/* ----- Generic "section card" used for portfolio-style sections ----- */
+.section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
+}
+.section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Sub-stat group (DAILY / PAYOUT / SAVED row inside portfolio card) */
+.substat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.substat {
+  background: linear-gradient(180deg, #fef7e0 0%, #fffaf0 100%);
+  border: 1px solid rgba(212, 175, 55, 0.20);
+  border-radius: 0.625rem;
+  padding: 0.625rem;
+  text-align: center;
+}
+.substat-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.substat-value {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----- CTAs ----- */
+.susu-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #b8860b 0%, #d4af37 50%, #f4d160 100%);
+  color: #1f1500;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  transition: all 0.2s var(--ease-out-expo);
+  white-space: nowrap;
+}
+.susu-btn-gold:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.susu-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: var(--foreground);
+  border: 1px solid #e5e7eb;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.2s var(--ease-out-expo);
+  white-space: nowrap;
+}
+.susu-btn-ghost:hover { border-color: rgba(212, 175, 55, 0.45); }
+.susu-btn-dark {
+  background: #0a2e5d;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.2s var(--ease-out-expo);
+}
+.susu-btn-dark:hover { background: #061d45; }
+
+/* ----- Pills used inline (active, public, info) ----- */
+.susu-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  line-height: 1.1;
+}
+.susu-pill-active { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+.susu-pill-info   { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.susu-pill-warn   { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.susu-pill-gold   { background: #fef7e0; color: #92400e; border-color: rgba(212, 175, 55, 0.35); }
+.susu-pill-slate  { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+
+/* Tiny dot indicator inside pills */
+.susu-pill .dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+}
+.susu-pill-active .dot { background: #10b981; }
+.susu-pill-info .dot   { background: #3b82f6; }
+.susu-pill-warn .dot   { background: #f59e0b; }
+
+/* ----- "Issues" red alert pill at sidebar bottom ----- */
+.issues-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 0.45rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.issues-pill::before {
+  content: "";
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: #b91c1c;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

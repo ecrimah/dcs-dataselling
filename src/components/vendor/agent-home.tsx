@@ -3,44 +3,27 @@
 import Link from "next/link";
 import {
   Activity,
-  ArrowUpRight,
+  CheckCircle2,
+  Crown,
   FileSpreadsheet,
   FileText,
-  Home,
+  Flame,
   Monitor,
   Plus,
-  ShoppingCart,
-  Sparkles,
+  ShoppingBag,
+  Target,
+  Trophy,
+  Users,
   Wallet,
+  Zap,
 } from "lucide-react";
-import type { VendorRecentOrder, VendorTodayStats } from "@/lib/data/vendor-agent";
+import type {
+  VendorRecentOrder,
+  VendorTodayStats,
+} from "@/lib/data/vendor-agent";
 import { BULK_SAMPLE_CSV } from "@/lib/wholesale/bulk-sample";
 import { formatGHS, formatPhone } from "@/lib/format";
-
-const NETWORK_TILES = [
-  { id: "mtn", label: "MTN", href: "/vendor/dashboard/wholesale?network=mtn", color: "#FFCC00", short: "MTN" },
-  {
-    id: "telecel",
-    label: "TELECEL",
-    href: "/vendor/dashboard/wholesale?network=telecel",
-    color: "#E4002B",
-    short: "TEL",
-  },
-  {
-    id: "at-ishare",
-    label: "AT - iShare",
-    href: "/vendor/dashboard/wholesale?network=at&line=ishare",
-    color: "#0066CC",
-    short: "AT",
-  },
-  {
-    id: "at-bigtime",
-    label: "AT - BigTime",
-    href: "/vendor/dashboard/wholesale?network=at&line=bigtime",
-    color: "#0066CC",
-    short: "AT",
-  },
-] as const;
+import { CircleProgress } from "@/components/ui/circle-progress";
 
 interface Props {
   greeting: string;
@@ -60,317 +43,434 @@ function downloadSample() {
   URL.revokeObjectURL(url);
 }
 
-export function AgentHome({ greeting, vendorName, balance, today, recentOrders }: Props) {
+export function AgentHome({
+  greeting,
+  vendorName,
+  balance,
+  today,
+  recentOrders,
+}: Props) {
   const firstName = vendorName.split(" ")[0];
 
-  return (
-    <div>
-      {/* Hero band */}
-      <section className="page-hero page-hero-ribbon">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <span className="brand-strip">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                {greeting}, {firstName}
-              </span>
-              <h1 className="mt-2 text-2xl font-bold leading-tight text-white sm:text-[28px]">
-                Welcome to your <span className="text-amber-300">terminal</span>
-              </h1>
-              <p className="mt-2 text-sm text-white/80">
-                Place orders, manage your wallet, and track every cedi.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                  Live · 24/7
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-200">
-                  {vendorName}
-                </span>
-              </div>
-            </div>
+  // Wallet vs target = simple visual cue. If they have ≥ ₵500 balance, ring is "full".
+  const walletTarget = Math.max(balance, 500);
+  const walletPct = walletTarget > 0 ? Math.min(100, (balance / walletTarget) * 100) : 0;
 
-            {/* Wallet card in hero — like the storefront's right-side block */}
-            <div className="w-full max-w-sm rounded-2xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur-sm sm:w-80">
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
-                <Wallet className="h-3.5 w-3.5 text-amber-300" />
-                Wallet balance
-              </div>
-              <p className="mt-2 text-3xl font-extrabold tracking-tight text-amber-300 sm:text-[34px]">
-                {formatGHS(balance)}
-              </p>
-              <p className="mt-1 text-xs text-white/65">Available to spend on orders</p>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Link
-                  href="/vendor/dashboard/wholesale?topup=1"
-                  className="inline-flex items-center justify-center gap-1 rounded-lg bg-amber-300 px-2 py-2 text-[11px] font-bold text-slate-900 transition hover:brightness-105"
-                >
-                  <Plus className="h-3 w-3" />
-                  Top Up
-                </Link>
-                <Link
-                  href="/vendor/dashboard/claim"
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-2 py-2 text-[11px] font-bold text-white transition hover:bg-emerald-600"
-                >
-                  ClaimIt
-                </Link>
-                <Link
-                  href="/vendor/dashboard/wallet"
-                  className="inline-flex items-center justify-center rounded-lg border border-white/25 px-2 py-2 text-[11px] font-bold text-white transition hover:bg-white/10"
-                >
-                  History
-                </Link>
-              </div>
-            </div>
+  return (
+    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
+      {/* ===================== WELCOME CARD ===================== */}
+      <section className="welcome-card">
+        <div className="welcome-chip">
+          <span className="chip-badge">Agent</span>
+          <span className="live-badge">System fully synced</span>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              {greeting}, {firstName} 👋
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
+              Your real-time data reselling terminal & wallet center.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/vendor/dashboard/wholesale"
+              className="susu-btn-gold"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Buy data
+            </Link>
+            <Link
+              href="/vendor/dashboard/wallet"
+              className="susu-btn-ghost"
+            >
+              My wallet
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Stat strip overlapping hero */}
-      <div className="mx-auto -mt-6 max-w-7xl px-4 sm:-mt-8 sm:px-6 lg:px-8">
-        <div className="stat-strip grid grid-cols-2 sm:grid-cols-4">
-          <div className="stat-cell">
-            <p className="stat-label">Orders today</p>
-            <p className="stat-value is-emerald">{today.ordersToday}</p>
+      {/* ===================== VAULT HERO (wallet w/ ring) ===================== */}
+      <section className="vault-hero-card">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="min-w-0 flex-1">
+            <span className="vault-hero-chip">
+              <Wallet className="h-3.5 w-3.5" />
+              Wallet vault
+            </span>
+            <p className="vault-hero-label mt-4">Available balance</p>
+            <p className="vault-hero-amount mt-2">{formatGHS(balance)}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="vault-hero-pill-success">
+                <Zap className="h-3 w-3" />
+                {balance > 0 ? "Ready to sell" : "Top up to start"}
+              </span>
+              <div className="flex items-center gap-1.5 text-xs text-white/65">
+                <span className="font-bold uppercase tracking-[0.14em] text-white/45">
+                  Today
+                </span>
+                <span className="text-white">
+                  {today.ordersToday} orders ·{" "}
+                  <span className="font-bold text-amber-300">
+                    {formatGHS(today.revenueToday)}
+                  </span>{" "}
+                  revenue
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="stat-cell">
-            <p className="stat-label">GB sold today</p>
-            <p className="stat-value">{today.gbSoldToday}</p>
+
+          <CircleProgress
+            value={walletPct}
+            label={`${Math.round(walletPct)}%`}
+            caption="LOADED"
+            size={160}
+          />
+        </div>
+      </section>
+
+      {/* ===================== 4 STAT TILES ===================== */}
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatTile
+          icon={<Crown className="h-5 w-5" />}
+          tone="gold"
+          label="Today's revenue"
+          value={formatGHS(today.revenueToday)}
+          hint={`${today.ordersToday} orders today`}
+          valueAccent="gold"
+        />
+        <StatTile
+          icon={<Target className="h-5 w-5" />}
+          tone="sky"
+          label="GB sold today"
+          value={String(today.gbSoldToday)}
+          hint="Across all networks"
+        />
+        <StatTile
+          icon={<Trophy className="h-5 w-5" />}
+          tone="amber"
+          label="Lifetime orders"
+          value={String(recentOrders.length > 0 ? "Active" : "Get started")}
+          hint={recentOrders.length > 0 ? "Building reputation" : "Place your first order"}
+        />
+        <StatTile
+          icon={<Wallet className="h-5 w-5" />}
+          tone="violet"
+          label="Wallet"
+          value={formatGHS(balance)}
+          hint="Available to spend"
+          valueAccent="gold"
+        />
+      </section>
+
+      {/* ===================== STATUS BANNER ===================== */}
+      {balance > 0 ? (
+        <section className="banner-success">
+          <span className="banner-icon">
+            <CheckCircle2 className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h4>You&apos;re ready to sell.</h4>
+            <p>
+              Wallet loaded with {formatGHS(balance)}. Start placing orders and
+              earn commission instantly.
+            </p>
           </div>
-          <div className="stat-cell">
-            <p className="stat-label">Revenue today</p>
-            <p className="stat-value is-gold">{formatGHS(today.revenueToday)}</p>
+        </section>
+      ) : (
+        <section className="banner-info">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-200 text-blue-900">
+            <Wallet className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <h4 className="font-bold text-blue-900">Top up to start selling.</h4>
+            <p className="text-xs text-blue-800">
+              Add money to your wallet using MoMo, card, or bank — orders deduct
+              instantly.
+            </p>
           </div>
-          <div className="stat-cell">
-            <p className="stat-label">Wallet</p>
-            <p className="stat-value is-gold">{formatGHS(balance)}</p>
+          <Link
+            href="/vendor/dashboard/wallet"
+            className="ml-auto susu-btn-gold shrink-0"
+          >
+            Top up
+          </Link>
+        </section>
+      )}
+
+      {/* ===================== 3 MINI STATS ===================== */}
+      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+        <MiniTile
+          icon={<Wallet className="h-4 w-4" />}
+          tone="amber"
+          label="Wallet"
+          value={formatGHS(balance)}
+        />
+        <MiniTile
+          icon={<Flame className="h-4 w-4" />}
+          tone="rose"
+          label="Streak"
+          value={`${recentOrders.length > 0 ? recentOrders.length : 0}d`}
+        />
+        <MiniTile
+          icon={<Users className="h-4 w-4" />}
+          tone="sky"
+          label="Networks"
+          value="3"
+        />
+      </section>
+
+      {/* ===================== BUY DATA QUICK LINKS ===================== */}
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+              Place an order
+            </h2>
+            <p className="text-sm text-slate-500">
+              Pick a network and start selling immediately.
+            </p>
           </div>
+          <Link
+            href="/vendor/dashboard/wholesale?mode=bulk"
+            className="susu-btn-ghost"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Bulk upload
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <NetworkLink
+            href="/vendor/dashboard/wholesale?network=mtn"
+            label="MTN"
+            color="#FFCC00"
+            textColor="#111"
+          />
+          <NetworkLink
+            href="/vendor/dashboard/wholesale?network=telecel"
+            label="Telecel"
+            color="#E4002B"
+            textColor="#fff"
+          />
+          <NetworkLink
+            href="/vendor/dashboard/wholesale?network=at&line=ishare"
+            label="AT iShare"
+            color="#0066CC"
+            textColor="#fff"
+          />
+          <NetworkLink
+            href="/vendor/dashboard/wholesale?network=at&line=bigtime"
+            label="AT BigTime"
+            color="#0066CC"
+            textColor="#fff"
+          />
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-3">
+          <Link
+            href="/vendor/dashboard/wholesale?mode=bulk"
+            className="susu-btn-dark"
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Excel
+          </Link>
+          <Link
+            href="/vendor/dashboard/wholesale?mode=bulk"
+            className="susu-btn-gold"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Bulk
+          </Link>
+          <button
+            type="button"
+            onClick={downloadSample}
+            className="susu-btn-ghost"
+          >
+            <Monitor className="h-3.5 w-3.5" />
+            Sample
+          </button>
+        </div>
+      </section>
+
+      {/* ===================== RECENT ACTIVITY / PORTFOLIO ===================== */}
+      <section>
+        <div className="section-card-header">
+          <div>
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+              Recent activity
+            </h2>
+            <p className="text-sm text-slate-500">
+              Latest orders from your terminal.
+            </p>
+          </div>
+          <Link
+            href="/vendor/dashboard/orders"
+            className="susu-btn-ghost"
+          >
+            View all
+          </Link>
+        </div>
+
+        {recentOrders.length === 0 ? (
+          <div className="section-card text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
+              <Activity className="h-5 w-5 text-slate-400" />
+            </div>
+            <p className="mt-3 font-bold text-slate-900">No orders yet</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Place your first order above to start building your reputation.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+            {recentOrders.slice(0, 4).map((o) => (
+              <div key={o.id} className="section-card">
+                <div className="section-card-header">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="tile-icon-gold flex h-10 w-10 items-center justify-center rounded-xl">
+                      <ShoppingBag className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900">
+                        {o.reference}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {o.network} · {formatPhone(o.phone)}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="susu-pill susu-pill-active">
+                    <span className="dot" />
+                    Done
+                  </span>
+                </div>
+                <div className="substat-row">
+                  <div className="substat">
+                    <p className="substat-label">Amount</p>
+                    <p className="substat-value">{formatGHS(o.amount)}</p>
+                  </div>
+                  <div className="substat">
+                    <p className="substat-label">Network</p>
+                    <p className="substat-value">{o.network}</p>
+                  </div>
+                  <div className="substat">
+                    <p className="substat-label">Status</p>
+                    <p className="substat-value text-emerald-700">Sent</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// ============================================================
+// Subcomponents
+// ============================================================
+
+function StatTile({
+  icon,
+  tone,
+  label,
+  value,
+  hint,
+  valueAccent,
+}: {
+  icon: React.ReactNode;
+  tone: "gold" | "amber" | "sky" | "violet" | "emerald" | "rose";
+  label: string;
+  value: string;
+  hint?: string;
+  valueAccent?: "gold" | "emerald" | "rose";
+}) {
+  return (
+    <div className="stat-tile">
+      <div className={`stat-tile-icon tile-icon-${tone}`}>{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="stat-tile-label">{label}</p>
+        <p
+          className={`stat-tile-value ${
+            valueAccent ? `is-${valueAccent}` : ""
+          }`}
+        >
+          {value}
+        </p>
+        {hint && <p className="stat-tile-hint">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+function MiniTile({
+  icon,
+  tone,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  tone: "amber" | "rose" | "sky" | "emerald" | "violet" | "gold" | "slate";
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      className="rounded-2xl border bg-white p-3 sm:p-4"
+      style={{
+        borderColor:
+          tone === "amber"
+            ? "#fde68a"
+            : tone === "rose"
+              ? "#fecaca"
+              : tone === "sky"
+                ? "#bfdbfe"
+                : "#e5e7eb",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <div className={`stat-tile-icon tile-icon-${tone} !h-9 !w-9`}>{icon}</div>
+        <div>
+          <p className="stat-tile-label text-[10px]">{label}</p>
+          <p className="text-base font-extrabold leading-none text-slate-900 sm:text-lg">
+            {value}
+          </p>
         </div>
       </div>
-
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Place order */}
-        <section>
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="section-title">Place an order</h2>
-              <p className="section-subtitle">Pick a network to browse bundles.</p>
-            </div>
-            <Link
-              href="/vendor/dashboard/wholesale?mode=bulk"
-              className="cta cta-ghost text-xs"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Bulk upload
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {NETWORK_TILES.map((tile) => (
-              <Link
-                key={tile.id}
-                href={tile.href}
-                className="surface-card group flex items-center gap-3 p-4"
-              >
-                <span
-                  className="flex h-12 w-12 items-center justify-center rounded-xl text-[11px] font-black shadow-md"
-                  style={{
-                    backgroundColor: tile.color,
-                    color: tile.id === "mtn" ? "#111" : "#fff",
-                  }}
-                >
-                  {tile.short}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-foreground">
-                    {tile.label}
-                  </p>
-                  <p className="text-[11px] text-muted">Browse bundles →</p>
-                </div>
-                <ArrowUpRight className="h-4 w-4 text-muted-soft transition group-hover:text-amber-600" />
-              </Link>
-            ))}
-          </div>
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            <Link
-              href="/vendor/dashboard/wholesale?mode=bulk"
-              className="cta cta-emerald w-full"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Excel
-            </Link>
-            <Link
-              href="/vendor/dashboard/wholesale?mode=bulk"
-              className="cta cta-gold w-full"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Bulk
-            </Link>
-            <button type="button" onClick={downloadSample} className="cta cta-ghost w-full">
-              <Monitor className="h-3.5 w-3.5" />
-              Sample
-            </button>
-          </div>
-        </section>
-
-        {/* Quick actions */}
-        <section>
-          <div className="mb-3">
-            <h2 className="section-title">Quick actions</h2>
-            <p className="section-subtitle">Everything you need, one tap away.</p>
-          </div>
-
-          <Link
-            href="/vendor/dashboard/storefront"
-            className="surface-card mb-3 flex items-center gap-3 p-4"
-            style={{
-              background:
-                "linear-gradient(135deg, #fff8e1 0%, #fffaf0 60%, #ffffff 100%)",
-              borderColor: "rgba(212, 175, 55, 0.45)",
-            }}
-          >
-            <span className="feature-icon feature-icon-gold">
-              <Home className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-foreground">
-                Manage your storefront
-              </p>
-              <p className="text-xs text-muted">
-                Branding, links, and the customer view
-              </p>
-            </div>
-            <ArrowUpRight className="h-4 w-4 text-amber-600" />
-          </Link>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              {
-                href: "/vendor/dashboard/wholesale",
-                label: "New Order",
-                icon: Plus,
-                iconClass: "feature-icon-emerald",
-              },
-              {
-                href: "/vendor/dashboard/wholesale?mode=bulk",
-                label: "Bulk Orders",
-                icon: Monitor,
-                iconClass: "feature-icon-sky",
-              },
-              {
-                href: "/vendor/dashboard/orders",
-                label: "All Orders",
-                icon: FileText,
-                iconClass: "feature-icon-gold",
-              },
-              {
-                href: "/vendor/dashboard/wallet",
-                label: "Activity",
-                icon: Activity,
-                iconClass: "feature-icon-violet",
-              },
-            ].map((a) => (
-              <Link
-                key={a.label}
-                href={a.href}
-                className="feature-card flex items-center gap-3"
-              >
-                <span className={`feature-icon ${a.iconClass}`}>
-                  <a.icon className="h-4 w-4" />
-                </span>
-                <span className="truncate text-sm font-bold text-foreground">
-                  {a.label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Recent orders */}
-        <section>
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="section-title">Recent orders</h2>
-              <p className="section-subtitle">Latest activity from your terminal.</p>
-            </div>
-            <Link
-              href="/vendor/dashboard/orders"
-              className="text-xs font-bold text-amber-700 hover:underline"
-            >
-              View all →
-            </Link>
-          </div>
-          {recentOrders.length === 0 ? (
-            <div className="surface-card p-10 text-center">
-              <p className="text-sm font-semibold text-foreground">No orders yet</p>
-              <p className="mt-1 text-xs text-muted">
-                Place your first order above to see activity here.
-              </p>
-            </div>
-          ) : (
-            <div className="surface-card overflow-hidden">
-              {recentOrders.map((o) => (
-                <div
-                  key={o.id}
-                  className="row-light"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-foreground">
-                      {o.reference}
-                    </p>
-                    <p className="mt-0.5 flex items-center gap-2 text-[11px] text-muted">
-                      <span className="pill pill-slate text-[10px]">{o.network}</span>
-                      {formatPhone(o.phone)}
-                    </p>
-                  </div>
-                  <p className="bignum bignum-xl shrink-0 text-base is-gold sm:text-lg">
-                    {formatGHS(o.amount)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Trust strip — matches storefront feature cards */}
-        <section className="grid gap-3 sm:grid-cols-3">
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-emerald">
-              <ShoppingCart className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">Instant fulfilment</h3>
-            <p className="mt-1 text-xs text-muted">
-              Orders route to suppliers in seconds. Average delivery under 2 minutes.
-            </p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-gold">
-              <Wallet className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">Wallet-first</h3>
-            <p className="mt-1 text-xs text-muted">
-              Top up once, sell all day. Every order debits your wallet instantly.
-            </p>
-          </div>
-          <div className="feature-card">
-            <span className="feature-icon feature-icon-violet">
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <h3 className="mt-3 text-sm font-bold text-foreground">Earn rewards</h3>
-            <p className="mt-1 text-xs text-muted">
-              Hit volume milestones to unlock cashback and tier-based perks.
-            </p>
-          </div>
-        </section>
-      </div>
-
-      <Link
-        href="/vendor/dashboard/wholesale"
-        className="cta cta-gold mx-4 mb-6 flex items-center justify-center gap-2 py-3 text-sm lg:hidden"
-      >
-        <ShoppingCart className="h-4 w-4" />
-        Open full buy-data terminal
-      </Link>
     </div>
+  );
+}
+
+function NetworkLink({
+  href,
+  label,
+  color,
+  textColor,
+}: {
+  href: string;
+  label: string;
+  color: string;
+  textColor: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_8px_24px_rgba(10,46,93,0.08)]"
+    >
+      <span
+        className="flex h-11 w-11 items-center justify-center rounded-xl text-[10px] font-black shadow-md"
+        style={{ backgroundColor: color, color: textColor }}
+      >
+        {label.slice(0, 3).toUpperCase()}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-bold text-slate-900">{label}</p>
+        <p className="text-[11px] text-slate-500">Browse bundles →</p>
+      </div>
+    </Link>
   );
 }
