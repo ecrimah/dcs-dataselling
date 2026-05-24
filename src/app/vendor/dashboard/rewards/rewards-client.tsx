@@ -26,9 +26,10 @@ interface Props {
   initialBalance: number;
   referralCode: string;
   withdrawals: WithdrawalRow[];
+  minWithdrawal: number;
 }
 
-export function RewardsClient({ initialBalance, referralCode, withdrawals }: Props) {
+export function RewardsClient({ initialBalance, referralCode, withdrawals, minWithdrawal }: Props) {
   const [balance, setBalance] = useState(initialBalance);
   const [amount, setAmount] = useState("");
   const [momo, setMomo] = useState("");
@@ -63,7 +64,12 @@ export function RewardsClient({ initialBalance, referralCode, withdrawals }: Pro
         <p className="admin-promo-code text-base">{referralCode}</p>
       </AdminSection>
 
-      <AdminSection id="withdraw" title="Reward withdrawal" description="Minimum ₵50 · paid within 24–48h." icon={Gift}>
+      <AdminSection
+        id="withdraw"
+        title="Reward withdrawal"
+        description={`Minimum ${formatGHS(minWithdrawal)} · paid within 24–48h.`}
+        icon={Gift}
+      >
         <AdminStatTile
           icon={<Gift className="h-4 w-4" />}
           tone="gold"
@@ -73,10 +79,10 @@ export function RewardsClient({ initialBalance, referralCode, withdrawals }: Pro
         />
         <form onSubmit={withdraw} className="mt-3 space-y-3">
           <div className="admin-form-field">
-            <label>Amount (min ₵50)</label>
+            <label>Amount (min {formatGHS(minWithdrawal)})</label>
             <input
               type="number"
-              min={50}
+              min={minWithdrawal}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
@@ -87,7 +93,7 @@ export function RewardsClient({ initialBalance, referralCode, withdrawals }: Pro
           </div>
           <button
             type="submit"
-            disabled={loading || balance < 50}
+            disabled={loading || balance < minWithdrawal}
             className="susu-btn-gold flex w-full items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Withdraw to MoMo"}

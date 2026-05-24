@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { AdminPageIntro, AdminPageRoot } from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
+import { getAgentTierSettings } from "@/lib/data/tier-settings";
 import { fetchVendorRewards } from "@/lib/vendor/extras";
+import { getTierConfigFromSettings } from "@/lib/vendor/tiers";
 import { RewardsClient } from "./rewards-client";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,8 @@ export default async function RewardsPage() {
   if (!vendor.setupFeePaidAt) return <SetupFeeGate />;
 
   const { balance, withdrawals } = await fetchVendorRewards(vendor.id);
+  const tierSettings = await getAgentTierSettings();
+  const tierConfig = getTierConfigFromSettings(vendor.tier, tierSettings);
 
   return (
     <AdminPageRoot>
@@ -25,6 +29,7 @@ export default async function RewardsPage() {
         initialBalance={balance}
         referralCode={vendor.referralCode ?? "—"}
         withdrawals={withdrawals}
+        minWithdrawal={tierConfig.minWithdrawal}
       />
     </AdminPageRoot>
   );

@@ -131,6 +131,12 @@ function AgentSidebarNav({
   onNavigate?: () => void;
 }) {
   void tier;
+  const tierBadgeClass =
+    tier === "Pro Agent"
+      ? "bg-emerald-100 text-emerald-800"
+      : tier === "Super Agent"
+        ? "bg-amber-100 text-amber-900"
+        : "bg-slate-100 text-slate-700";
   return (
     <>
       {/* User chip */}
@@ -140,6 +146,11 @@ function AgentSidebarNav({
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-bold text-slate-900">{vendorName}</p>
             <p className="truncate text-[11px] text-slate-500">{businessName}</p>
+            <span
+              className={`mt-1 inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${tierBadgeClass}`}
+            >
+              {tier}
+            </span>
           </div>
         </div>
       </div>

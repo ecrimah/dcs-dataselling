@@ -4,6 +4,8 @@ import {
   linkSetupPaymentToVendor,
 } from "@/lib/payments/setup-fee";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import { tierUpdatesFor } from "@/lib/vendor/tiers";
 
 export async function POST(request: Request) {
   if (!hasSupabaseConfig()) {
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
     }
 
     const service = createServiceClient();
+    const tierSettings = await getAgentTierSettings();
 
     await service
       .from("vendors")
@@ -80,7 +83,7 @@ export async function POST(request: Request) {
         kyc_status: "verified",
         status: "approved",
         verified: true,
-        tier: "verified",
+        ...tierUpdatesFor("starter", false, tierSettings),
       })
       .eq("id", vendorId);
 

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { creditVendorReward } from "@/lib/vendor/extras";
+import { getVendorTierForReward } from "@/lib/data/admin-tier-ops";
+import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import { getTierConfigFromSettings } from "@/lib/vendor/tiers";
 import { smsOrderFulfilled } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -77,7 +80,10 @@ export async function PATCH(
   } | null;
 
   if (body.status === "fulfilled" && prev && prev.status !== "fulfilled") {
-    const markupEstimate = Math.max(0, Number(prev.amount) - Number(prev.platform_fee)) * 0.15;
+    const tier = await getVendorTierForReward(prev.vendor_id);
+    const settings = await getAgentTierSettings();
+    const rewardRate = getTierConfigFromSettings(tier, settings).rewardRate;
+    const markupEstimate = Math.max(0, Number(prev.amount) - Number(prev.platform_fee)) * rewardRate;
     if (markupEstimate > 0) {
       await creditVendorReward(prev.vendor_id, +markupEstimate.toFixed(2), prev.reference);
     }

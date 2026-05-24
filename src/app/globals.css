@@ -2939,4 +2939,367 @@ body {
   width: 1.5rem;
 }
 
+/* ============================================================
+   ADMIN VAULT THEME — dark navy + gold (matches agent terminal)
+   Applied via .admin-vault-theme on AdminShell root.
+   ============================================================ */
+
+.admin-vault-theme {
+  --foreground: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.55);
+  --muted-soft: rgba(255, 255, 255, 0.38);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-elevated: rgba(13, 38, 76, 0.95);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Sidebar nav — gold active state on dark */
+.admin-vault-theme .susu-sidebar .nav-section-label {
+  color: rgba(255, 255, 255, 0.35);
+}
+.admin-vault-theme .susu-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.62);
+}
+.admin-vault-theme .susu-sidebar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .susu-sidebar .nav-link-active {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.06) 100%);
+  color: #f4d160;
+  box-shadow: inset 3px 0 0 #d4af37;
+}
+.admin-vault-theme .susu-sidebar .nav-link-active .nav-icon {
+  color: #f4d160;
+}
+.admin-vault-theme .susu-sidebar .nav-icon {
+  color: rgba(255, 255, 255, 0.38);
+}
+.admin-vault-theme .susu-sidebar .nav-link:hover .nav-icon {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* User chip on dark chrome */
+.admin-vault-theme .susu-user-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Page cards → dark glass panels */
+.admin-vault-theme .welcome-card,
+.admin-vault-theme .section-card,
+.admin-vault-theme .stat-tile,
+.admin-vault-theme .card-elevated,
+.admin-vault-theme main .card-elevated {
+  background: linear-gradient(160deg, rgba(13, 38, 76, 0.95) 0%, rgba(8, 23, 49, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .welcome-card:hover,
+.admin-vault-theme .section-card:hover,
+.admin-vault-theme .stat-tile:hover,
+.admin-vault-theme .card-elevated:hover {
+  border-color: rgba(212, 175, 55, 0.28);
+}
+
+.admin-vault-theme .welcome-chip {
+  color: rgba(255, 255, 255, 0.55);
+}
+.admin-vault-theme .welcome-chip .chip-badge {
+  background: rgba(212, 175, 55, 0.14);
+  color: #f4d160;
+  border-color: rgba(212, 175, 55, 0.28);
+}
+.admin-vault-theme .welcome-chip .live-badge {
+  color: #6ee7b7;
+}
+
+.admin-vault-theme .stat-tile-label,
+.admin-vault-theme .stat-tile-hint,
+.admin-vault-theme .substat-label {
+  color: rgba(255, 255, 255, 0.45);
+}
+.admin-vault-theme .stat-tile-value,
+.admin-vault-theme .substat-value {
+  color: #fff;
+}
+.admin-vault-theme .stat-tile-value.is-gold { color: #f4d160; }
+.admin-vault-theme .stat-tile-value.is-emerald { color: #6ee7b7; }
+.admin-vault-theme .stat-tile-value.is-rose { color: #fca5a5; }
+
+.admin-vault-theme .tile-icon-amber   { background: rgba(251, 191, 36, 0.15); color: #fcd34d; }
+.admin-vault-theme .tile-icon-gold    { background: rgba(212, 175, 55, 0.15); color: #f4d160; }
+.admin-vault-theme .tile-icon-emerald { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+.admin-vault-theme .tile-icon-sky     { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+.admin-vault-theme .tile-icon-violet  { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+.admin-vault-theme .tile-icon-rose    { background: rgba(248, 113, 113, 0.15); color: #fca5a5; }
+.admin-vault-theme .tile-icon-slate   { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.65); }
+
+.admin-vault-theme .substat {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(212, 175, 55, 0.18);
+}
+
+/* Admin inner page chrome */
+.admin-vault-theme .admin-page-intro {
+  background:
+    linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(8, 23, 49, 0.95) 55%),
+    rgba(13, 38, 76, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #d4af37;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.admin-vault-theme .admin-page-intro-badge {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.25);
+  color: #f4d160;
+}
+.admin-vault-theme .admin-page-intro-text {
+  color: rgba(255, 255, 255, 0.72);
+}
+.admin-vault-theme .admin-page-intro-meta {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.admin-vault-theme .admin-section-title {
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .admin-section-title svg {
+  color: #f4d160;
+}
+.admin-vault-theme .admin-section-desc {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.admin-vault-theme .admin-empty-state {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+.admin-vault-theme .admin-empty-state.is-success {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(16, 185, 129, 0.06);
+}
+.admin-vault-theme .admin-empty-state-icon {
+  background: rgba(212, 175, 55, 0.12);
+  color: #f4d160;
+}
+.admin-vault-theme .admin-empty-state-title {
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .admin-empty-state-desc {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.admin-vault-theme .admin-data-table,
+.admin-vault-theme .admin-list-item,
+.admin-vault-theme .admin-promo-card,
+.admin-vault-theme .admin-integration-row,
+.admin-vault-theme .admin-quick-link,
+.admin-vault-theme .admin-network-route,
+.admin-vault-theme .admin-network-list {
+  background: rgba(8, 23, 49, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.admin-vault-theme .admin-table-head-row {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+}
+.admin-vault-theme .admin-table-tr {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+.admin-vault-theme .admin-table-tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.admin-vault-theme .admin-list-item:hover,
+.admin-vault-theme .admin-promo-card:hover,
+.admin-vault-theme .admin-quick-link:hover {
+  border-color: rgba(212, 175, 55, 0.28);
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.admin-vault-theme .admin-kv-label,
+.admin-vault-theme .admin-breakdown-label,
+.admin-vault-theme .admin-integration-hint {
+  color: rgba(255, 255, 255, 0.52);
+}
+.admin-vault-theme .admin-kv-value,
+.admin-vault-theme .admin-breakdown-value,
+.admin-vault-theme .admin-integration-name {
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .admin-kv-row {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+.admin-vault-theme .admin-promo-code {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.22);
+  color: #f4d160;
+}
+.admin-vault-theme .admin-quick-link {
+  color: #f4d160;
+}
+.admin-vault-theme .admin-quick-link-icon {
+  background: rgba(212, 175, 55, 0.12);
+  color: #f4d160;
+}
+
+.admin-vault-theme .admin-form-field label {
+  color: rgba(255, 255, 255, 0.45);
+}
+.admin-vault-theme .admin-form-field input,
+.admin-vault-theme .admin-form-field textarea,
+.admin-vault-theme .admin-form-field select {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.admin-vault-theme .admin-form-field input::placeholder,
+.admin-vault-theme .admin-form-field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/* Ghost buttons on dark */
+.admin-vault-theme .susu-btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.88);
+}
+.admin-vault-theme .susu-btn-ghost:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Banners */
+.admin-vault-theme .banner-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.28);
+}
+.admin-vault-theme .banner-success h4 { color: #6ee7b7; }
+.admin-vault-theme .banner-success p { color: rgba(110, 231, 183, 0.85); }
+.admin-vault-theme .banner-info {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.22);
+  color: #7dd3fc;
+}
+
+/* Badges — vault chip style */
+.admin-vault-theme [class*="border-amber-"][class*="bg-amber-"],
+.admin-vault-theme [class*="border-emerald-"][class*="bg-emerald-"],
+.admin-vault-theme [class*="border-rose-"][class*="bg-rose-"],
+.admin-vault-theme [class*="border-sky-"][class*="bg-sky-"],
+.admin-vault-theme [class*="border-violet-"][class*="bg-violet-"],
+.admin-vault-theme [class*="border-slate-"][class*="bg-slate-"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+.admin-vault-theme [class*="text-amber-8"],
+.admin-vault-theme [class*="text-amber-9"] { color: #fcd34d !important; }
+.admin-vault-theme [class*="text-emerald-8"],
+.admin-vault-theme [class*="text-emerald-7"] { color: #6ee7b7 !important; }
+.admin-vault-theme [class*="text-rose-8"],
+.admin-vault-theme [class*="text-rose-7"] { color: #fca5a5 !important; }
+.admin-vault-theme [class*="text-sky-8"] { color: #7dd3fc !important; }
+.admin-vault-theme [class*="text-violet-8"] { color: #c4b5fd !important; }
+.admin-vault-theme [class*="text-slate-7"] { color: rgba(255, 255, 255, 0.65) !important; }
+
+/* Tailwind text utilities inside admin */
+.admin-vault-theme .text-foreground,
+.admin-vault-theme .text-slate-900,
+.admin-vault-theme .text-slate-800,
+.admin-vault-theme .text-slate-700 {
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .text-muted,
+.admin-vault-theme .text-slate-600,
+.admin-vault-theme .text-slate-500,
+.admin-vault-theme .text-slate-400 {
+  color: rgba(255, 255, 255, 0.52);
+}
+.admin-vault-theme .text-cyan-700,
+.admin-vault-theme .text-amber-800,
+.admin-vault-theme .text-amber-700 {
+  color: #f4d160;
+}
+.admin-vault-theme .hover\:bg-cyan-50:hover,
+.admin-vault-theme .hover\:bg-slate-100:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.admin-vault-theme .hover\:bg-rose-50:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.admin-vault-theme .border-slate-100,
+.admin-vault-theme .border-slate-200,
+.admin-vault-theme .border-slate-50 {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.admin-vault-theme .bg-slate-50,
+.admin-vault-theme .bg-slate-50\/80,
+.admin-vault-theme .bg-white {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-vault-theme select,
+.admin-vault-theme .admin-page-content select {
+  background: rgba(8, 23, 49, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-vault-theme .gold-progress {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-vault-theme .admin-breakdown-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-vault-theme .admin-alert {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-vault-theme .issues-pill {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #fca5a5;
+}
+
+.admin-vault-theme .susu-pill-active { background: rgba(16, 185, 129, 0.14); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.28); }
+.admin-vault-theme .susu-pill-info   { background: rgba(56, 189, 248, 0.12); color: #7dd3fc; border-color: rgba(56, 189, 248, 0.25); }
+.admin-vault-theme .susu-pill-warn   { background: rgba(251, 191, 36, 0.12); color: #fcd34d; border-color: rgba(251, 191, 36, 0.25); }
+.admin-vault-theme .susu-pill-gold   { background: rgba(212, 175, 55, 0.12); color: #f4d160; border-color: rgba(212, 175, 55, 0.25); }
+.admin-vault-theme .susu-pill-slate  { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.65); border-color: rgba(255, 255, 255, 0.1); }
+
+/* Vault hero stays as designed — already dark navy + gold */
+.admin-vault-theme .admin-form-field input:focus,
+.admin-vault-theme .admin-form-field textarea:focus,
+.admin-vault-theme .admin-form-field select:focus,
+.admin-vault-theme .admin-form-field-input:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+}
+
+.admin-vault-theme .admin-form-field-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.8125rem;
+  color: #fff;
+}
+
+.admin-vault-theme .vault-hero-card {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(212, 175, 55, 0.08);
+}
 

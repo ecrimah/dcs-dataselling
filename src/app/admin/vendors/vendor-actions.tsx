@@ -6,18 +6,35 @@ import Link from "next/link";
 import { ExternalLink, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { VendorStatus } from "@/types";
+import { TIER_CONFIG, VENDOR_TIERS } from "@/lib/vendor/tiers";
+import type { AgentTierPricing } from "@/lib/vendor/tier-settings-types";
+import type { VendorStatus, VendorTier } from "@/types";
 
 interface VendorActionsProps {
   vendorId: string;
   slug: string;
   status: VendorStatus;
   featured: boolean;
+  tier: VendorTier;
+  tierManual: boolean;
+  tierLabels?: Record<VendorTier, AgentTierPricing>;
 }
 
-export function VendorActions({ vendorId, slug, status, featured }: VendorActionsProps) {
+export function VendorActions({
+  vendorId,
+  slug,
+  status,
+  featured,
+  tier,
+  tierManual,
+  tierLabels,
+}: VendorActionsProps) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
+
+  function tierLabel(id: VendorTier) {
+    return tierLabels?.[id]?.label ?? TIER_CONFIG[id].label;
+  }
 
   async function patch(payload: Record<string, unknown>, label: string) {
     setPending(label);
@@ -47,6 +64,23 @@ export function VendorActions({ vendorId, slug, status, featured }: VendorAction
         <ExternalLink className="h-3 w-3" />
         Store
       </Link>
+      <select
+        value={tier}
+        disabled={pending !== null}
+        onChange={(e) => {
+          const next = e.target.value as VendorTier;
+          if (next === tier) return;
+          patch({ tier: next }, `Role set to ${tierLabel(next)}`);
+        }}
+        title={tierManual ? "Manually assigned by admin" : "Auto tier eligible"}
+        className="h-7 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-800"
+      >
+        {VENDOR_TIERS.map((t) => (
+          <option key={t} value={t}>
+            {tierLabel(t)}
+          </option>
+        ))}
+      </select>
       {status !== "approved" && (
         <Button
           size="sm"

@@ -1,6 +1,6 @@
 import "server-only";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
-import type { VendorStatus } from "@/types";
+import type { VendorStatus, VendorTier } from "@/types";
 
 export interface AdminVendorRow {
   id: string;
@@ -10,6 +10,9 @@ export interface AdminVendorRow {
   kyc_status: string | null;
   verified: boolean;
   featured: boolean;
+  tier: VendorTier;
+  tier_manual: boolean;
+  commission_rate: number;
   rating: number;
   total_orders: number;
   fulfilment_minutes: number;
@@ -61,7 +64,7 @@ export async function fetchAdminVendors(): Promise<AdminVendorRow[]> {
   const { data, error } = await service
     .from("vendors")
     .select(
-      "id, slug, business_name, status, kyc_status, verified, featured, rating, total_orders, fulfilment_minutes, created_at",
+      "id, slug, business_name, status, kyc_status, verified, featured, tier, tier_manual, commission_rate, rating, total_orders, fulfilment_minutes, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -69,7 +72,12 @@ export async function fetchAdminVendors(): Promise<AdminVendorRow[]> {
     console.error("[fetchAdminVendors]", error);
     return [];
   }
-  return (data ?? []) as AdminVendorRow[];
+  return ((data ?? []) as AdminVendorRow[]).map((row) => ({
+    ...row,
+    tier: row.tier ?? "starter",
+    tier_manual: row.tier_manual ?? false,
+    commission_rate: Number(row.commission_rate ?? 8),
+  }));
 }
 
 export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null> {
