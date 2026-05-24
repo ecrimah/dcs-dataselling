@@ -1,8 +1,18 @@
 import Link from "next/link";
+import { Package, ShoppingBag } from "lucide-react";
 import { redirect } from "next/navigation";
+import {
+  AdminEmptyState,
+  AdminList,
+  AdminListItem,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+} from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchVendorWholesaleOrders } from "@/lib/payments/wholesale-order";
 import { formatDataAmount, formatGHS, formatPhone } from "@/lib/format";
@@ -58,42 +68,64 @@ export default async function VendorOrdersPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 text-foreground">
+    <AdminPageRoot>
       {params.paid === "1" && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800">
-          Payment received{params.ref ? ` — ref ${params.ref}` : ""}. Your order is queued for
-          fulfilment.
+        <div className="banner-success">
+          <span className="banner-icon">
+            <Package className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <h4>Payment received</h4>
+            <p>
+              {params.ref ? `Ref ${params.ref} — ` : ""}Your order is queued for fulfilment.
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">My Orders</h2>
-          <p className="mt-1 text-sm text-muted">
-            Wholesale supply orders you placed with DCS, and customer orders through your store.
-          </p>
-        </div>
-        <Button size="sm" asChild>
-          <Link href="/vendor/dashboard/wholesale">Place new order</Link>
-        </Button>
-      </div>
+      <AdminPageIntro
+        badge="Order history"
+        description="Wholesale supply orders you placed with DCS, and customer orders through your store."
+        meta={`${wholesaleOrders.length} wholesale · ${customerOrders.length} customer orders`}
+        actions={
+          <Link href="/vendor/dashboard/wholesale" className="susu-btn-gold">
+            Place new order
+          </Link>
+        }
+      />
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
-          Wholesale orders (you → DCS)
-        </h3>
+      <AdminStatGrid className="lg:grid-cols-2">
+        <AdminStatTile
+          icon={<Package className="h-4 w-4" />}
+          tone="sky"
+          label="Wholesale orders"
+          value={String(wholesaleOrders.length)}
+        />
+        <AdminStatTile
+          icon={<ShoppingBag className="h-4 w-4" />}
+          tone="gold"
+          label="Customer orders"
+          value={String(customerOrders.length)}
+        />
+      </AdminStatGrid>
+
+      <AdminSection title="Wholesale orders" description="You → DCS supply purchases." icon={Package}>
         {wholesaleOrders.length === 0 ? (
-          <div className="card-elevated py-10 text-center text-sm text-muted">
-            No wholesale orders yet.{" "}
-            <Link href="/vendor/dashboard/wholesale" className="font-semibold text-gold-dark hover:underline">
-              Buy data
-            </Link>
-          </div>
+          <AdminEmptyState
+            icon={Package}
+            title="No wholesale orders yet"
+            description="Buy data bundles from the DCS catalogue to start selling."
+            action={
+              <Link href="/vendor/dashboard/wholesale" className="susu-btn-gold">
+                Buy data
+              </Link>
+            }
+          />
         ) : (
-          <ul className="space-y-3">
+          <AdminList>
             {wholesaleOrders.map((order) => (
-              <li key={order.id} className="card-elevated overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-slate-50 px-4 py-3">
+              <AdminListItem key={order.id}>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-2">
                   <div>
                     <p className="font-semibold">{order.reference}</p>
                     <p className="text-xs text-muted">
@@ -102,15 +134,16 @@ export default async function VendorOrdersPage({
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant={STATUS_VARIANT[order.status] ?? "neutral"}>
-                      {order.status}
-                    </Badge>
+                    <Badge variant={STATUS_VARIANT[order.status] ?? "neutral"}>{order.status}</Badge>
                     <p className="num font-bold">{formatGHS(order.totalAmount)}</p>
                   </div>
                 </div>
-                <ul className="divide-y divide-border px-4 py-2">
+                <ul className="mt-2 space-y-1.5">
                   {order.items.map((item) => (
-                    <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                    <li
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                    >
                       <span>
                         {formatPhone(item.phone)} · {item.bundleName}{" "}
                         <span className="text-muted">({formatDataAmount(item.dataMb)})</span>
@@ -122,42 +155,45 @@ export default async function VendorOrdersPage({
                     </li>
                   ))}
                 </ul>
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </section>
+      </AdminSection>
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
-          Customer orders (your store)
-        </h3>
+      <AdminSection title="Customer orders" description="Buyers checking out on your storefront." icon={ShoppingBag}>
         {customerOrders.length === 0 ? (
-          <div className="card-elevated py-10 text-center text-sm text-muted">
-            No customer orders yet. Share your storefront link to start selling.
-          </div>
+          <AdminEmptyState
+            icon={ShoppingBag}
+            title="No customer orders yet"
+            description="Share your storefront link to start selling."
+            action={
+              <Link href="/vendor/dashboard/storefront" className="susu-btn-ghost">
+                Open storefront
+              </Link>
+            }
+          />
         ) : (
-          <ul className="space-y-2">
+          <AdminList>
             {customerOrders.map((o) => (
-              <li
-                key={o.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-semibold">{o.reference}</p>
-                  <p className="text-xs text-muted">
-                    {formatPhone(o.recipient_phone)} · {new Date(o.created_at).toLocaleString()}
-                  </p>
+              <AdminListItem key={o.id}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{o.reference}</p>
+                    <p className="text-xs text-muted">
+                      {formatPhone(o.recipient_phone)} · {new Date(o.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={STATUS_VARIANT[o.status] ?? "neutral"}>{o.status}</Badge>
+                    <span className="num text-sm font-bold">{formatGHS(Number(o.amount))}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={STATUS_VARIANT[o.status] ?? "neutral"}>{o.status}</Badge>
-                  <span className="num text-sm font-bold">{formatGHS(Number(o.amount))}</span>
-                </div>
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </section>
-    </div>
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

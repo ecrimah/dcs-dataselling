@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Plus } from "lucide-react";
+import { Package, Plus, Save } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AdminDataTable,
+  AdminEmptyState,
+  AdminSection,
+  AdminTableBody,
+  AdminTableHead,
+  AdminTh,
+} from "@/components/admin";
 import { NETWORKS } from "@/lib/constants";
 import { formatGHS, formatDataAmount } from "@/lib/format";
 import { NetworkBadge } from "@/components/marketplace/network-badge";
@@ -78,23 +86,23 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted">
-          Vendors buy at wholesale price and add markup in their catalogue.
-        </p>
+    <AdminSection
+      title="Bundle catalogue"
+      description="Edit wholesale pricing inline — changes apply to agent checkout immediately."
+      icon={Package}
+      actions={
         <Button size="sm" variant="secondary" onClick={() => setShowAdd((s) => !s)}>
           <Plus className="h-3.5 w-3.5" />
           Add bundle
         </Button>
-      </div>
-
+      }
+    >
       {showAdd && (
-        <div className="card-elevated grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="admin-list-item mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <label className="text-xs font-medium text-muted">
             Network
             <select
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.network}
               onChange={(e) =>
                 setNewBundle((b) => ({
@@ -114,7 +122,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
           <label className="text-xs font-medium text-muted">
             Name
             <input
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.name}
               onChange={(e) => setNewBundle((b) => ({ ...b, name: e.target.value }))}
               placeholder="MTN 5GB"
@@ -124,7 +132,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             Data (MB)
             <input
               type="number"
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.dataMb}
               onChange={(e) =>
                 setNewBundle((b) => ({ ...b, dataMb: Number(e.target.value) }))
@@ -135,7 +143,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             Validity (days)
             <input
               type="number"
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.validityDays}
               onChange={(e) =>
                 setNewBundle((b) => ({ ...b, validityDays: Number(e.target.value) }))
@@ -147,7 +155,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             <input
               type="number"
               step="0.01"
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.wholesalePrice}
               onChange={(e) =>
                 setNewBundle((b) => ({ ...b, wholesalePrice: Number(e.target.value) }))
@@ -159,7 +167,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             <input
               type="number"
               step="0.01"
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.suggestedRetail}
               onChange={(e) =>
                 setNewBundle((b) => ({ ...b, suggestedRetail: Number(e.target.value) }))
@@ -171,7 +179,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             <input
               type="number"
               step="0.01"
-              className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
               value={newBundle.minMarkup}
               onChange={(e) =>
                 setNewBundle((b) => ({ ...b, minMarkup: Number(e.target.value) }))
@@ -182,7 +190,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             <label className="text-xs font-medium text-muted">
               Product line
               <select
-                className="mt-1 flex h-10 w-full rounded-xl border border-border px-3 text-sm"
+                className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
                 value={newBundle.productLine}
                 onChange={(e) =>
                   setNewBundle((b) => ({
@@ -206,39 +214,35 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
       )}
 
       {rows.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-muted">
-          No wholesale bundles in the catalogue yet.
-        </div>
+        <AdminEmptyState
+          icon={Package}
+          title="No wholesale bundles"
+          description="Add your first bundle to let agents purchase data at wholesale prices."
+        />
       ) : (
-        <div className="card-elevated overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead>
-                <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
-                  <th className="px-4 py-3 font-medium">Bundle</th>
-                  <th className="px-4 py-3 font-medium">Wholesale</th>
-                  <th className="px-4 py-3 font-medium">Suggested retail</th>
-                  <th className="px-4 py-3 font-medium">Min markup</th>
-                  <th className="px-4 py-3 font-medium">Line</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <WholesaleRowEditor
-                    key={row.id}
-                    row={row}
-                    saving={pending === row.id}
-                    onSave={saveRow}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminDataTable minWidth="900px">
+          <AdminTableHead>
+            <AdminTh>Bundle</AdminTh>
+            <AdminTh>Wholesale</AdminTh>
+            <AdminTh>Suggested retail</AdminTh>
+            <AdminTh>Min markup</AdminTh>
+            <AdminTh>Line</AdminTh>
+            <AdminTh>Status</AdminTh>
+            <AdminTh />
+          </AdminTableHead>
+          <AdminTableBody>
+            {rows.map((row) => (
+              <WholesaleRowEditor
+                key={row.id}
+                row={row}
+                saving={pending === row.id}
+                onSave={saveRow}
+              />
+            ))}
+          </AdminTableBody>
+        </AdminDataTable>
       )}
-    </div>
+    </AdminSection>
   );
 }
 
@@ -269,8 +273,8 @@ function WholesaleRowEditor({
     (row.network === "at" && productLine !== (row.productLine ?? "standard"));
 
   return (
-    <tr className="border-b border-border/60 last:border-0">
-      <td className="px-4 py-3">
+    <tr className="admin-table-tr">
+      <td className="admin-table-td">
         <div className="flex items-center gap-2">
           <NetworkBadge network={row.network} size="xs" />
           <div>
@@ -281,37 +285,37 @@ function WholesaleRowEditor({
           </div>
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="admin-table-td">
         <input
           type="number"
           step="0.01"
-          className="num w-24 rounded-lg border border-border px-2 py-1.5 text-sm"
+          className="num w-20 rounded-md border border-border px-2 py-1 text-sm"
           value={wholesalePrice}
           onChange={(e) => setWholesalePrice(Number(e.target.value))}
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="admin-table-td">
         <input
           type="number"
           step="0.01"
-          className="num w-24 rounded-lg border border-border px-2 py-1.5 text-sm"
+          className="num w-20 rounded-md border border-border px-2 py-1 text-sm"
           value={suggestedRetail}
           onChange={(e) => setSuggestedRetail(Number(e.target.value))}
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="admin-table-td">
         <input
           type="number"
           step="0.01"
-          className="num w-20 rounded-lg border border-border px-2 py-1.5 text-sm"
+          className="num w-16 rounded-md border border-border px-2 py-1 text-sm"
           value={minMarkup}
           onChange={(e) => setMinMarkup(Number(e.target.value))}
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="admin-table-td">
         {row.network === "at" ? (
           <select
-            className="rounded-lg border border-border px-2 py-1.5 text-xs"
+            className="rounded-md border border-border px-2 py-1 text-xs"
             value={productLine}
             onChange={(e) =>
               setProductLine(e.target.value as "standard" | "ishare" | "bigtime")
@@ -325,8 +329,8 @@ function WholesaleRowEditor({
           <span className="text-xs text-muted">—</span>
         )}
       </td>
-      <td className="px-4 py-3">
-        <div className="flex flex-col gap-1.5">
+      <td className="admin-table-td">
+        <div className="flex flex-col gap-1">
           <label className="flex items-center gap-1.5 text-xs">
             <input
               type="checkbox"
@@ -346,7 +350,7 @@ function WholesaleRowEditor({
           {!active && <Badge variant="neutral">Hidden</Badge>}
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="admin-table-td">
         <Button
           size="sm"
           disabled={!dirty || saving}

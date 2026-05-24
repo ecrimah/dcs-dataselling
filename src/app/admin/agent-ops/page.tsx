@@ -1,4 +1,29 @@
+import {
+  Code,
+  DollarSign,
+  Gift,
+  MessageSquare,
+  Shield,
+  Tag,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  AdminConfigError,
+  AdminDataTable,
+  AdminEmptyState,
+  AdminList,
+  AdminListItem,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+  AdminTableBody,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTr,
+} from "@/components/admin";
 import { formatGHS, formatPhone } from "@/lib/format";
 import {
   fetchAdminAgentRewardBalances,
@@ -23,9 +48,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminAgentOpsPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   const [promos, withdrawals, complaints, mtnAfa, apiKeys, rewardBalances] = await Promise.all([
@@ -44,116 +67,132 @@ export default async function AdminAgentOpsPage() {
   const pendingAfa = mtnAfa.filter((a) => a.status === "pending");
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-bold">Agent operations</h2>
-        <p className="mt-1 text-sm text-muted">
-          Manage agent Account and Extra Services items — rewards, ClaimIt, complaints, MTN AFA,
-          and developer keys. Sidebar links map to each section below.
-        </p>
-      </div>
+    <AdminPageRoot className="space-y-4">
+      <AdminPageIntro
+        badge="Agent operations"
+        description="Rewards, ClaimIt, complaints, MTN AFA, and developer keys — sidebar links jump to each section."
+        meta={`${pendingWithdrawals.length} payouts · ${openComplaints.length} complaints · ${pendingAfa.length} AFA pending`}
+      />
 
-      <div className="grid gap-3 sm:grid-cols-4">
-        <Metric label="Pending payouts" value={String(pendingWithdrawals.length)} />
-        <Metric label="Open complaints" value={String(openComplaints.length)} />
-        <Metric label="MTN AFA queue" value={String(pendingAfa.length)} />
-        <Metric label="Active promo codes" value={String(promos.filter((p) => p.active).length)} />
-      </div>
+      <AdminStatGrid>
+        <AdminStatTile
+          icon={<DollarSign className="h-4 w-4" />}
+          tone="amber"
+          label="Pending payouts"
+          value={String(pendingWithdrawals.length)}
+        />
+        <AdminStatTile
+          icon={<MessageSquare className="h-4 w-4" />}
+          tone="rose"
+          label="Open complaints"
+          value={String(openComplaints.length)}
+        />
+        <AdminStatTile
+          icon={<Shield className="h-4 w-4" />}
+          tone="sky"
+          label="MTN AFA queue"
+          value={String(pendingAfa.length)}
+        />
+        <AdminStatTile
+          icon={<Tag className="h-4 w-4" />}
+          tone="emerald"
+          label="Active promo codes"
+          value={String(promos.filter((p) => p.active).length)}
+          valueAccent="emerald"
+        />
+      </AdminStatGrid>
 
-      {/* Agent reward balances */}
-      <section id="rewards" className="scroll-mt-6 card-elevated p-5">
-        <h3 className="font-semibold">Agent rewards</h3>
-        <p className="mt-1 text-xs text-muted">
-          Wallet and reward balances — mirrors{" "}
-          <span className="font-mono">/vendor/dashboard/rewards</span>
-        </p>
-
+      <AdminSection
+        id="rewards"
+        title="Agent rewards"
+        description="Wallet and reward balances across all agents."
+        icon={Gift}
+      >
         {rewardBalances.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No agent balances recorded yet.</p>
+          <AdminEmptyState
+            icon={Gift}
+            title="No agent balances yet"
+            description="Balances appear once agents earn rewards or top up their wallet."
+          />
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-muted">
-                  <th className="pb-3 font-medium">Agent</th>
-                  <th className="pb-3 font-medium">Wallet</th>
-                  <th className="pb-3 font-medium">Reward balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rewardBalances.map((r) => (
-                  <tr key={r.id} className="border-b border-border/50">
-                    <td className="py-3 font-medium">{r.vendor_name}</td>
-                    <td className="py-3 num">{formatGHS(r.wallet_balance)}</td>
-                    <td className="py-3 num font-semibold">{formatGHS(r.reward_balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminDataTable minWidth="480px">
+            <AdminTableHead>
+              <AdminTh>Agent</AdminTh>
+              <AdminTh>Wallet</AdminTh>
+              <AdminTh>Reward balance</AdminTh>
+            </AdminTableHead>
+            <AdminTableBody>
+              {rewardBalances.map((r) => (
+                <AdminTr key={r.id}>
+                  <AdminTd className="font-medium">{r.vendor_name}</AdminTd>
+                  <AdminTd className="num">{formatGHS(r.wallet_balance)}</AdminTd>
+                  <AdminTd className="num font-semibold">{formatGHS(r.reward_balance)}</AdminTd>
+                </AdminTr>
+              ))}
+            </AdminTableBody>
+          </AdminDataTable>
         )}
-      </section>
+      </AdminSection>
 
-      {/* ClaimIt promo codes */}
-      <section id="claimit" className="scroll-mt-6 card-elevated p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="font-semibold">ClaimIt promo codes</h3>
-            <p className="mt-1 text-xs text-muted">
-              Wallet credits agents redeem at{" "}
-              <span className="font-mono">/vendor/dashboard/claim</span>
-            </p>
-          </div>
-        </div>
-
+      <AdminSection
+        id="claimit"
+        title="ClaimIt promo codes"
+        description="Wallet credits agents redeem at the claim page."
+        icon={Tag}
+      >
         {promos.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No promo codes yet.</p>
+          <AdminEmptyState
+            icon={Tag}
+            title="No promo codes yet"
+            description="Create a code below to credit agent wallets."
+          />
         ) : (
-          <ul className="mt-4 space-y-3">
+          <AdminList className="mb-3">
             {promos.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-slate-50/50 px-4 py-3"
-              >
-                <div>
-                  <p className="font-mono text-sm font-bold">{p.code}</p>
-                  <p className="text-sm text-foreground">
-                    {formatGHS(Number(p.amount))} · {p.redemption_count}
-                    {p.max_redemptions != null ? ` / ${p.max_redemptions}` : ""} redemptions
-                  </p>
-                  <p className="text-xs text-muted">
-                    {p.expires_at
-                      ? `Expires ${formatDistanceToNow(new Date(p.expires_at), { addSuffix: true })}`
-                      : "No expiry"}
-                  </p>
+              <AdminListItem key={p.id}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="admin-promo-code">{p.code}</p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {formatGHS(Number(p.amount))} · {p.redemption_count}
+                      {p.max_redemptions != null ? ` / ${p.max_redemptions}` : ""} redemptions
+                    </p>
+                    <p className="text-xs text-muted">
+                      {p.expires_at
+                        ? `Expires ${formatDistanceToNow(new Date(p.expires_at), { addSuffix: true })}`
+                        : "No expiry"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={p.active ? "success" : "neutral"}>
+                      {p.active ? "Active" : "Inactive"}
+                    </Badge>
+                    <PromoToggle promoId={p.id} active={p.active} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={p.active ? "success" : "neutral"}>
-                    {p.active ? "Active" : "Inactive"}
-                  </Badge>
-                  <PromoToggle promoId={p.id} active={p.active} />
-                </div>
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
         <PromoCreateForm />
-      </section>
+      </AdminSection>
 
-      {/* Reward withdrawals */}
-      <section id="withdrawals" className="scroll-mt-6 card-elevated p-5">
-        <h3 className="font-semibold">Reward withdrawals</h3>
-        <p className="mt-1 text-xs text-muted">
-          Agents request MoMo payouts from{" "}
-          <span className="font-mono">/vendor/dashboard/rewards</span>
-        </p>
-
+      <AdminSection
+        id="withdrawals"
+        title="Reward withdrawals"
+        description="MoMo payout requests from agent reward balances."
+        icon={DollarSign}
+      >
         {withdrawals.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No withdrawal requests.</p>
+          <AdminEmptyState
+            icon={DollarSign}
+            title="No withdrawal requests"
+            description="Agents request payouts from their rewards dashboard."
+          />
         ) : (
-          <ul className="mt-4 space-y-3">
+          <AdminList>
             {withdrawals.map((w) => (
-              <li key={w.id} className="rounded-xl border border-border bg-slate-50/50 px-4 py-3">
+              <AdminListItem key={w.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-medium">{w.vendor_name}</p>
@@ -180,25 +219,29 @@ export default async function AdminAgentOpsPage() {
                   </Badge>
                 </div>
                 <WithdrawalActions withdrawalId={w.id} status={w.status} />
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </section>
+      </AdminSection>
 
-      {/* Complaints */}
-      <section id="complaints" className="scroll-mt-6 card-elevated p-5">
-        <h3 className="font-semibold">Agent complaints</h3>
-        <p className="mt-1 text-xs text-muted">
-          Inbox from <span className="font-mono">/vendor/dashboard/complaints</span>
-        </p>
-
+      <AdminSection
+        id="complaints"
+        title="Agent complaints"
+        description="Support inbox from agent complaint forms."
+        icon={MessageSquare}
+      >
         {complaints.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No complaints.</p>
+          <AdminEmptyState
+            icon={MessageSquare}
+            title="No complaints"
+            description="Agent support tickets will appear here for triage."
+            tone="success"
+          />
         ) : (
-          <ul className="mt-4 space-y-3">
+          <AdminList>
             {complaints.map((c) => (
-              <li key={c.id} className="rounded-xl border border-border bg-slate-50/50 px-4 py-3">
+              <AdminListItem key={c.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-medium">{c.vendor_name}</p>
@@ -226,25 +269,28 @@ export default async function AdminAgentOpsPage() {
                   status={c.status}
                   existingReply={c.admin_reply}
                 />
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </section>
+      </AdminSection>
 
-      {/* MTN AFA */}
-      <section id="mtn-afa" className="scroll-mt-6 card-elevated p-5">
-        <h3 className="font-semibold">MTN AFA applications</h3>
-        <p className="mt-1 text-xs text-muted">
-          Review agent IDs from <span className="font-mono">/vendor/dashboard/mtn-afa</span>
-        </p>
-
+      <AdminSection
+        id="mtn-afa"
+        title="MTN AFA applications"
+        description="Review agent ID submissions for MTN AFA registration."
+        icon={Shield}
+      >
         {mtnAfa.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No applications yet.</p>
+          <AdminEmptyState
+            icon={Shield}
+            title="No applications yet"
+            description="Agents submit MTN AFA IDs from their dashboard."
+          />
         ) : (
-          <ul className="mt-4 space-y-3">
+          <AdminList>
             {mtnAfa.map((a) => (
-              <li key={a.id} className="rounded-xl border border-border bg-slate-50/50 px-4 py-3">
+              <AdminListItem key={a.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-medium">{a.vendor_name}</p>
@@ -270,63 +316,53 @@ export default async function AdminAgentOpsPage() {
                   </Badge>
                 </div>
                 <MtnAfaActions applicationId={a.id} status={a.status} />
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </section>
+      </AdminSection>
 
-      {/* Developer API keys */}
-      <section id="developer" className="scroll-mt-6 card-elevated p-5">
-        <h3 className="font-semibold">Developer API keys</h3>
-        <p className="mt-1 text-xs text-muted">
-          Keys created at <span className="font-mono">/vendor/dashboard/developer</span> (prefix only)
-        </p>
-
+      <AdminSection
+        id="developer"
+        title="Developer API keys"
+        description="Keys created by agents — prefix only, never full secret."
+        icon={Code}
+      >
         {apiKeys.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No API keys issued.</p>
+          <AdminEmptyState
+            icon={Code}
+            title="No API keys issued"
+            description="Agents generate keys from their developer dashboard."
+          />
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-muted">
-                  <th className="pb-3 font-medium">Agent</th>
-                  <th className="pb-3 font-medium">Name</th>
-                  <th className="pb-3 font-medium">Prefix</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {apiKeys.map((k) => (
-                  <tr key={k.id} className="border-b border-border/50">
-                    <td className="py-3 font-medium">{k.vendor_name}</td>
-                    <td className="py-3">{k.name}</td>
-                    <td className="py-3 font-mono text-xs">{k.key_prefix}…</td>
-                    <td className="py-3">
-                      <Badge variant={k.active ? "success" : "neutral"}>
-                        {k.active ? "Active" : "Revoked"}
-                      </Badge>
-                    </td>
-                    <td className="py-3">
-                      <ApiKeyRevokeButton keyId={k.id} active={k.active} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminDataTable minWidth="640px">
+            <AdminTableHead>
+              <AdminTh>Agent</AdminTh>
+              <AdminTh>Name</AdminTh>
+              <AdminTh>Prefix</AdminTh>
+              <AdminTh>Status</AdminTh>
+              <AdminTh />
+            </AdminTableHead>
+            <AdminTableBody>
+              {apiKeys.map((k) => (
+                <AdminTr key={k.id}>
+                  <AdminTd className="font-medium">{k.vendor_name}</AdminTd>
+                  <AdminTd>{k.name}</AdminTd>
+                  <AdminTd className="font-mono text-xs">{k.key_prefix}…</AdminTd>
+                  <AdminTd>
+                    <Badge variant={k.active ? "success" : "neutral"}>
+                      {k.active ? "Active" : "Revoked"}
+                    </Badge>
+                  </AdminTd>
+                  <AdminTd>
+                    <ApiKeyRevokeButton keyId={k.id} active={k.active} />
+                  </AdminTd>
+                </AdminTr>
+              ))}
+            </AdminTableBody>
+          </AdminDataTable>
         )}
-      </section>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="card-elevated px-4 py-3">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
-      <p className="num mt-1 text-xl font-extrabold">{value}</p>
-    </div>
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

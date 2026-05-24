@@ -1,3 +1,14 @@
+import { BarChart3, ShoppingCart, Store, TrendingUp, Zap } from "lucide-react";
+import {
+  AdminBreakdownRow,
+  AdminConfigError,
+  AdminEmptyState,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+} from "@/components/admin";
 import {
   fetchAdminOrderStats,
   fetchAdminOverview,
@@ -10,9 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   const [orderStats, metrics, vendors] = await Promise.all([
@@ -26,127 +35,143 @@ export default async function AdminAnalyticsPage() {
       ? Math.round((orderStats.fulfilled / orderStats.total) * 1000) / 10
       : 0;
 
+  const failedPct =
+    orderStats.total > 0
+      ? Math.round((orderStats.failed / orderStats.total) * 1000) / 10
+      : 0;
+
+  const inProgress =
+    orderStats.total - orderStats.fulfilled - orderStats.failed;
+
   const topVendors = vendors
     .filter((v) => v.status === "approved")
     .sort((a, b) => b.total_orders - a.total_orders)
     .slice(0, 5);
 
+  const maxOrders = topVendors[0]?.total_orders ?? 1;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Analytics</h2>
-        <p className="mt-1 text-sm text-muted">Platform performance from live data</p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Platform analytics"
+        description="Performance metrics from live order and vendor data."
+        meta={`${orderStats.total} orders tracked · ${metrics?.activeVendors ?? 0} active vendors`}
+      />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card label="GMV (tracked)" value={formatGHS(orderStats.revenue)} />
-        <Card label="Total orders" value={formatCompact(orderStats.total)} />
-        <Card label="Fulfilment rate" value={`${fulfilmentRate}%`} />
-        <Card label="Active vendors" value={String(metrics?.activeVendors ?? 0)} />
-      </div>
+      <AdminStatGrid>
+        <AdminStatTile
+          icon={<TrendingUp className="h-4 w-4" />}
+          tone="gold"
+          label="GMV (tracked)"
+          value={formatGHS(orderStats.revenue)}
+          valueAccent="gold"
+        />
+        <AdminStatTile
+          icon={<ShoppingCart className="h-4 w-4" />}
+          tone="sky"
+          label="Total orders"
+          value={formatCompact(orderStats.total)}
+        />
+        <AdminStatTile
+          icon={<Zap className="h-4 w-4" />}
+          tone="emerald"
+          label="Fulfilment rate"
+          value={`${fulfilmentRate}%`}
+          valueAccent="emerald"
+        />
+        <AdminStatTile
+          icon={<Store className="h-4 w-4" />}
+          tone="violet"
+          label="Active vendors"
+          value={String(metrics?.activeVendors ?? 0)}
+        />
+      </AdminStatGrid>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card-elevated p-5">
-          <h3 className="font-semibold">Order breakdown</h3>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <AdminSection title="Order breakdown" description="Status distribution across all orders." icon={BarChart3}>
           {orderStats.total === 0 ? (
-            <p className="mt-4 text-sm text-muted">No orders in the database yet.</p>
+            <AdminEmptyState
+              icon={ShoppingCart}
+              title="No orders yet"
+              description="Order breakdown will populate once checkout activity begins."
+            />
           ) : (
-            <ul className="mt-4 space-y-3 text-sm">
-              <Row label="Fulfilled" value={formatCompact(orderStats.fulfilled)} pct={fulfilmentRate} />
-              <Row
+            <ul className="space-y-3">
+              <AdminBreakdownRow
+                label="Fulfilled"
+                value={formatCompact(orderStats.fulfilled)}
+                pct={fulfilmentRate}
+                barPct={fulfilmentRate}
+              />
+              <AdminBreakdownRow
                 label="Failed"
                 value={formatCompact(orderStats.failed)}
-                pct={
+                pct={failedPct}
+                barPct={failedPct}
+              />
+              <AdminBreakdownRow
+                label="In progress"
+                value={formatCompact(inProgress)}
+                barPct={
                   orderStats.total > 0
-                    ? Math.round((orderStats.failed / orderStats.total) * 1000) / 10
+                    ? Math.round((inProgress / orderStats.total) * 1000) / 10
                     : 0
                 }
               />
-              <Row
-                label="In progress"
-                value={formatCompact(
-                  orderStats.total - orderStats.fulfilled - orderStats.failed,
-                )}
-              />
             </ul>
           )}
-        </div>
+        </AdminSection>
 
-        <div className="card-elevated p-5">
-          <h3 className="font-semibold">Top vendors by orders</h3>
+        <AdminSection title="Top vendors" description="Approved stores ranked by order volume." icon={Store}>
           {topVendors.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">No approved vendors yet.</p>
+            <AdminEmptyState
+              icon={Store}
+              title="No approved vendors"
+              description="Vendor rankings appear once stores are approved and selling."
+            />
           ) : (
-            <ul className="mt-4 space-y-3">
-              {topVendors.map((v, i) => (
-                <li key={v.id} className="flex items-center justify-between text-sm">
-                  <span>
-                    <span className="mr-2 font-bold text-muted">{i + 1}.</span>
-                    {v.business_name}
-                  </span>
-                  <span className="num font-semibold">{formatCompact(v.total_orders)}</span>
-                </li>
-              ))}
+            <ul className="space-y-3">
+              {topVendors.map((v, i) => {
+                const barPct =
+                  maxOrders > 0 ? Math.round((v.total_orders / maxOrders) * 100) : 0;
+                return (
+                  <AdminBreakdownRow
+                    key={v.id}
+                    label={`${i + 1}. ${v.business_name}`}
+                    value={formatCompact(v.total_orders)}
+                    barPct={barPct}
+                  />
+                );
+              })}
             </ul>
           )}
-        </div>
+        </AdminSection>
       </div>
 
-      <div className="card-elevated p-5">
-        <h3 className="font-semibold">Today&apos;s pulse</h3>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <Card label="Orders today" value={formatCompact(metrics?.ordersToday ?? 0)} compact />
-          <Card
+      <AdminSection title="Today's pulse" description="Rolling 24-hour activity snapshot." icon={Zap}>
+        <AdminStatGrid className="lg:grid-cols-3">
+          <AdminStatTile
+            icon={<ShoppingCart className="h-3.5 w-3.5" />}
+            tone="sky"
+            label="Orders today"
+            value={formatCompact(metrics?.ordersToday ?? 0)}
+          />
+          <AdminStatTile
+            icon={<TrendingUp className="h-3.5 w-3.5" />}
+            tone="emerald"
             label="Fulfilled today"
             value={formatCompact(metrics?.ordersFulfilledToday ?? 0)}
-            compact
+            valueAccent="emerald"
           />
-          <Card
+          <AdminStatTile
+            icon={<Zap className="h-3.5 w-3.5" />}
+            tone="gold"
             label="Success rate"
             value={`${metrics?.successRate ?? 0}%`}
-            compact
+            valueAccent="gold"
           />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Card({
-  label,
-  value,
-  compact,
-}: {
-  label: string;
-  value: string;
-  compact?: boolean;
-}) {
-  return (
-    <div className={compact ? "" : "card-elevated px-4 py-3"}>
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
-      <p className={`num mt-1 font-extrabold text-foreground ${compact ? "text-lg" : "text-2xl"}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-  pct,
-}: {
-  label: string;
-  value: string;
-  pct?: number;
-}) {
-  return (
-    <li className="flex items-center justify-between">
-      <span className="text-muted">{label}</span>
-      <span className="font-semibold">
-        {value}
-        {pct != null && <span className="ml-2 text-xs text-muted">({pct}%)</span>}
-      </span>
-    </li>
+        </AdminStatGrid>
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

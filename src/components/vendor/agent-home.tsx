@@ -24,6 +24,7 @@ import type {
 import { BULK_SAMPLE_CSV } from "@/lib/wholesale/bulk-sample";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { CircleProgress } from "@/components/ui/circle-progress";
+import { AdminPageRoot, AdminStatTile } from "@/components/admin";
 
 interface Props {
   greeting: string;
@@ -57,35 +58,25 @@ export function AgentHome({
   const walletPct = walletTarget > 0 ? Math.min(100, (balance / walletTarget) * 100) : 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
-      {/* ===================== WELCOME CARD ===================== */}
+    <AdminPageRoot className="space-y-4">
+      {/* Welcome */}
       <section className="welcome-card">
-        <div className="welcome-chip">
-          <span className="chip-badge">Agent</span>
-          <span className="live-badge">System fully synced</span>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              {greeting}, {firstName} 👋
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
-              Your real-time data reselling terminal & wallet center.
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="welcome-chip">
+              <span className="chip-badge">Agent</span>
+              <span className="live-badge">System fully synced</span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 sm:text-[13px]">
+              {greeting}, {firstName} — your data reselling terminal and wallet center.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/vendor/dashboard/wholesale"
-              className="susu-btn-gold"
-            >
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Link href="/vendor/dashboard/wholesale" className="susu-btn-gold">
               <ShoppingBag className="h-3.5 w-3.5" />
               Buy data
             </Link>
-            <Link
-              href="/vendor/dashboard/wallet"
-              className="susu-btn-ghost"
-            >
+            <Link href="/vendor/dashboard/wallet" className="susu-btn-ghost">
               My wallet
             </Link>
           </div>
@@ -94,7 +85,7 @@ export function AgentHome({
 
       {/* ===================== VAULT HERO (wallet w/ ring) ===================== */}
       <section className="vault-hero-card">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1">
             <span className="vault-hero-chip">
               <Wallet className="h-3.5 w-3.5" />
@@ -126,14 +117,15 @@ export function AgentHome({
             value={walletPct}
             label={`${Math.round(walletPct)}%`}
             caption="LOADED"
-            size={160}
+            size={108}
+            stroke={9}
           />
         </div>
       </section>
 
       {/* ===================== 4 STAT TILES ===================== */}
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <StatTile
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <AdminStatTile
           icon={<Crown className="h-5 w-5" />}
           tone="gold"
           label="Today's revenue"
@@ -141,21 +133,21 @@ export function AgentHome({
           hint={`${today.ordersToday} orders today`}
           valueAccent="gold"
         />
-        <StatTile
+        <AdminStatTile
           icon={<Target className="h-5 w-5" />}
           tone="sky"
           label="GB sold today"
           value={String(today.gbSoldToday)}
           hint="Across all networks"
         />
-        <StatTile
+        <AdminStatTile
           icon={<Trophy className="h-5 w-5" />}
           tone="amber"
           label="Lifetime orders"
           value={String(recentOrders.length > 0 ? "Active" : "Get started")}
           hint={recentOrders.length > 0 ? "Building reputation" : "Place your first order"}
         />
-        <StatTile
+        <AdminStatTile
           icon={<Wallet className="h-5 w-5" />}
           tone="violet"
           label="Wallet"
@@ -201,7 +193,7 @@ export function AgentHome({
       )}
 
       {/* ===================== 3 MINI STATS ===================== */}
-      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+      <section className="grid grid-cols-3 gap-2 sm:gap-3">
         <MiniTile
           icon={<Wallet className="h-4 w-4" />}
           tone="amber"
@@ -224,14 +216,12 @@ export function AgentHome({
 
       {/* ===================== BUY DATA QUICK LINKS ===================== */}
       <section>
-        <div className="mb-3 flex items-end justify-between gap-3">
+        <div className="section-card-header mb-2">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+            <h2 className="text-sm font-extrabold tracking-tight text-slate-900">
               Place an order
             </h2>
-            <p className="text-sm text-slate-500">
-              Pick a network and start selling immediately.
-            </p>
+            <p className="text-xs text-slate-500">Pick a network and start selling.</p>
           </div>
           <Link
             href="/vendor/dashboard/wholesale?mode=bulk"
@@ -242,7 +232,7 @@ export function AgentHome({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <NetworkLink
             href="/vendor/dashboard/wholesale?network=mtn"
             label="MTN"
@@ -297,14 +287,12 @@ export function AgentHome({
 
       {/* ===================== RECENT ACTIVITY / PORTFOLIO ===================== */}
       <section>
-        <div className="section-card-header">
+        <div className="section-card-header mb-2">
           <div>
-            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+            <h2 className="text-sm font-extrabold tracking-tight text-slate-900">
               Recent activity
             </h2>
-            <p className="text-sm text-slate-500">
-              Latest orders from your terminal.
-            </p>
+            <p className="text-xs text-slate-500">Latest orders from your terminal.</p>
           </div>
           <Link
             href="/vendor/dashboard/orders"
@@ -325,7 +313,7 @@ export function AgentHome({
             </p>
           </div>
         ) : (
-          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+          <div className="grid gap-2 sm:gap-3 md:grid-cols-2">
             {recentOrders.slice(0, 4).map((o) => (
               <div key={o.id} className="section-card">
                 <div className="section-card-header">
@@ -366,46 +354,13 @@ export function AgentHome({
           </div>
         )}
       </section>
-    </div>
+    </AdminPageRoot>
   );
 }
 
 // ============================================================
 // Subcomponents
 // ============================================================
-
-function StatTile({
-  icon,
-  tone,
-  label,
-  value,
-  hint,
-  valueAccent,
-}: {
-  icon: React.ReactNode;
-  tone: "gold" | "amber" | "sky" | "violet" | "emerald" | "rose";
-  label: string;
-  value: string;
-  hint?: string;
-  valueAccent?: "gold" | "emerald" | "rose";
-}) {
-  return (
-    <div className="stat-tile">
-      <div className={`stat-tile-icon tile-icon-${tone}`}>{icon}</div>
-      <div className="min-w-0 flex-1">
-        <p className="stat-tile-label">{label}</p>
-        <p
-          className={`stat-tile-value ${
-            valueAccent ? `is-${valueAccent}` : ""
-          }`}
-        >
-          {value}
-        </p>
-        {hint && <p className="stat-tile-hint">{hint}</p>}
-      </div>
-    </div>
-  );
-}
 
 function MiniTile({
   icon,
@@ -419,26 +374,12 @@ function MiniTile({
   value: string;
 }) {
   return (
-    <div
-      className="rounded-2xl border bg-white p-3 sm:p-4"
-      style={{
-        borderColor:
-          tone === "amber"
-            ? "#fde68a"
-            : tone === "rose"
-              ? "#fecaca"
-              : tone === "sky"
-                ? "#bfdbfe"
-                : "#e5e7eb",
-      }}
-    >
+    <div className="rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3">
       <div className="flex items-center gap-2">
-        <div className={`stat-tile-icon tile-icon-${tone} !h-9 !w-9`}>{icon}</div>
+        <div className={`stat-tile-icon tile-icon-${tone} !h-7 !w-7`}>{icon}</div>
         <div>
-          <p className="stat-tile-label text-[10px]">{label}</p>
-          <p className="text-base font-extrabold leading-none text-slate-900 sm:text-lg">
-            {value}
-          </p>
+          <p className="stat-tile-label text-[9px]">{label}</p>
+          <p className="text-sm font-extrabold leading-none text-slate-900">{value}</p>
         </div>
       </div>
     </div>
@@ -459,10 +400,10 @@ function NetworkLink({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_8px_24px_rgba(10,46,93,0.08)]"
+      className="group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_6px_18px_rgba(10,46,93,0.07)]"
     >
       <span
-        className="flex h-11 w-11 items-center justify-center rounded-xl text-[10px] font-black shadow-md"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-[10px] font-black shadow-sm"
         style={{ backgroundColor: color, color: textColor }}
       >
         {label.slice(0, 3).toUpperCase()}

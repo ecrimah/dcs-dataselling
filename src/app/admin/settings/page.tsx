@@ -1,4 +1,23 @@
 import Link from "next/link";
+import {
+  Cable,
+  Database,
+  MessageSquare,
+  Package,
+  Settings,
+  Store,
+} from "lucide-react";
+import {
+  AdminIntegrationList,
+  AdminIntegrationRow,
+  AdminKvList,
+  AdminKvRow,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminQuickLink,
+  AdminQuickLinks,
+  AdminSection,
+} from "@/components/admin";
 import { SITE } from "@/lib/constants";
 import { isArkeselConfigured } from "@/lib/notifications/arkesel";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
@@ -14,108 +33,71 @@ export default function AdminSettingsPage() {
   const skanka5WebhookOk = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Settings</h2>
-        <p className="mt-1 text-sm text-muted">Platform configuration and integrations</p>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Platform config"
+        description="Brand identity, integration health, and admin shortcuts."
+        meta={`${[supabaseOk, paystackOk, arkeselOk, skanka5Ok].filter(Boolean).length}/4 core integrations connected`}
+      />
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <AdminSection title="Brand" description="Public-facing platform identity." icon={Settings}>
+          <AdminKvList>
+            <AdminKvRow label="Platform name" value={SITE.name} />
+            <AdminKvRow label="Domain" value={SITE.domain} />
+            <AdminKvRow label="Public URL" value={SITE.url} />
+            <AdminKvRow label="Support email" value={SITE.supportEmail} />
+            <AdminKvRow label="Support WhatsApp" value={SITE.supportWhatsApp} />
+          </AdminKvList>
+        </AdminSection>
+
+        <AdminSection
+          title="Integrations"
+          description="Environment-driven services — configure via .env.local or Vercel."
+          icon={Cable}
+        >
+          <AdminIntegrationList>
+            <AdminIntegrationRow label="Supabase" ok={supabaseOk} />
+            <AdminIntegrationRow
+              label="Paystack"
+              ok={paystackOk}
+              hint="Set PAYSTACK_SECRET_KEY in .env.local"
+            />
+            <AdminIntegrationRow
+              label="Arkesel SMS"
+              ok={arkeselOk}
+              hint="Set ARKESEL_API_KEY and ARKESEL_SENDER_ID"
+            />
+            <AdminIntegrationRow
+              label="Skanka5 supplier"
+              ok={skanka5Ok}
+              hint="Set SKANKA5_API_KEY and SKANKA5_NETWORK_ID_MTN"
+            />
+            <AdminIntegrationRow
+              label="Skanka5 webhook signing"
+              ok={skanka5WebhookOk}
+              hint="Set SKANKA5_WEBHOOK_SECRET to verify supplier callbacks"
+            />
+          </AdminIntegrationList>
+        </AdminSection>
       </div>
 
-      <section className="card-elevated p-5">
-        <h3 className="font-semibold">Brand</h3>
-        <dl className="mt-4 space-y-3 text-sm">
-          <Row label="Platform name" value={SITE.name} />
-          <Row label="Domain" value={SITE.domain} />
-          <Row label="Public URL" value={SITE.url} />
-          <Row label="Support email" value={SITE.supportEmail} />
-          <Row label="Support WhatsApp" value={SITE.supportWhatsApp} />
-        </dl>
-      </section>
-
-      <section className="card-elevated p-5">
-        <h3 className="font-semibold">Integrations</h3>
-        <ul className="mt-4 space-y-2 text-sm">
-          <StatusRow label="Supabase" ok={supabaseOk} />
-          <StatusRow label="Paystack" ok={paystackOk} hint="Set PAYSTACK_SECRET_KEY in .env.local" />
-          <StatusRow
-            label="Arkesel SMS"
-            ok={arkeselOk}
-            hint="Set ARKESEL_API_KEY and ARKESEL_SENDER_ID in .env.local"
-          />
-          <StatusRow
-            label="Skanka5 supplier"
-            ok={skanka5Ok}
-            hint="Set SKANKA5_API_KEY and SKANKA5_NETWORK_ID_MTN in .env.local"
-          />
-          <StatusRow
-            label="Skanka5 webhook signing"
-            ok={skanka5WebhookOk}
-            hint="Set SKANKA5_WEBHOOK_SECRET to verify supplier callbacks"
-          />
-        </ul>
-      </section>
-
-      <section className="card-elevated p-5">
-        <h3 className="font-semibold">Quick links</h3>
-        <ul className="mt-4 space-y-2 text-sm font-semibold text-cyan-700">
-          <li>
-            <Link href="/admin/wholesale" className="hover:underline">
-              Wholesale catalogue →
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/vendors" className="hover:underline">
-              Vendor governance →
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/sms-debugger" className="hover:underline">
-              SMS debugger →
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/supplier" className="hover:underline">
-              Supplier (Skanka5) console →
-            </Link>
-          </li>
-        </ul>
-        <p className="mt-4 text-xs text-muted">
-          Payment keys and service role secrets are managed via environment variables only —
-          never commit <code className="rounded bg-slate-100 px-1">.env.local</code>.
+      <AdminSection title="Quick links" description="Jump to operational admin tools." icon={Database}>
+        <AdminQuickLinks>
+          <AdminQuickLink href="/admin/wholesale" icon={Package} label="Wholesale catalogue" />
+          <AdminQuickLink href="/admin/vendors" icon={Store} label="Vendor governance" />
+          <AdminQuickLink href="/admin/sms-debugger" icon={MessageSquare} label="SMS debugger" />
+          <AdminQuickLink href="/admin/supplier" icon={Cable} label="Supplier (Skanka5) console" />
+        </AdminQuickLinks>
+        <p className="mt-3 text-[11px] leading-relaxed text-muted">
+          Payment keys and service role secrets are managed via environment variables only — never
+          commit <code className="rounded bg-slate-100 px-1">.env.local</code>.{" "}
+          <Link href="/admin/supplier" className="font-semibold text-amber-800 hover:underline">
+            Open supplier console
+          </Link>{" "}
+          for env var diagnostics.
         </p>
-      </section>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-wrap justify-between gap-2 border-b border-border/50 pb-3 last:border-0">
-      <dt className="text-muted">{label}</dt>
-      <dd className="font-medium text-foreground">{value}</dd>
-    </div>
-  );
-}
-
-function StatusRow({
-  label,
-  ok,
-  hint,
-}: {
-  label: string;
-  ok: boolean;
-  hint?: string;
-}) {
-  return (
-    <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
-      <span>{label}</span>
-      <span
-        className={`text-xs font-bold uppercase tracking-wider ${
-          ok ? "text-emerald-600" : "text-amber-600"
-        }`}
-      >
-        {ok ? "Connected" : "Not configured"}
-      </span>
-      {!ok && hint && <span className="w-full text-xs text-muted">{hint}</span>}
-    </li>
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

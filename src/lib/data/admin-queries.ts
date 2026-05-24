@@ -22,9 +22,28 @@ export interface AdminOverviewMetrics {
   ordersToday: number;
   ordersFulfilledToday: number;
   activeVendors: number;
+  /** Share of orders that received payment (paid / queued / processing / fulfilled). */
   successRate: number;
+  /** Share of paid orders that reached fulfilled status. */
+  fulfillmentRate: number;
   paystackShare: number;
 }
+
+export interface AdminCustomerPaymentRow {
+  id: string;
+  reference: string;
+  recipient_phone: string;
+  amount: number;
+  platform_fee: number;
+  status: string;
+  payment_provider: string | null;
+  created_at: string;
+  vendor_name: string;
+  vendor_slug: string;
+  bundle_name: string | null;
+}
+
+const PAYMENT_SUCCESS_STATUSES = ["paid", "queued", "processing", "fulfilled"] as const;
 
 export interface AdminTopCustomer {
   userId: string;
@@ -82,9 +101,15 @@ export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null>
   const gmv30d = rows30d.reduce((s, r) => s + Number(r.amount), 0);
   const platformRevenue30d = rows30d.reduce((s, r) => s + Number(r.platform_fee ?? 0), 0);
 
-  const fulfilled = rows30d.filter((r) => r.status === "fulfilled").length;
-  const successRate =
-    rows30d.length > 0 ? Math.round((fulfilled / rows30d.length) * 1000) / 10 : 100;
+  const paymentSuccess = rows30d.filter((r) =>
+    PAYMENT_SUCCESS_STATUSES.includes(r.status as (typeof PAYMENT_SUCCESS_STATUSES)[number]),
+  ).length;
+  const fulfilledCount = rows30d.filter((r) => r.status === "fulfilled").length;
+
+  const paymentSuccessRate =
+    rows30d.length > 0 ? Math.round((paymentSuccess / rows30d.length) * 1000) / 10 : 100;
+  const fulfillmentRate =
+    paymentSuccess > 0 ? Math.round((fulfilledCount / paymentSuccess) * 1000) / 10 : 100;
 
   const paystackCount = rows30d.filter((r) => r.payment_provider === "paystack").length;
   const paidCount = rows30d.filter((r) =>
@@ -108,9 +133,64 @@ export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null>
       ps?.orders_fulfilled_today ??
       todayRows.filter((r) => r.status === "fulfilled").length,
     activeVendors: vendorsRes.data?.length ?? ps?.active_vendors ?? 0,
-    successRate: ps?.success_rate != null ? Number(ps.success_rate) : successRate,
+    successRate: rows30d.length > 0 ? paymentSuccessRate : Number(ps?.success_rate ?? 100),
+    fulfillmentRate,
     paystackShare,
   };
+}
+
+export async function fetchAdminCustomerPayments(
+  limit = 100,
+): Promise<AdminCustomerPaymentRow[]> {
+  if (!hasSupabaseConfig()) return [];
+
+  const service = createServiceClient();
+  const { data, error } = await service
+    .from("orders")
+    .select(
+      `
+      id, reference, recipient_phone, amount, platform_fee, status, payment_provider, created_at,
+      vendors!inner ( business_name, slug ),
+      bundles ( name )
+    `,
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error || !data) {
+    console.error("[fetchAdminCustomerPayments]", error);
+    return [];
+  }
+
+  return data.map((row) => {
+    const r = row as {
+      id: string;
+      reference: string;
+      recipient_phone: string;
+      amount: number;
+      platform_fee: number;
+      status: string;
+      payment_provider: string | null;
+      created_at: string;
+      vendors: { business_name: string; slug: string } | { business_name: string; slug: string }[];
+      bundles: { name: string } | { name: string }[] | null;
+    };
+    const vendor = Array.isArray(r.vendors) ? r.vendors[0] : r.vendors;
+    const bundle = Array.isArray(r.bundles) ? r.bundles[0] : r.bundles;
+    return {
+      id: r.id,
+      reference: r.reference,
+      recipient_phone: r.recipient_phone,
+      amount: Number(r.amount),
+      platform_fee: Number(r.platform_fee ?? 0),
+      status: r.status,
+      payment_provider: r.payment_provider,
+      created_at: r.created_at,
+      vendor_name: vendor?.business_name ?? "—",
+      vendor_slug: vendor?.slug ?? "",
+      bundle_name: bundle?.name ?? null,
+    };
+  });
 }
 
 export async function fetchAdminTopCustomers(limit = 5): Promise<AdminTopCustomer[]> {

@@ -11,7 +11,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <>
       <AdminShell adminName={adminName} adminRole={adminRole}>
-        {children}
+        <div className="admin-page-content mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6">
+          {children}
+        </div>
       </AdminShell>
       <Toaster position="top-center" richColors />
     </>

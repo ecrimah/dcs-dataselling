@@ -50,7 +50,7 @@ const QUICK_HELP = [
     icon: ShieldCheck,
     title: "Payment & security",
     desc: "MoMo, cards, and verification",
-    href: "/#trust",
+    href: "/trust",
   },
   {
     icon: Store,

@@ -115,19 +115,19 @@ function AdminSidebarNav({
   return (
     <>
       {/* User chip */}
-      <div className="border-b border-slate-200 p-4">
+      <div className="border-b border-slate-200 p-3">
         <div className="susu-user-chip">
           <div className="avatar">{adminName.slice(0, 2).toUpperCase()}</div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-900">{adminName}</p>
-            <p className="truncate text-xs text-slate-500">
+            <p className="truncate text-xs font-bold text-slate-900">{adminName}</p>
+            <p className="truncate text-[11px] text-slate-500">
               {adminRole === "super_admin" ? "admin@dcselite.com" : adminRole}
             </p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title}>
             <p className="nav-section-label mb-2 px-3">{section.title}</p>
@@ -186,14 +186,14 @@ function AdminSidebar({
   className?: string;
 }) {
   return (
-    <aside className={cn("susu-sidebar flex h-full w-64 flex-col border-r", className)}>
+    <aside className={cn("susu-sidebar flex h-full w-56 flex-col border-r", className)}>
       <Link
         href="/admin"
         onClick={onNavigate}
-        className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 px-4"
+        className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 px-3.5"
       >
-        <DcsLogo size={28} className="max-w-full" />
-        <span className="text-sm font-extrabold tracking-tight text-slate-900">
+        <DcsLogo size={24} className="max-w-full" />
+        <span className="text-xs font-extrabold tracking-tight text-slate-900">
           DCS Elite
         </span>
       </Link>
@@ -227,15 +227,15 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="susu-canvas page-canvas flex min-h-screen">
+    <div className="dashboard-compact susu-canvas page-canvas flex min-h-screen">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AdminSidebar pathname={pathname} adminName={adminName} adminRole={adminRole} />
       </div>
 
-      <div className="flex flex-1 flex-col lg:pl-64">
+      <div className="flex flex-1 flex-col lg:pl-56">
         {/* Top bar */}
-        <header className="susu-topbar sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 sm:px-6 lg:px-8">
+        <header className="susu-topbar sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b px-3 sm:px-5 lg:px-6">
           <button
             type="button"
             className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
@@ -245,25 +245,25 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
             <Menu className="h-5 w-5" />
           </button>
 
-          <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+          <h1 className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">
             {title}
           </h1>
 
-          <div className="ml-auto flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 sm:inline-flex">
+          <div className="ml-auto flex items-center gap-1.5">
+            <span className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Live · {time}
             </span>
             <button
               type="button"
-              className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+              className="relative rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
               aria-label="Notifications"
             >
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-500" />
             </button>
-            <div className="susu-user-chip hidden h-10 items-center gap-2 px-2 py-1.5 sm:flex">
-              <div className="avatar !h-7 !w-7 !text-[11px]">
+            <div className="susu-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
+              <div className="avatar !h-6 !w-6 !text-[10px]">
                 {adminName.slice(0, 2).toUpperCase()}
               </div>
               <span className="text-xs font-bold text-slate-900">
@@ -291,7 +291,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
               adminName={adminName}
               adminRole={adminRole}
               onNavigate={closeSidebar}
-              className="h-full w-[min(17rem,85vw)]"
+              className="h-full w-[min(15rem,85vw)]"
             />
           </div>
         </div>

@@ -1,4 +1,12 @@
+import { Tag } from "lucide-react";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import {
+  AdminConfigError,
+  AdminEmptyState,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+} from "@/components/admin";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { PromotionToggle } from "./promotion-toggle";
@@ -20,9 +28,7 @@ interface PromoRow {
 
 export default async function AdminPromotionsPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   let promos: PromoRow[] = [];
@@ -48,47 +54,48 @@ export default async function AdminPromotionsPage() {
   const active = promos.filter((p) => p.active);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Promotions</h2>
-        <p className="mt-1 text-sm text-muted">
-          {active.length} active · {promos.length} total campaigns
-        </p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Customer campaigns"
+        description="Platform-wide promotions applied at checkout on vendor storefronts."
+        meta={`${active.length} active · ${promos.length} total campaigns`}
+      />
 
-      {promos.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-muted">No promotions yet.</div>
-      ) : (
-      <ul className="space-y-3">
-        {promos.map((p) => (
-          <li key={p.id} className="card-elevated flex flex-wrap items-center justify-between gap-4 p-5">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-bold">{p.title}</h3>
-                {p.code && (
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold">
-                    {p.code}
-                  </span>
-                )}
-                <Badge variant={p.active ? "success" : "neutral"}>
-                  {p.active ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-              {p.description && (
-                <p className="mt-1 text-sm text-muted">{p.description}</p>
-              )}
-              <p className="mt-2 text-xs text-muted">
-                {p.discount_percent != null && `${p.discount_percent}% off`}
-                {p.discount_amount != null && ` · ₵${p.discount_amount} off`}
-                {p.ends_at &&
-                  ` · ends ${formatDistanceToNow(new Date(p.ends_at), { addSuffix: true })}`}
-              </p>
-            </div>
-            <PromotionToggle promoId={p.id} active={p.active} />
-          </li>
-        ))}
-      </ul>
-      )}
-    </div>
+      <AdminSection title="Active campaigns" description="Toggle campaigns on or off without redeploying." icon={Tag}>
+        {promos.length === 0 ? (
+          <AdminEmptyState
+            icon={Tag}
+            title="No promotions yet"
+            description="Create a campaign to offer discounts on customer checkout."
+          />
+        ) : (
+          <ul className="space-y-2">
+            {promos.map((p) => (
+              <li key={p.id} className="admin-promo-card">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-bold">{p.title}</h3>
+                    {p.code && <span className="admin-promo-code">{p.code}</span>}
+                    <Badge variant={p.active ? "success" : "neutral"}>
+                      {p.active ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  {p.description && (
+                    <p className="mt-1 text-xs text-muted">{p.description}</p>
+                  )}
+                  <p className="mt-1.5 text-[11px] text-muted">
+                    {p.discount_percent != null && `${p.discount_percent}% off`}
+                    {p.discount_amount != null && ` · ₵${p.discount_amount} off`}
+                    {p.ends_at &&
+                      ` · ends ${formatDistanceToNow(new Date(p.ends_at), { addSuffix: true })}`}
+                  </p>
+                </div>
+                <PromotionToggle promoId={p.id} active={p.active} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

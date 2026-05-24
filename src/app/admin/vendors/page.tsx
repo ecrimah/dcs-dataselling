@@ -1,4 +1,20 @@
 import Link from "next/link";
+import { CheckCircle2, Clock, ShieldAlert, Store } from "lucide-react";
+import {
+  AdminConfigError,
+  AdminDataTable,
+  AdminEmptyState,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+  AdminTableBody,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTr,
+} from "@/components/admin";
 import { fetchAdminVendors } from "@/lib/data/admin-queries";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +36,7 @@ const STATUS_VARIANT: Record<
 
 export default async function AdminVendorsPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   const vendors = await fetchAdminVendors();
@@ -34,83 +48,98 @@ export default async function AdminVendorsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold">Vendor governance</h2>
-          <p className="mt-1 text-sm text-muted">
-            {vendors.length} vendors · {pending.length} pending approval
-          </p>
-        </div>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Vendor governance"
+        description="Approve agents, monitor store health, and manage platform access."
+        meta={`${vendors.length} vendors · ${pending.length} pending approval`}
+        actions={
+          pending.length > 0 ? (
+            <Link href="/admin/kyc" className="susu-btn-gold">
+              Review pending
+            </Link>
+          ) : undefined
+        }
+      />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Approved" value={approved.length} />
-        <Stat label="Pending" value={pending.length} />
-        <Stat label="Suspended / rejected" value={other.length} />
-      </div>
+      <AdminStatGrid className="lg:grid-cols-3">
+        <AdminStatTile
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          tone="emerald"
+          label="Approved"
+          value={String(approved.length)}
+          valueAccent="emerald"
+        />
+        <AdminStatTile
+          icon={<Clock className="h-4 w-4" />}
+          tone="amber"
+          label="Pending"
+          value={String(pending.length)}
+        />
+        <AdminStatTile
+          icon={<ShieldAlert className="h-4 w-4" />}
+          tone="rose"
+          label="Suspended / rejected"
+          value={String(other.length)}
+        />
+      </AdminStatGrid>
 
-      <div className="card-elevated overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
-                <th className="px-4 py-3 font-medium">Vendor</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Onboarding</th>
-                <th className="px-4 py-3 font-medium">Orders</th>
-                <th className="px-4 py-3 font-medium">Rating</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+      <AdminSection title="All vendors" description="Live stores and onboarding status." icon={Store}>
+        {vendors.length === 0 ? (
+          <AdminEmptyState
+            icon={Store}
+            title="No vendors yet"
+            description="Agents appear here after they submit a store application."
+          />
+        ) : (
+          <AdminDataTable minWidth="720px">
+            <AdminTableHead>
+              <AdminTh>Vendor</AdminTh>
+              <AdminTh>Status</AdminTh>
+              <AdminTh>Onboarding</AdminTh>
+              <AdminTh>Orders</AdminTh>
+              <AdminTh>Rating</AdminTh>
+              <AdminTh>Actions</AdminTh>
+            </AdminTableHead>
+            <AdminTableBody>
               {vendors.map((v) => (
-                <tr key={v.id} className="border-b border-border/60 last:border-0">
-                  <td className="px-4 py-3">
+                <AdminTr key={v.id}>
+                  <AdminTd>
                     <p className="font-semibold text-foreground">{v.business_name}</p>
                     <p className="text-xs text-muted">/{v.slug}</p>
-                  </td>
-                  <td className="px-4 py-3">
+                  </AdminTd>
+                  <AdminTd>
                     <Badge variant={STATUS_VARIANT[v.status]}>{v.status}</Badge>
                     {v.featured && (
                       <Badge className="ml-1" variant="default">
                         featured
                       </Badge>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </AdminTd>
+                  <AdminTd>
                     <span className="text-xs capitalize text-muted">
                       {v.status === "approved" ? "Live" : v.kyc_status?.replace(/_/g, " ") ?? "—"}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 num">{formatCompact(v.total_orders)}</td>
-                  <td className="px-4 py-3">
+                  </AdminTd>
+                  <AdminTd className="num">{formatCompact(v.total_orders)}</AdminTd>
+                  <AdminTd>
                     <span className="num font-medium">{Number(v.rating).toFixed(1)}</span>
                     <span className="text-xs text-muted"> · ~{v.fulfilment_minutes}m</span>
-                  </td>
-                  <td className="px-4 py-3">
+                  </AdminTd>
+                  <AdminTd>
                     <VendorActions
                       vendorId={v.id}
                       slug={v.slug}
                       status={v.status}
                       featured={v.featured}
                     />
-                  </td>
-                </tr>
+                  </AdminTd>
+                </AdminTr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="card-elevated px-4 py-3">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
-      <p className="num mt-1 text-2xl font-extrabold text-foreground">{value}</p>
-    </div>
+            </AdminTableBody>
+          </AdminDataTable>
+        )}
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

@@ -23,7 +23,9 @@ export default async function VendorDashboardLayout({
   return (
     <VendorCartProvider>
       <AgentShell vendorName={vendorName} businessName={vendor.businessName} tier={tierLabel}>
-        {children}
+        <div className="vendor-page-content mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6">
+          {children}
+        </div>
       </AgentShell>
     </VendorCartProvider>
   );

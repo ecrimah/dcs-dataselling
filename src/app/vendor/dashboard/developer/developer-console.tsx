@@ -32,6 +32,7 @@ import type {
   WebhookDeliveryRow,
 } from "@/lib/vendor/developer";
 import { CircleProgress } from "@/components/ui/circle-progress";
+import { AdminPageRoot, AdminStatTile } from "@/components/admin";
 import { cn } from "@/lib/utils";
 
 type TabId = "overview" | "keys" | "webhook" | "docs" | "logs";
@@ -70,40 +71,26 @@ export function DeveloperConsole({
   const healthPct = Math.max(0, 100 - errorPct);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
+    <AdminPageRoot>
       {/* Welcome card */}
       <section className="welcome-card">
-        <div className="welcome-chip">
-          <span className="chip-badge">Developer</span>
-          <span className={activeKey ? "live-badge" : "live-badge"}>
-            {activeKey ? "API live" : "Awaiting first key"}
-          </span>
-        </div>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              Sell data programmatically
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
-              Issue API keys to bots, resellers, or staff. Orders debit your wallet
-              and route to the same suppliers that power{" "}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="welcome-chip">
+              <span className="chip-badge">Developer</span>
+              <span className="live-badge">{activeKey ? "API live" : "Awaiting first key"}</span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 sm:text-[13px]">
+              Sell data programmatically — orders debit your wallet and route through{" "}
               <span className="font-bold text-slate-900">{vendorName}</span>.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setTab("keys")}
-              className="susu-btn-gold"
-            >
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button type="button" onClick={() => setTab("keys")} className="susu-btn-gold">
               <Code2 className="h-3.5 w-3.5" />
               {activeKey ? "Manage keys" : "Create first key"}
             </button>
-            <button
-              type="button"
-              onClick={() => setTab("docs")}
-              className="susu-btn-ghost"
-            >
+            <button type="button" onClick={() => setTab("docs")} className="susu-btn-ghost">
               Read docs
             </button>
           </div>
@@ -112,7 +99,7 @@ export function DeveloperConsole({
 
       {/* Vault hero — API health */}
       <section className="vault-hero-card">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1">
             <span className="vault-hero-chip">
               <Activity className="h-3.5 w-3.5" />
@@ -143,26 +130,31 @@ export function DeveloperConsole({
       </section>
 
       {/* 4 stat tiles */}
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <DevStatTile
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <AdminStatTile
+          icon={<Activity className="h-4 w-4" />}
+          tone="sky"
           label="Calls 24h"
           value={summary.total_24h.toLocaleString()}
-          tone="sky"
         />
-        <DevStatTile
+        <AdminStatTile
+          icon={<AlertCircle className="h-4 w-4" />}
+          tone={summary.errors_24h > 0 ? "rose" : "emerald"}
           label="Errors 24h"
           value={summary.errors_24h.toLocaleString()}
-          tone={summary.errors_24h > 0 ? "rose" : "emerald"}
+          valueAccent={summary.errors_24h > 0 ? "rose" : "emerald"}
         />
-        <DevStatTile
+        <AdminStatTile
+          icon={<RefreshCw className="h-4 w-4" />}
+          tone="amber"
           label="Calls 7d"
           value={summary.total_7d.toLocaleString()}
-          tone="amber"
         />
-        <DevStatTile
+        <AdminStatTile
+          icon={<Activity className="h-4 w-4" />}
+          tone="violet"
           label="Avg latency"
           value={summary.avg_duration_ms != null ? `${summary.avg_duration_ms}ms` : "—"}
-          tone="violet"
         />
       </section>
 
@@ -210,41 +202,19 @@ export function DeveloperConsole({
       )}
       {tab === "docs" && <DocsBrowser apiBase={apiBase} />}
       {tab === "logs" && <LogsPanel logs={logs} setLogs={setLogs} />}
-    </div>
+    </AdminPageRoot>
   );
 }
 
-// Vault ring + dev tile sub-components
 function HeroRing({ pct }: { pct: number }) {
   return (
     <CircleProgress
       value={pct}
       label={`${Math.round(pct)}%`}
       caption="HEALTH"
-      size={160}
+      size={108}
+      stroke={9}
     />
-  );
-}
-
-function DevStatTile({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "amber" | "gold" | "emerald" | "sky" | "violet" | "rose" | "slate";
-}) {
-  return (
-    <div className="stat-tile">
-      <div className={`stat-tile-icon tile-icon-${tone}`}>
-        <Activity className="h-5 w-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="stat-tile-label">{label}</p>
-        <p className="stat-tile-value">{value}</p>
-      </div>
-    </div>
   );
 }
 

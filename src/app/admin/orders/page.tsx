@@ -1,6 +1,22 @@
 import Link from "next/link";
+import { Package, ShoppingBag } from "lucide-react";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { fetchAdminWholesaleOrders } from "@/lib/data/admin-agent-ops";
+import {
+  AdminConfigError,
+  AdminDataTable,
+  AdminEmptyState,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+  AdminTableBody,
+  AdminTableHead,
+  AdminTd,
+  AdminTh,
+  AdminTr,
+} from "@/components/admin";
 import { Badge } from "@/components/ui/badge";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { formatDistanceToNow } from "date-fns";
@@ -36,9 +52,7 @@ const STATUS_VARIANT: Record<
 
 export default async function AdminOrdersPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   let orders: OrderRow[] = [];
@@ -97,112 +111,124 @@ export default async function AdminOrdersPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-bold">Orders</h2>
-        <p className="mt-1 text-sm text-muted">
-          Agent supply orders and customer storefront orders — mirrors{" "}
-          <span className="font-mono">/vendor/dashboard/orders</span>
-        </p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Order pipeline"
+        description="Agent supply orders and customer storefront checkout — mirrors the vendor orders view."
+        meta={`${wholesaleOrders.length} wholesale · ${orders.length} customer orders`}
+      />
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
-          Wholesale orders (agents → DCS)
-        </h3>
+      <AdminStatGrid>
+        <AdminStatTile
+          icon={<Package className="h-4 w-4" />}
+          tone="sky"
+          label="Wholesale"
+          value={String(wholesaleOrders.length)}
+          hint="Agents → DCS"
+        />
+        <AdminStatTile
+          icon={<ShoppingBag className="h-4 w-4" />}
+          tone="gold"
+          label="Customer"
+          value={String(orders.length)}
+          hint="Storefront checkout"
+        />
+      </AdminStatGrid>
+
+      <AdminSection
+        title="Wholesale orders"
+        description="Agents purchasing data bundles from the DCS catalogue."
+        icon={Package}
+      >
         {wholesaleOrders.length === 0 ? (
-          <div className="card-elevated p-8 text-center text-muted">No wholesale orders yet.</div>
+          <AdminEmptyState
+            icon={Package}
+            title="No wholesale orders yet"
+            description="Orders appear when agents buy bundles from the wholesale checkout."
+          />
         ) : (
-          <div className="card-elevated overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
-                    <th className="px-4 py-3 font-medium">Reference</th>
-                    <th className="px-4 py-3 font-medium">Agent</th>
-                    <th className="px-4 py-3 font-medium">Amount</th>
-                    <th className="px-4 py-3 font-medium">Lines</th>
-                    <th className="px-4 py-3 font-medium">Source</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">When</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {wholesaleOrders.map((o) => (
-                    <tr key={o.id} className="border-b border-border/60 last:border-0">
-                      <td className="px-4 py-3 font-mono text-xs font-semibold">{o.reference}</td>
-                      <td className="px-4 py-3">{o.vendor_name}</td>
-                      <td className="px-4 py-3 num font-medium">{formatGHS(o.total_amount)}</td>
-                      <td className="px-4 py-3">{o.item_count}</td>
-                      <td className="px-4 py-3 capitalize text-muted">{o.source}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={o.status === "fulfilled" ? "success" : "warning"}>
-                          {o.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted">
-                        {formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <AdminDataTable minWidth="720px">
+            <AdminTableHead>
+              <AdminTh>Reference</AdminTh>
+              <AdminTh>Agent</AdminTh>
+              <AdminTh>Amount</AdminTh>
+              <AdminTh>Lines</AdminTh>
+              <AdminTh>Source</AdminTh>
+              <AdminTh>Status</AdminTh>
+              <AdminTh>When</AdminTh>
+            </AdminTableHead>
+            <AdminTableBody>
+              {wholesaleOrders.map((o) => (
+                <AdminTr key={o.id}>
+                  <AdminTd className="font-mono text-xs font-semibold">{o.reference}</AdminTd>
+                  <AdminTd>{o.vendor_name}</AdminTd>
+                  <AdminTd className="num font-medium">{formatGHS(o.total_amount)}</AdminTd>
+                  <AdminTd>{o.item_count}</AdminTd>
+                  <AdminTd className="capitalize text-muted">{o.source}</AdminTd>
+                  <AdminTd>
+                    <Badge variant={o.status === "fulfilled" ? "success" : "warning"}>
+                      {o.status}
+                    </Badge>
+                  </AdminTd>
+                  <AdminTd className="text-xs text-muted">
+                    {formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}
+                  </AdminTd>
+                </AdminTr>
+              ))}
+            </AdminTableBody>
+          </AdminDataTable>
         )}
-      </section>
+      </AdminSection>
 
-      <section className="space-y-4">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-muted">
-          Customer orders (agent stores)
-        </h3>
-
-      {orders.length === 0 ? (
-        <div className="card-elevated p-8 text-center text-muted">No customer orders yet.</div>
-      ) : (
-      <div className="card-elevated overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-slate-50/80 text-left text-muted">
-                <th className="px-4 py-3 font-medium">Reference</th>
-                <th className="px-4 py-3 font-medium">Vendor</th>
-                <th className="px-4 py-3 font-medium">Bundle</th>
-                <th className="px-4 py-3 font-medium">Recipient</th>
-                <th className="px-4 py-3 font-medium">Amount</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">When</th>
-              </tr>
-            </thead>
-            <tbody>
+      <AdminSection
+        title="Customer orders"
+        description="Buyers checking out on agent storefronts via Paystack."
+        icon={ShoppingBag}
+      >
+        {orders.length === 0 ? (
+          <AdminEmptyState
+            icon={ShoppingBag}
+            title="No customer orders yet"
+            description="Orders appear once a buyer completes checkout on a vendor store."
+          />
+        ) : (
+          <AdminDataTable minWidth="800px">
+            <AdminTableHead>
+              <AdminTh>Reference</AdminTh>
+              <AdminTh>Vendor</AdminTh>
+              <AdminTh>Bundle</AdminTh>
+              <AdminTh>Recipient</AdminTh>
+              <AdminTh>Amount</AdminTh>
+              <AdminTh>Status</AdminTh>
+              <AdminTh>When</AdminTh>
+            </AdminTableHead>
+            <AdminTableBody>
               {orders.map((o) => (
-                <tr key={o.id} className="border-b border-border/60 last:border-0">
-                  <td className="px-4 py-3">
+                <AdminTr key={o.id}>
+                  <AdminTd>
                     <Link
                       href={`/orders/${o.id}`}
-                      className="font-mono text-xs font-semibold text-cyan-700 hover:underline"
+                      className="font-mono text-xs font-semibold text-amber-700 hover:underline"
                     >
                       {o.reference}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3">{o.vendor_name}</td>
-                  <td className="px-4 py-3 text-muted">{o.bundle_name ?? "—"}</td>
-                  <td className="px-4 py-3">{formatPhone(o.recipient_phone)}</td>
-                  <td className="px-4 py-3 num font-medium">{formatGHS(o.amount)}</td>
-                  <td className="px-4 py-3">
+                  </AdminTd>
+                  <AdminTd>{o.vendor_name}</AdminTd>
+                  <AdminTd className="text-muted">{o.bundle_name ?? "—"}</AdminTd>
+                  <AdminTd>{formatPhone(o.recipient_phone)}</AdminTd>
+                  <AdminTd className="num font-medium">{formatGHS(o.amount)}</AdminTd>
+                  <AdminTd>
                     <Badge variant={STATUS_VARIANT[o.status]}>{o.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted">
+                  </AdminTd>
+                  <AdminTd className="text-xs text-muted">
                     {formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}
-                  </td>
-                </tr>
+                  </AdminTd>
+                </AdminTr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      )}
-      </section>
-    </div>
+            </AdminTableBody>
+          </AdminDataTable>
+        )}
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { Tag } from "lucide-react";
+import { AdminPageIntro, AdminPageRoot, AdminSection } from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { ClaimItForm } from "./claim-form";
@@ -11,12 +13,14 @@ export default async function ClaimItPage() {
   if (!vendor.setupFeePaidAt) return <SetupFeeGate />;
 
   return (
-    <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="text-xl font-bold text-foreground">ClaimIt</h2>
-      <p className="text-sm text-muted">
-        Enter a promo or reward code from DCS to credit your wallet instantly.
-      </p>
-      <ClaimItForm />
-    </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="ClaimIt"
+        description="Enter a promo or reward code from DCS to credit your wallet instantly."
+      />
+      <AdminSection title="Redeem code" description="One-time codes credit your wallet on success." icon={Tag}>
+        <ClaimItForm />
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

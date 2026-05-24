@@ -134,17 +134,17 @@ function AgentSidebarNav({
   return (
     <>
       {/* User chip */}
-      <div className="border-b border-slate-200 p-4">
+      <div className="border-b border-slate-200 p-3">
         <div className="susu-user-chip">
           <div className="avatar">{vendorName.slice(0, 2).toUpperCase()}</div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-900">{vendorName}</p>
-            <p className="truncate text-xs text-slate-500">{businessName}</p>
+            <p className="truncate text-xs font-bold text-slate-900">{vendorName}</p>
+            <p className="truncate text-[11px] text-slate-500">{businessName}</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
         {NAV_SECTIONS.map((section) => (
           <div key={section.title}>
             <p className="nav-section-label mb-2 px-3">{section.title}</p>
@@ -221,18 +221,18 @@ function AgentSidebar({
   return (
     <aside
       className={cn(
-        "susu-sidebar flex h-full w-64 flex-col border-r",
+        "susu-sidebar flex h-full w-56 flex-col border-r",
         className,
       )}
     >
       <Link
         href="/vendor/dashboard"
         onClick={onNavigate}
-        className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4"
+        className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-3.5"
       >
         <span className="flex items-center gap-2">
-          <DcsLogo size={28} className="max-w-full" />
-          <span className="text-sm font-extrabold tracking-tight text-slate-900">
+          <DcsLogo size={24} className="max-w-full" />
+          <span className="text-xs font-extrabold tracking-tight text-slate-900">
             DCS Elite
           </span>
         </span>
@@ -266,7 +266,7 @@ export function AgentShell({
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="vendor-agent-theme susu-canvas page-canvas flex min-h-screen flex-col lg:flex-row">
+    <div className="dashboard-compact vendor-agent-theme susu-canvas page-canvas flex min-h-screen flex-col lg:flex-row">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AgentSidebar
@@ -278,10 +278,10 @@ export function AgentShell({
         />
       </div>
 
-      <div className="flex flex-1 flex-col lg:pl-64">
+      <div className="flex flex-1 flex-col lg:pl-56">
         {/* Top bar */}
         <header className="susu-topbar sticky top-0 z-30 border-b">
-          <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center gap-2.5 px-3 sm:px-5 lg:px-6">
             <button
               type="button"
               className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
@@ -291,17 +291,17 @@ export function AgentShell({
               <Menu className="h-5 w-5" />
             </button>
 
-            <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
+            <h1 className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">
               {title}
             </h1>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1.5">
               <button
                 type="button"
-                className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                className="relative rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
                 aria-label="Notifications"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4 w-4" />
                 <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" />
               </button>
               <Link
@@ -316,8 +316,8 @@ export function AgentShell({
                   </span>
                 )}
               </Link>
-              <div className="susu-user-chip hidden h-10 items-center gap-2 px-2 py-1.5 sm:flex">
-                <div className="avatar !h-7 !w-7 !text-[11px]">
+              <div className="susu-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
+                <div className="avatar !h-6 !w-6 !text-[10px]">
                   {vendorName.slice(0, 2).toUpperCase()}
                 </div>
                 <span className="text-xs font-bold text-slate-900">
@@ -406,7 +406,7 @@ export function AgentShell({
               businessName={businessName}
               tier={tier}
               onNavigate={closeSidebar}
-              className="h-full w-[min(17rem,85vw)] shadow-2xl"
+              className="h-full w-[min(15rem,85vw)] shadow-2xl"
             />
           </div>
         </div>

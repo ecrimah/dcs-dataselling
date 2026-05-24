@@ -1,5 +1,17 @@
+import { Activity, CheckCircle2, Clock, Layers } from "lucide-react";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { fetchAdminOverview } from "@/lib/data/admin-queries";
+import {
+  AdminConfigError,
+  AdminEmptyState,
+  AdminList,
+  AdminListItem,
+  AdminPageIntro,
+  AdminPageRoot,
+  AdminSection,
+  AdminStatGrid,
+  AdminStatTile,
+} from "@/components/admin";
 import { Badge } from "@/components/ui/badge";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { QueueActions } from "./queue-actions";
@@ -18,9 +30,7 @@ interface QueueRow {
 
 export default async function AdminOperationsPage() {
   if (!hasSupabaseConfig()) {
-    return (
-      <div className="card-elevated p-8 text-center text-muted">Database not configured.</div>
-    );
+    return <AdminConfigError />;
   }
 
   const metrics = await fetchAdminOverview();
@@ -74,63 +84,78 @@ export default async function AdminOperationsPage() {
   const successRate = metrics?.successRate ?? 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Operations</h2>
-        <p className="mt-1 text-sm text-muted">
-          Fulfilment queue and live platform health
-        </p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Live ops"
+        description="Fulfilment queue and real-time platform health — reconcile stuck orders here."
+        meta={`${queue.length} in queue · ${successRate.toFixed(1)}% payment success`}
+      />
 
-      <div className="grid gap-3 sm:grid-cols-4">
-        <Metric label="Queue depth" value={String(queue.length)} />
-        <Metric label="Orders today" value={String(metrics?.ordersToday ?? 0)} />
-        <Metric label="Fulfilled today" value={String(metrics?.ordersFulfilledToday ?? 0)} />
-        <Metric label="Success rate" value={`${successRate}%`} />
-      </div>
+      <AdminStatGrid>
+        <AdminStatTile
+          icon={<Layers className="h-4 w-4" />}
+          tone="amber"
+          label="Queue depth"
+          value={String(queue.length)}
+        />
+        <AdminStatTile
+          icon={<Clock className="h-4 w-4" />}
+          tone="sky"
+          label="Orders today"
+          value={String(metrics?.ordersToday ?? 0)}
+        />
+        <AdminStatTile
+          icon={<CheckCircle2 className="h-4 w-4" />}
+          tone="emerald"
+          label="Fulfilled today"
+          value={String(metrics?.ordersFulfilledToday ?? 0)}
+          valueAccent="emerald"
+        />
+        <AdminStatTile
+          icon={<Activity className="h-4 w-4" />}
+          tone="gold"
+          label="Success rate"
+          value={`${successRate}%`}
+          valueAccent="gold"
+        />
+      </AdminStatGrid>
 
-      <div className="card-elevated p-5">
-        <h3 className="font-semibold">Fulfilment queue</h3>
-        <p className="mt-1 text-xs text-muted">
-          Orders awaiting vendor fulfilment or manual intervention
-        </p>
-
+      <AdminSection
+        title="Fulfilment queue"
+        description="Orders awaiting vendor fulfilment or manual intervention."
+        icon={Layers}
+      >
         {queue.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-muted">Queue is clear.</p>
+          <AdminEmptyState
+            icon={CheckCircle2}
+            title="Queue is clear"
+            description="No orders waiting for fulfilment. You're all caught up."
+            tone="success"
+          />
         ) : (
-          <ul className="mt-4 space-y-3">
+          <AdminList>
             {queue.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-slate-50/50 px-4 py-3"
-              >
-                <div>
-                  <p className="font-mono text-xs font-bold">{item.reference}</p>
-                  <p className="text-sm text-foreground">
-                    {item.vendor_name} · {formatGHS(item.amount)}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {formatPhone(item.recipient_phone)} · waiting {item.waiting_minutes}m
-                  </p>
+              <AdminListItem key={item.id}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-mono text-xs font-bold text-amber-800">{item.reference}</p>
+                    <p className="text-sm text-foreground">
+                      {item.vendor_name} · {formatGHS(item.amount)}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {formatPhone(item.recipient_phone)} · waiting {item.waiting_minutes}m
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="warning">{item.status}</Badge>
+                    <QueueActions orderId={item.id} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="warning">{item.status}</Badge>
-                  <QueueActions orderId={item.id} />
-                </div>
-              </li>
+              </AdminListItem>
             ))}
-          </ul>
+          </AdminList>
         )}
-      </div>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="card-elevated px-4 py-3">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted">{label}</p>
-      <p className="num mt-1 text-xl font-extrabold">{value}</p>
-    </div>
+      </AdminSection>
+    </AdminPageRoot>
   );
 }

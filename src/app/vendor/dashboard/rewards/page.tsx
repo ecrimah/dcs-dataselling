@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminPageIntro, AdminPageRoot } from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchVendorRewards } from "@/lib/vendor/extras";
@@ -14,16 +15,17 @@ export default async function RewardsPage() {
   const { balance, withdrawals } = await fetchVendorRewards(vendor.id);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">Rewards</h2>
-        <p className="text-sm text-muted">Earn from referrals and customer sales markup.</p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Agent rewards"
+        description="Earn from referrals and customer sales markup. Withdraw to MoMo when ready."
+        meta={`${withdrawals.length} withdrawal requests`}
+      />
       <RewardsClient
         initialBalance={balance}
         referralCode={vendor.referralCode ?? "—"}
         withdrawals={withdrawals}
       />
-    </div>
+    </AdminPageRoot>
   );
 }

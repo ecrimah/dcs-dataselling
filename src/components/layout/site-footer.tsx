@@ -6,6 +6,7 @@ import { DcsLogo } from "@/components/brand/dcs-logo";
 const FOOTER_LINKS = {
   Platform: [
     { href: "/create-store", label: "Sell on DCS" },
+    { href: "/developers", label: "Developer Docs" },
     { href: "/account", label: "My Account" },
   ],
   Company: [
@@ -16,11 +17,6 @@ const FOOTER_LINKS = {
   ],
   Support: [
     { href: "/support", label: "Help Centre" },
-    {
-      href: `https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`,
-      label: "WhatsApp",
-    },
-    { href: `mailto:${SITE.supportEmail}`, label: "Email" },
     { href: "/status", label: "System Status" },
   ],
 };

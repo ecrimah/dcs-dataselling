@@ -1,4 +1,7 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Tags } from "lucide-react";
+import { AdminPageIntro, AdminPageRoot } from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { fetchWholesaleCatalogue, fetchVendorListings } from "@/lib/data/wholesale";
@@ -20,23 +23,26 @@ export default async function CataloguePage() {
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold">Resale Pricing</h2>
-        <p className="mt-1 text-sm text-muted">
-          Choose which products to sell on your store and set your markup. Buy stock first under{" "}
-          <a href="/vendor/dashboard/wholesale" className="font-semibold text-gold-dark hover:underline">
-            Buy Data
-          </a>
-          .
-        </p>
-      </div>
+    <AdminPageRoot>
+      <AdminPageIntro
+        badge="Resale pricing"
+        description={
+          <>
+            Choose products to sell and set markup. Buy stock first under{" "}
+            <Link href="/vendor/dashboard/wholesale" className="font-semibold text-amber-800 hover:underline">
+              Buy Data
+            </Link>
+            .
+          </>
+        }
+        meta={`${listings.length} active listings`}
+      />
       <CatalogueEditor
         vendorId={vendor.id}
         wholesale={wholesale}
         listings={listings}
         commissionRate={vendor.commissionRate}
       />
-    </div>
+    </AdminPageRoot>
   );
 }

@@ -59,10 +59,8 @@ export function SmsTestForm({ disabled }: SmsTestFormProps) {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <div>
-        <label className="text-[10px] font-bold uppercase tracking-wider text-muted">
-          Recipient phone
-        </label>
+      <div className="admin-form-field">
+        <label>Recipient phone</label>
         <input
           type="tel"
           required
@@ -70,15 +68,12 @@ export function SmsTestForm({ disabled }: SmsTestFormProps) {
           onChange={(e) => setPhone(e.target.value)}
           placeholder="0241234567 or 233241234567"
           disabled={disabled || pending}
-          className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-medium text-foreground focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 disabled:opacity-50"
         />
       </div>
 
-      <div>
+      <div className="admin-form-field">
         <div className="flex items-center justify-between">
-          <label className="text-[10px] font-bold uppercase tracking-wider text-muted">
-            Message (optional)
-          </label>
+          <label>Message (optional)</label>
           <span
             className={`text-[10px] font-semibold ${
               remaining < 0 ? "text-red-600" : "text-muted"
@@ -93,14 +88,14 @@ export function SmsTestForm({ disabled }: SmsTestFormProps) {
           rows={3}
           placeholder="Leave blank to send a default DCS test message."
           disabled={disabled || pending}
-          className="mt-1 w-full resize-none rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 disabled:opacity-50"
+          className="resize-none"
         />
       </div>
 
       <button
         type="submit"
         disabled={disabled || pending || !phone.trim()}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy-900 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="susu-btn-gold flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

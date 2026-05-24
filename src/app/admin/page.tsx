@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminOverviewPage() {
   if (!hasSupabaseConfig()) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12">
+      <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="section-card text-center">
           <p className="text-sm font-semibold text-slate-900">
             Database not configured
@@ -61,26 +61,24 @@ export default async function AdminOverviewPage() {
     agentOps.pendingMtnAfa;
 
   const successRate = metrics?.successRate ?? 0;
+  const fulfillmentRate = metrics?.fulfillmentRate ?? 0;
   const paystackShare = metrics?.paystackShare ?? 100;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:px-8">
-      {/* ===================== WELCOME ===================== */}
+    <div className="space-y-4">
+      {/* ===================== WELCOME (compact — topbar already shows page title) ===================== */}
       <section className="welcome-card">
-        <div className="welcome-chip">
-          <span className="chip-badge">Super admin</span>
-          <span className="live-badge">All systems operational</span>
-        </div>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-              Welcome back, Admin 👋
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 sm:text-[15px]">
-              Your real-time view of GMV, vendor health, and the operations queue.
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="welcome-chip">
+              <span className="chip-badge">Super admin</span>
+              <span className="live-badge">All systems operational</span>
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 sm:text-[13px]">
+              GMV, vendor health, and the operations queue at a glance.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Link href="/admin/operations" className="susu-btn-gold">
               Run reconciliation
             </Link>
@@ -93,23 +91,31 @@ export default async function AdminOverviewPage() {
 
       {/* ===================== VAULT HERO (GMV w/ ring) ===================== */}
       <section className="vault-hero-card">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0 flex-1">
             <span className="vault-hero-chip">
-              <DollarSign className="h-3.5 w-3.5" />
+              <DollarSign className="h-3 w-3" />
               Platform vault
             </span>
-            <p className="vault-hero-label mt-4">Gross Merchandise Volume (30d)</p>
-            <p className="vault-hero-amount mt-2">
+            <p className="vault-hero-label mt-3">Gross Merchandise Volume (30d)</p>
+            <p className="vault-hero-amount mt-1">
               {formatGHS(metrics?.gmv30d ?? 0)}
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="vault-hero-pill-success">
-                <Zap className="h-3 w-3" />
+                <Zap className="h-2.5 w-2.5" />
                 {successRate.toFixed(1)}% payment success
               </span>
-              <div className="flex items-center gap-1.5 text-xs text-white/65">
-                <span className="font-bold uppercase tracking-[0.14em] text-white/45">
+              <div className="flex items-center gap-1 text-[11px] text-white/65">
+                <span className="font-bold uppercase tracking-[0.12em] text-white/45">
+                  Fulfilled
+                </span>
+                <span className="font-bold text-sky-300">
+                  {fulfillmentRate.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] text-white/65">
+                <span className="font-bold uppercase tracking-[0.12em] text-white/45">
                   Platform revenue
                 </span>
                 <span className="font-bold text-amber-300">
@@ -122,16 +128,17 @@ export default async function AdminOverviewPage() {
           <CircleProgress
             value={successRate}
             label={`${Math.round(successRate)}%`}
-            caption="SUCCESS"
-            size={160}
+            caption="PAID"
+            size={108}
+            stroke={9}
           />
         </div>
       </section>
 
       {/* ===================== 4 STAT TILES ===================== */}
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <StatTile
-          icon={<DollarSign className="h-5 w-5" />}
+          icon={<DollarSign className="h-4 w-4" />}
           tone="gold"
           label="GMV (30d)"
           value={formatGHS(metrics?.gmv30d ?? 0)}
@@ -139,7 +146,7 @@ export default async function AdminOverviewPage() {
           valueAccent="gold"
         />
         <StatTile
-          icon={<Trophy className="h-5 w-5" />}
+          icon={<Trophy className="h-4 w-4" />}
           tone="emerald"
           label="Platform revenue"
           value={formatGHS(metrics?.platformRevenue30d ?? 0)}
@@ -147,14 +154,14 @@ export default async function AdminOverviewPage() {
           valueAccent="emerald"
         />
         <StatTile
-          icon={<ShoppingCart className="h-5 w-5" />}
+          icon={<ShoppingCart className="h-4 w-4" />}
           tone="sky"
           label="Orders today"
           value={formatCompact(metrics?.ordersToday ?? 0)}
           hint="Last 24 hours"
         />
         <StatTile
-          icon={<Store className="h-5 w-5" />}
+          icon={<Store className="h-4 w-4" />}
           tone="violet"
           label="Active vendors"
           value={String(metrics?.activeVendors ?? 0)}
@@ -199,21 +206,21 @@ export default async function AdminOverviewPage() {
       )}
 
       {/* ===================== 3 MINI STATS ===================== */}
-      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+      <section className="grid grid-cols-3 gap-2 sm:gap-3">
         <MiniTile
-          icon={<Wallet className="h-4 w-4" />}
+          icon={<Wallet className="h-3.5 w-3.5" />}
           tone="amber"
           label="Paystack share"
           value={`${Math.round(paystackShare)}%`}
         />
         <MiniTile
-          icon={<Zap className="h-4 w-4" />}
+          icon={<Zap className="h-3.5 w-3.5" />}
           tone="emerald"
           label="Success rate"
           value={`${Math.round(successRate)}%`}
         />
         <MiniTile
-          icon={<Users className="h-4 w-4" />}
+          icon={<Users className="h-3.5 w-3.5" />}
           tone="sky"
           label="Top customers"
           value={String(topCustomers.length)}
@@ -429,12 +436,12 @@ function MiniTile({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-2.5 sm:p-3">
       <div className="flex items-center gap-2">
-        <div className={`stat-tile-icon tile-icon-${tone} !h-9 !w-9`}>{icon}</div>
+        <div className={`stat-tile-icon tile-icon-${tone} !h-7 !w-7`}>{icon}</div>
         <div>
-          <p className="stat-tile-label text-[10px]">{label}</p>
-          <p className="text-base font-extrabold leading-none text-slate-900 sm:text-lg">
+          <p className="stat-tile-label text-[9px]">{label}</p>
+          <p className="text-sm font-extrabold leading-none text-slate-900">
             {value}
           </p>
         </div>
@@ -453,15 +460,15 @@ function OpsRow({
   tone?: "default" | "muted";
 }) {
   return (
-    <li className="flex items-center justify-between px-2 py-2.5 text-sm">
+    <li className="flex items-center justify-between px-2 py-2 text-xs">
       <span className="text-slate-600">{label}</span>
       <span
         className={
           tone === "muted"
-            ? "text-base font-extrabold text-slate-400"
+            ? "text-sm font-bold text-slate-400"
             : value > 0
-              ? "text-base font-extrabold text-amber-700"
-              : "text-base font-extrabold text-emerald-700"
+              ? "text-sm font-bold text-amber-700"
+              : "text-sm font-bold text-emerald-700"
         }
       >
         {value}
@@ -482,10 +489,10 @@ function TrustCard({
   tone: "emerald" | "amber" | "sky" | "violet";
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_8px_24px_rgba(10,46,93,0.08)]">
-      <div className={`stat-tile-icon tile-icon-${tone}`}>{icon}</div>
-      <h3 className="mt-3 text-sm font-bold text-slate-900">{title}</h3>
-      <p className="mt-1 text-xs leading-relaxed text-slate-600">{body}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-[0_6px_18px_rgba(10,46,93,0.07)]">
+      <div className={`stat-tile-icon tile-icon-${tone} !h-8 !w-8`}>{icon}</div>
+      <h3 className="mt-2 text-xs font-bold text-slate-900">{title}</h3>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-slate-600">{body}</p>
     </div>
   );
 }
