@@ -2,6 +2,39 @@ import "server-only";
 import { SITE } from "@/lib/constants";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
+export function generateAdminWalletReference(kind: "credit" | "debit") {
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `DCS-ADMIN-${kind.toUpperCase()}-${date}-${rand}`;
+}
+
+/** Resolve best phone for wallet SMS (profile → MoMo → WhatsApp). */
+export async function getVendorNotifyPhone(vendorId: string): Promise<string | null> {
+  if (!hasSupabaseConfig()) return null;
+  const service = createServiceClient();
+  const { data: vendor } = await service
+    .from("vendors")
+    .select("user_id, momo_number, whatsapp_number")
+    .eq("id", vendorId)
+    .maybeSingle();
+
+  const v = vendor as {
+    user_id: string;
+    momo_number: string | null;
+    whatsapp_number: string | null;
+  } | null;
+  if (!v) return null;
+
+  const { data: profile } = await service
+    .from("profiles")
+    .select("phone")
+    .eq("id", v.user_id)
+    .maybeSingle();
+
+  const phone = (profile as { phone: string | null } | null)?.phone;
+  return phone ?? v.momo_number ?? v.whatsapp_number ?? null;
+}
+
 export function generateWalletTopupReference() {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -137,17 +170,17 @@ export async function markWalletTopupPaid(
 
   const { data: vendor } = await service
     .from("vendors")
-    .select("momo_number, whatsapp")
+    .select("momo_number, whatsapp_number")
     .eq("id", t.vendor_id)
     .maybeSingle();
 
-  const v = vendor as { momo_number: string | null; whatsapp: string | null } | null;
+  const v = vendor as { momo_number: string | null; whatsapp_number: string | null } | null;
 
   return {
     vendorId: t.vendor_id,
     amount: Number(t.amount),
     reference,
-    notifyPhone: v?.momo_number ?? v?.whatsapp ?? null,
+    notifyPhone: v?.momo_number ?? v?.whatsapp_number ?? null,
   };
 }
 
@@ -187,6 +220,7 @@ export async function debitVendorWallet(
   amount: number,
   reference: string,
   note?: string,
+  entryType: "order_debit" | "adjustment" = "order_debit",
 ): Promise<boolean> {
   const service = createServiceClient();
   await getOrCreateVendorWallet(vendorId);
@@ -215,7 +249,7 @@ export async function debitVendorWallet(
   await service.from("wallet_ledger").insert({
     vendor_id: vendorId,
     amount: -amount,
-    entry_type: "order_debit",
+    entry_type: entryType,
     reference,
     note,
     balance_after: next,

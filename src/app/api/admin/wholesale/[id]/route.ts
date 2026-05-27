@@ -1,9 +1,20 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
+import { legacyPriceSync, normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
+const priceSchema = z.object({
+  costPrice: z.number().min(0).optional(),
+  customerPrice: z.number().min(0).optional(),
+  customerProPrice: z.number().min(0).optional(),
+  agentPrice: z.number().min(0).optional(),
+  agentProPrice: z.number().min(0).optional(),
+  xpressAgentPrice: z.number().min(0).optional(),
+});
+
 const schema = z.object({
+  prices: priceSchema.optional(),
   wholesalePrice: z.number().positive().optional(),
   suggestedRetail: z.number().positive().optional(),
   minMarkup: z.number().min(0).optional(),
@@ -35,9 +46,41 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  const service = createServiceClient();
+  const { data: existing } = await service
+    .from("wholesale_bundles")
+    .select(
+      "cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail",
+    )
+    .eq("id", id)
+    .maybeSingle();
+
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (body.wholesalePrice !== undefined) updates.wholesale_price = body.wholesalePrice;
-  if (body.suggestedRetail !== undefined) updates.suggested_retail = body.suggestedRetail;
+
+  if (body.prices || body.wholesalePrice !== undefined || body.suggestedRetail !== undefined) {
+    const row = existing as Record<string, number | null> | null;
+    const merged = normalizeWholesalePrices({
+      costPrice: body.prices?.costPrice ?? row?.cost_price ?? undefined,
+      customerPrice:
+        body.prices?.customerPrice ?? body.suggestedRetail ?? row?.customer_price ?? undefined,
+      customerProPrice: body.prices?.customerProPrice ?? row?.customer_pro_price ?? undefined,
+      agentPrice: body.prices?.agentPrice ?? body.wholesalePrice ?? row?.agent_price ?? undefined,
+      agentProPrice: body.prices?.agentProPrice ?? row?.agent_pro_price ?? undefined,
+      xpressAgentPrice: body.prices?.xpressAgentPrice ?? row?.xpress_agent_price ?? undefined,
+      wholesalePrice: row?.wholesale_price ?? undefined,
+      suggestedRetail: row?.suggested_retail ?? undefined,
+    });
+    const legacy = legacyPriceSync(merged);
+    updates.cost_price = merged.costPrice;
+    updates.customer_price = merged.customerPrice;
+    updates.customer_pro_price = merged.customerProPrice;
+    updates.agent_price = merged.agentPrice;
+    updates.agent_pro_price = merged.agentProPrice;
+    updates.xpress_agent_price = merged.xpressAgentPrice;
+    updates.wholesale_price = legacy.wholesale_price;
+    updates.suggested_retail = legacy.suggested_retail;
+  }
+
   if (body.minMarkup !== undefined) updates.min_markup = body.minMarkup;
   if (body.maxMarkup !== undefined) updates.max_markup = body.maxMarkup;
   if (body.active !== undefined) updates.active = body.active;
@@ -45,7 +88,6 @@ export async function PATCH(
   if (body.name !== undefined) updates.name = body.name;
   if (body.productLine !== undefined) updates.product_line = body.productLine;
 
-  const service = createServiceClient();
   const { error } = await service.from("wholesale_bundles").update(updates).eq("id", id);
 
   if (error) {

@@ -19,7 +19,7 @@ export default async function CataloguePage() {
 
   const [wholesale, listings] = await Promise.all([
     fetchWholesaleCatalogue(),
-    fetchVendorListings(vendor.id),
+    fetchVendorListings(vendor.id, vendor.tier ?? "starter"),
   ]);
 
   return (

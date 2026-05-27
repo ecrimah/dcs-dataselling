@@ -1,10 +1,11 @@
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
 
 import { corsPreflightResponse, handleApi } from "../_lib/respond";
 
 export const dynamic = "force-dynamic";
 
-export const GET = handleApi(async () => {
+export const GET = handleApi(async ({ ctx }) => {
   const catalogue = await fetchWholesaleCatalogue(true);
   return {
     json: {
@@ -16,8 +17,8 @@ export const GET = handleApi(async () => {
         name: b.name,
         data_mb: b.dataMb,
         validity_days: b.validityDays,
-        price: b.wholesalePrice,
-        suggested_retail: b.suggestedRetail,
+        price: resolveAgentBuyPrice(b, ctx.vendorTier),
+        suggested_retail: b.customerPrice,
         product_line: b.productLine,
         popular: b.popular,
       })),

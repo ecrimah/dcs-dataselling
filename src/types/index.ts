@@ -48,7 +48,20 @@ export interface WholesaleBundle {
   name: string;
   dataMb: number;
   validityDays: number;
+  /** Supplier cost (admin). */
+  costPrice: number;
+  /** Default customer storefront price before agent markup. */
+  customerPrice: number;
+  customerProPrice: number;
+  /** Starter agent buy price. */
+  agentPrice: number;
+  /** Pro agent buy price. */
+  agentProPrice: number;
+  /** Super / Xpress agent buy price (verified tier). */
+  xpressAgentPrice: number;
+  /** @deprecated use agentPrice — kept for API compat */
   wholesalePrice: number;
+  /** @deprecated use customerPrice */
   suggestedRetail: number;
   minMarkup: number;
   maxMarkup: number | null;

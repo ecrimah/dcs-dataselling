@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
 import { debitVendorWallet, getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import {
   createWholesaleOrder,
@@ -101,7 +102,8 @@ export const POST = handleApi(async ({ ctx, body }) => {
     }
   }
 
-  const total = +(bundle.wholesalePrice * quantity).toFixed(2);
+  const unitPrice = resolveAgentBuyPrice(bundle, ctx.vendorTier);
+  const total = +(unitPrice * quantity).toFixed(2);
   const wallet = await getOrCreateVendorWallet(ctx.vendorId);
   if (wallet.balance < total) {
     return {
@@ -123,7 +125,7 @@ export const POST = handleApi(async ({ ctx, body }) => {
       {
         wholesaleBundleId: bundle.id,
         recipientPhone: phone,
-        unitPrice: bundle.wholesalePrice,
+        unitPrice,
         quantity,
       },
     ],
@@ -178,7 +180,7 @@ export const POST = handleApi(async ({ ctx, body }) => {
         },
         recipient_phone: phone,
         quantity,
-        unit_price: bundle.wholesalePrice,
+        unit_price: unitPrice,
         total,
         wallet_balance_after: updatedWallet.balance,
       },

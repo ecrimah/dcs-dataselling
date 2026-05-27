@@ -1,7 +1,12 @@
 import "server-only";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import type { NetworkId } from "@/lib/constants";
+import { normalizeWholesalePrices, resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
+import type { VendorTier } from "@/types";
 import type { WholesaleBundle } from "@/types";
+
+const WHOLESALE_SELECT =
+  "id, sku, network, name, data_mb, validity_days, cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line";
 
 interface WholesaleRow {
   id: string;
@@ -10,6 +15,12 @@ interface WholesaleRow {
   name: string;
   data_mb: number;
   validity_days: number;
+  cost_price: number | null;
+  customer_price: number | null;
+  customer_pro_price: number | null;
+  agent_price: number | null;
+  agent_pro_price: number | null;
+  xpress_agent_price: number | null;
   wholesale_price: number;
   suggested_retail: number;
   min_markup: number;
@@ -21,6 +32,17 @@ interface WholesaleRow {
 
 function rowToWholesale(row: WholesaleRow): WholesaleBundle {
   const line = row.product_line as WholesaleBundle["productLine"];
+  const prices = normalizeWholesalePrices({
+    costPrice: row.cost_price ?? undefined,
+    customerPrice: row.customer_price ?? undefined,
+    customerProPrice: row.customer_pro_price ?? undefined,
+    agentPrice: row.agent_price ?? undefined,
+    agentProPrice: row.agent_pro_price ?? undefined,
+    xpressAgentPrice: row.xpress_agent_price ?? undefined,
+    wholesalePrice: row.wholesale_price,
+    suggestedRetail: row.suggested_retail,
+  });
+
   return {
     id: row.id,
     sku: row.sku,
@@ -28,8 +50,9 @@ function rowToWholesale(row: WholesaleRow): WholesaleBundle {
     name: row.name,
     dataMb: row.data_mb,
     validityDays: row.validity_days,
-    wholesalePrice: Number(row.wholesale_price),
-    suggestedRetail: Number(row.suggested_retail),
+    ...prices,
+    wholesalePrice: prices.agentPrice,
+    suggestedRetail: prices.customerPrice,
     minMarkup: Number(row.min_markup),
     maxMarkup: row.max_markup ? Number(row.max_markup) : null,
     popular: row.popular,
@@ -42,15 +65,25 @@ export async function fetchWholesaleCatalogue(activeOnly = true): Promise<Wholes
   const supabase = createServiceClient();
   let query = supabase
     .from("wholesale_bundles")
-    .select(
-      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line",
-    )
+    .select(WHOLESALE_SELECT)
     .order("network")
     .order("data_mb");
   if (activeOnly) query = query.eq("active", true);
   const { data, error } = await query;
   if (error || !data) return [];
   return (data as WholesaleRow[]).map(rowToWholesale);
+}
+
+/** Catalogue with tier-specific buy price attached for agent checkout UI. */
+export async function fetchWholesaleCatalogueForTier(
+  tier: VendorTier,
+  activeOnly = true,
+): Promise<(WholesaleBundle & { tierBuyPrice: number })[]> {
+  const rows = await fetchWholesaleCatalogue(activeOnly);
+  return rows.map((b) => ({
+    ...b,
+    tierBuyPrice: resolveAgentBuyPrice(b, tier),
+  }));
 }
 
 export type AdminWholesaleRow = WholesaleBundle & { active: boolean };
@@ -60,9 +93,7 @@ export async function fetchAdminWholesaleCatalogue(): Promise<AdminWholesaleRow[
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("wholesale_bundles")
-    .select(
-      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line",
-    )
+    .select(WHOLESALE_SELECT)
     .order("network")
     .order("data_mb");
   if (error || !data) {
@@ -86,7 +117,7 @@ interface ListingRow {
   wholesale_bundles: WholesaleRow;
 }
 
-export async function fetchVendorListings(vendorId: string) {
+export async function fetchVendorListings(vendorId: string, tier: VendorTier = "starter") {
   if (!hasSupabaseConfig()) return [];
   const supabase = createServiceClient();
   const { data, error } = await supabase
@@ -94,10 +125,7 @@ export async function fetchVendorListings(vendorId: string) {
     .select(
       `
       id, vendor_id, wholesale_bundle_id, markup_amount, custom_name, active, sales_count,
-      wholesale_bundles (
-        id, sku, network, name, data_mb, validity_days,
-        wholesale_price, suggested_retail, min_markup, max_markup, popular, active
-      )
+      wholesale_bundles (${WHOLESALE_SELECT})
       `,
     )
     .eq("vendor_id", vendorId)
@@ -107,6 +135,7 @@ export async function fetchVendorListings(vendorId: string) {
   return (data as unknown as ListingRow[]).map((row) => {
     const wholesale = rowToWholesale(row.wholesale_bundles);
     const markup = Number(row.markup_amount);
+    const tierBuy = resolveAgentBuyPrice(wholesale, tier);
     return {
       id: row.id,
       vendorId: row.vendor_id,
@@ -116,8 +145,11 @@ export async function fetchVendorListings(vendorId: string) {
       active: row.active,
       salesCount: row.sales_count,
       wholesale,
-      finalPrice: wholesale.wholesalePrice + markup,
-      vendorEarning: markup,
+      tierBuyPrice: tierBuy,
+      finalPrice: wholesale.customerPrice + markup,
+      vendorEarning: markup + Math.max(0, wholesale.customerPrice - tierBuy),
     };
   });
 }
+
+export { resolveAgentBuyPrice };

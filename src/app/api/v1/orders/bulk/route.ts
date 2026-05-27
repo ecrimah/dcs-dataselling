@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
 import { debitVendorWallet, getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import {
   createWholesaleOrder,
@@ -83,16 +84,17 @@ export const POST = handleApi(async ({ ctx, body }) => {
       return;
     }
     const quantity = it.quantity ?? 1;
+    const unitPrice = resolveAgentBuyPrice(bundle, ctx.vendorTier);
     resolved.push({
       bundleId: bundle.id,
       sku: bundle.sku,
       name: bundle.name,
       network: bundle.network,
       dataMb: bundle.dataMb,
-      unitPrice: bundle.wholesalePrice,
+      unitPrice,
       quantity,
       phone,
-      lineTotal: +(bundle.wholesalePrice * quantity).toFixed(2),
+      lineTotal: +(unitPrice * quantity).toFixed(2),
     });
   });
 

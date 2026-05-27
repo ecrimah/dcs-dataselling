@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { dispatchWholesaleOrderToSupplier } from "@/lib/suppliers/dispatch";
+import { normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
 import type { WholesaleBundle } from "@/types";
 
 export function generateWholesaleOrderReference(): string {
@@ -222,7 +223,7 @@ export async function fetchWholesaleBundleById(id: string): Promise<WholesaleBun
   const { data } = await service
     .from("wholesale_bundles")
     .select(
-      "id, sku, network, name, data_mb, validity_days, wholesale_price, suggested_retail, min_markup, max_markup, popular, active",
+      "id, sku, network, name, data_mb, validity_days, cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line",
     )
     .eq("id", id)
     .eq("active", true)
@@ -235,14 +236,32 @@ export async function fetchWholesaleBundleById(id: string): Promise<WholesaleBun
     name: string;
     data_mb: number;
     validity_days: number;
+    cost_price: number | null;
+    customer_price: number | null;
+    customer_pro_price: number | null;
+    agent_price: number | null;
+    agent_pro_price: number | null;
+    xpress_agent_price: number | null;
     wholesale_price: number;
     suggested_retail: number;
     min_markup: number;
     max_markup: number | null;
     popular: boolean;
+    product_line?: string | null;
   } | null;
 
   if (!row) return null;
+  const prices = normalizeWholesalePrices({
+    costPrice: row.cost_price ?? undefined,
+    customerPrice: row.customer_price ?? undefined,
+    customerProPrice: row.customer_pro_price ?? undefined,
+    agentPrice: row.agent_price ?? undefined,
+    agentProPrice: row.agent_pro_price ?? undefined,
+    xpressAgentPrice: row.xpress_agent_price ?? undefined,
+    wholesalePrice: row.wholesale_price,
+    suggestedRetail: row.suggested_retail,
+  });
+  const line = row.product_line as WholesaleBundle["productLine"];
   return {
     id: row.id,
     sku: row.sku,
@@ -250,10 +269,12 @@ export async function fetchWholesaleBundleById(id: string): Promise<WholesaleBun
     name: row.name,
     dataMb: row.data_mb,
     validityDays: row.validity_days,
-    wholesalePrice: Number(row.wholesale_price),
-    suggestedRetail: Number(row.suggested_retail),
+    ...prices,
+    wholesalePrice: prices.agentPrice,
+    suggestedRetail: prices.customerPrice,
     minMarkup: Number(row.min_markup),
     maxMarkup: row.max_markup ? Number(row.max_markup) : null,
     popular: row.popular,
+    productLine: line ?? null,
   };
 }

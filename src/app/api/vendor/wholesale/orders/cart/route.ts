@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getVendorApiContext, isVendorApiError } from "@/lib/auth/vendor-api";
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
 import { debitVendorWallet, getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import {
   createWholesaleOrder,
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       orderItems.push({
         wholesaleBundleId: bundle.id,
         recipientPhone: phone,
-        unitPrice: bundle.wholesalePrice,
+        unitPrice: resolveAgentBuyPrice(bundle, ctx.tier),
         quantity: item.quantity ?? 1,
       });
     }

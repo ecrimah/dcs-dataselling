@@ -12,6 +12,8 @@ import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
  * scoped to a single vendor, and hashed at rest with SHA-256.
  */
 
+import type { VendorTier } from "@/types";
+
 export interface ApiKeyContext {
   keyId: string;
   keyPrefix: string;
@@ -19,6 +21,7 @@ export interface ApiKeyContext {
   vendorEmail: string | null;
   vendorSlug: string;
   vendorName: string;
+  vendorTier: VendorTier;
 }
 
 export type ApiKeyResult =
@@ -87,7 +90,7 @@ export async function authenticateApiKey(
     .select(
       `
       id, vendor_id, key_prefix, active, revoked_at, expires_at,
-      vendors ( id, slug, business_name, user_id, setup_fee_paid_at )
+      vendors ( id, slug, business_name, user_id, setup_fee_paid_at, tier )
     `,
     )
     .eq("key_hash", hash)
@@ -116,6 +119,7 @@ export async function authenticateApiKey(
           business_name: string;
           user_id: string;
           setup_fee_paid_at: string | null;
+          tier: VendorTier | null;
         }
       | {
           id: string;
@@ -123,6 +127,7 @@ export async function authenticateApiKey(
           business_name: string;
           user_id: string;
           setup_fee_paid_at: string | null;
+          tier: VendorTier | null;
         }[]
       | null;
   };
@@ -172,6 +177,7 @@ export async function authenticateApiKey(
       vendorEmail,
       vendorSlug: vendor.slug,
       vendorName: vendor.business_name,
+      vendorTier: vendor.tier ?? "starter",
     },
   };
 }

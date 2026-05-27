@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 import { useVendorCart } from "@/components/vendor/vendor-cart-context";
 import type { WholesaleBundle } from "@/types";
 
-type NetworkFilter = "all" | NetworkId;
-type Mode = "shop" | "bulk";
+type CatalogueBundle = WholesaleBundle & { tierBuyPrice: number };
 
 interface Props {
-  wholesale: WholesaleBundle[];
+  wholesale: CatalogueBundle[];
+  buyPriceLabel?: string;
   initialBalance: number;
   topupCallback?: string;
   initialNetwork?: NetworkFilter;
@@ -45,8 +45,16 @@ function normalizeInput(raw: string) {
   return raw.replace(/\D/g, "").slice(0, 10);
 }
 
+type NetworkFilter = "all" | NetworkId;
+type Mode = "shop" | "bulk";
+
+function buyPrice(wb: CatalogueBundle) {
+  return wb.tierBuyPrice ?? wb.agentPrice ?? wb.wholesalePrice;
+}
+
 export function WholesaleTerminal({
   wholesale,
+  buyPriceLabel = "Your price",
   initialBalance,
   topupCallback,
   initialNetwork = "all",
@@ -121,7 +129,7 @@ export function WholesaleTerminal({
     () =>
       cart.reduce((sum, line) => {
         const b = wholesale.find((w) => w.id === line.bundleId);
-        return sum + (b?.wholesalePrice ?? 0);
+        return sum + (b ? buyPrice(b) : 0);
       }, 0),
     [cart, wholesale],
   );
@@ -134,7 +142,7 @@ export function WholesaleTerminal({
     return counts;
   }, [wholesale]);
 
-  function addToCart(bundle: WholesaleBundle) {
+  function addToCart(bundle: CatalogueBundle) {
     const phone = normalizeInput(phones[bundle.id] ?? "");
     if (!phoneValid(phone)) {
       toast.error("Enter a valid 10-digit phone number");
@@ -368,7 +376,7 @@ export function WholesaleTerminal({
         {mode === "shop" && (
           <div className="space-y-3 px-4 pb-6">
             <p className="text-xs text-white/45">
-              {filtered.length} product{filtered.length === 1 ? "" : "s"} · enter customer number on each card
+              {filtered.length} product{filtered.length === 1 ? "" : "s"} · {buyPriceLabel} shown · enter customer number on each card
             </p>
             {filtered.length === 0 ? (
               <div className="rounded-xl border border-white/10 py-12 text-center text-sm text-white/50">
@@ -397,7 +405,7 @@ export function WholesaleTerminal({
                         </p>
                       </div>
                       <p className="num shrink-0 text-lg font-bold text-gold">
-                        {formatGHS(wb.wholesalePrice)}
+                        {formatGHS(buyPrice(wb))}
                       </p>
                     </div>
 
@@ -548,7 +556,7 @@ export function WholesaleTerminal({
                         <p className="text-xs text-white/45">{line.phone}</p>
                       </div>
                       <p className="num text-sm font-bold text-gold">
-                        {formatGHS(b?.wholesalePrice ?? 0)}
+                        {formatGHS(b ? buyPrice(b) : 0)}
                       </p>
                       <button
                         type="button"

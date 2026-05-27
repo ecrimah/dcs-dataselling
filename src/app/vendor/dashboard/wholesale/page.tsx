@@ -3,7 +3,8 @@ import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { WholesaleTerminal } from "@/components/vendor/wholesale-terminal";
 import { getCurrentVendor } from "@/lib/auth/session";
 import type { NetworkId } from "@/lib/constants";
-import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { fetchWholesaleCatalogueForTier } from "@/lib/data/wholesale";
+import { tierBuyPriceLabel } from "@/lib/wholesale/tier-pricing";
 import { getOrCreateVendorWallet } from "@/lib/payments/wallet";
 
 export const dynamic = "force-dynamic";
@@ -29,9 +30,10 @@ export default async function WholesaleBuyPage({
 
   const sp = await searchParams;
   const [wholesale, wallet] = await Promise.all([
-    fetchWholesaleCatalogue(),
+    fetchWholesaleCatalogueForTier(vendor.tier ?? "starter"),
     getOrCreateVendorWallet(vendor.id),
   ]);
+  const buyPriceLabel = tierBuyPriceLabel(vendor.tier ?? "starter");
 
   const networkParam = sp.network as NetworkId | undefined;
   const initialNetwork =
@@ -43,6 +45,7 @@ export default async function WholesaleBuyPage({
   return (
     <WholesaleTerminal
       wholesale={wholesale}
+      buyPriceLabel={buyPriceLabel}
       initialBalance={wallet.balance}
       topupCallback={sp.ref ? sp.ref : undefined}
       initialNetwork={initialNetwork}

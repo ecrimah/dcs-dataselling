@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getVendorApiContext, isVendorApiError } from "@/lib/auth/vendor-api";
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
+import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
 import { debitVendorWallet, getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import {
   createWholesaleOrder,
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
 
     if (!body.confirm) {
       const total = valid.reduce(
-        (s, r) => s + r.bundle!.wholesalePrice * r.quantity,
+        (s, r) => s + resolveAgentBuyPrice(r.bundle!, ctx.tier) * r.quantity,
         0,
       );
       return NextResponse.json({
@@ -46,7 +47,9 @@ export async function POST(request: Request) {
           sku: r.sku ?? r.bundle?.sku,
           bundleName: r.bundle?.name,
           quantity: r.quantity,
-          lineTotal: r.bundle ? +(r.bundle.wholesalePrice * r.quantity).toFixed(2) : 0,
+          lineTotal: r.bundle
+            ? +(resolveAgentBuyPrice(r.bundle, ctx.tier) * r.quantity).toFixed(2)
+            : 0,
           error: r.error,
         })),
       });
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
       items: valid.map((r) => ({
         wholesaleBundleId: r.bundle!.id,
         recipientPhone: r.phone,
-        unitPrice: r.bundle!.wholesalePrice,
+        unitPrice: resolveAgentBuyPrice(r.bundle!, ctx.tier),
         quantity: r.quantity,
       })),
     });

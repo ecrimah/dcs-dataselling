@@ -24,6 +24,7 @@ import { formatCompact, formatGHS } from "@/lib/format";
 import { RecalculateTiersButton } from "./recalculate-tiers-button";
 import { TierRolesEditor } from "./tier-roles-editor";
 import { VendorActions } from "./vendor-actions";
+import { VendorAgentMenu } from "./vendor-agent-menu";
 import type { VendorStatus, VendorTier } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -159,7 +160,14 @@ export default async function AdminVendorsPage() {
                 return (
                   <AdminTr key={v.id}>
                     <AdminTd>
-                      <p className="font-semibold text-foreground">{v.business_name}</p>
+                      <VendorAgentMenu
+                        vendorId={v.id}
+                        businessName={v.business_name}
+                        slug={v.slug}
+                        status={v.status}
+                        tier={v.tier ?? "starter"}
+                        tierLabels={tierSettings.tiers}
+                      />
                       <p className="text-xs text-muted">/{v.slug}</p>
                     </AdminTd>
                     <AdminTd>

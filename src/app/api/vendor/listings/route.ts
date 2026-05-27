@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
+import { normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
 
 const schema = z.object({
   wholesaleBundleId: z.string().uuid(),
@@ -41,6 +42,12 @@ export async function POST(request: Request) {
       name: string;
       data_mb: number;
       validity_days: number;
+      cost_price: number | null;
+      customer_price: number | null;
+      customer_pro_price: number | null;
+      agent_price: number | null;
+      agent_pro_price: number | null;
+      xpress_agent_price: number | null;
       wholesale_price: number;
       suggested_retail: number;
       min_markup: number;
@@ -48,6 +55,17 @@ export async function POST(request: Request) {
       popular: boolean;
     } | null;
     if (!wb) return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
+
+    const prices = normalizeWholesalePrices({
+      costPrice: wb.cost_price ?? undefined,
+      customerPrice: wb.customer_price ?? undefined,
+      customerProPrice: wb.customer_pro_price ?? undefined,
+      agentPrice: wb.agent_price ?? undefined,
+      agentProPrice: wb.agent_pro_price ?? undefined,
+      xpressAgentPrice: wb.xpress_agent_price ?? undefined,
+      wholesalePrice: wb.wholesale_price,
+      suggestedRetail: wb.suggested_retail,
+    });
 
     const { data: inserted, error } = await service
       .from("vendor_listings")
@@ -88,13 +106,14 @@ export async function POST(request: Request) {
           name: wb.name,
           dataMb: wb.data_mb,
           validityDays: wb.validity_days,
-          wholesalePrice: Number(wb.wholesale_price),
-          suggestedRetail: Number(wb.suggested_retail),
+          ...prices,
+          wholesalePrice: prices.agentPrice,
+          suggestedRetail: prices.customerPrice,
           minMarkup: Number(wb.min_markup),
           maxMarkup: wb.max_markup ? Number(wb.max_markup) : null,
           popular: wb.popular,
         },
-        finalPrice: Number(wb.wholesale_price) + Number(listing.markup_amount),
+        finalPrice: prices.customerPrice + Number(listing.markup_amount),
         vendorEarning: Number(listing.markup_amount),
       },
     });

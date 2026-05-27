@@ -51,7 +51,7 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
     setListings((ls) =>
       ls.map((l) =>
         l.id === listing.id
-          ? { ...l, markupAmount: markup, finalPrice: l.wholesale.wholesalePrice + markup }
+          ? { ...l, markupAmount: markup, finalPrice: l.wholesale.customerPrice + markup }
           : l,
       ),
     );
@@ -98,7 +98,7 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold">{formatDataAmount(wb.dataMb)}</p>
                         <p className="text-xs text-muted">
-                          Valid {wb.validityDays} days · Wholesale {formatGHS(wb.wholesalePrice)}
+                          Valid {wb.validityDays} days · Base {formatGHS(wb.customerPrice)}
                           {wb.popular && " · 🔥 Popular"}
                         </p>
                       </div>

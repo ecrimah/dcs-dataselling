@@ -13,7 +13,8 @@ import {
   AdminTh,
 } from "@/components/admin";
 import { NETWORKS } from "@/lib/constants";
-import { formatGHS, formatDataAmount } from "@/lib/format";
+import { formatDataAmount } from "@/lib/format";
+import type { WholesalePriceMatrix } from "@/lib/wholesale/tier-pricing";
 import { NetworkBadge } from "@/components/marketplace/network-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +24,29 @@ interface Props {
   bundles: AdminWholesaleRow[];
 }
 
+const EMPTY_PRICES: WholesalePriceMatrix = {
+  costPrice: 0,
+  customerPrice: 0,
+  customerProPrice: 0,
+  agentPrice: 0,
+  agentProPrice: 0,
+  xpressAgentPrice: 0,
+};
+
+function pricesFromRow(row: AdminWholesaleRow): WholesalePriceMatrix {
+  return {
+    costPrice: row.costPrice,
+    customerPrice: row.customerPrice,
+    customerProPrice: row.customerProPrice,
+    agentPrice: row.agentPrice,
+    agentProPrice: row.agentProPrice,
+    xpressAgentPrice: row.xpressAgentPrice,
+  };
+}
+
 export function WholesaleAdmin({ bundles: initial }: Props) {
   const router = useRouter();
-  const [rows, setRows] = useState(initial);
+  const [rows] = useState(initial);
   const [pending, setPending] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newBundle, setNewBundle] = useState({
@@ -33,21 +54,19 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
     name: "",
     dataMb: 1024,
     validityDays: 30,
-    wholesalePrice: 5,
-    suggestedRetail: 7,
     minMarkup: 0.5,
     productLine: "standard" as "standard" | "ishare" | "bigtime",
+    prices: { ...EMPTY_PRICES, agentPrice: 5, customerPrice: 7 },
   });
 
-  async function saveRow(row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow>) {
+  async function saveRow(row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow> & { prices?: WholesalePriceMatrix }) {
     setPending(row.id);
     try {
       const res = await fetch(`/api/admin/wholesale/${row.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          wholesalePrice: draft.wholesalePrice ?? row.wholesalePrice,
-          suggestedRetail: draft.suggestedRetail ?? row.suggestedRetail,
+          prices: draft.prices,
           minMarkup: draft.minMarkup ?? row.minMarkup,
           maxMarkup: draft.maxMarkup ?? row.maxMarkup,
           active: draft.active ?? row.active,
@@ -57,7 +76,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
-      toast.success("Wholesale bundle updated");
+      toast.success("Pricing updated");
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
@@ -72,7 +91,15 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
       const res = await fetch("/api/admin/wholesale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newBundle),
+        body: JSON.stringify({
+          network: newBundle.network,
+          name: newBundle.name,
+          dataMb: newBundle.dataMb,
+          validityDays: newBundle.validityDays,
+          minMarkup: newBundle.minMarkup,
+          productLine: newBundle.productLine,
+          prices: newBundle.prices,
+        }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
       toast.success("Bundle added to wholesale catalogue");
@@ -87,8 +114,8 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
 
   return (
     <AdminSection
-      title="Bundle catalogue"
-      description="Edit wholesale pricing inline — changes apply to agent checkout immediately."
+      title="Pricing matrix"
+      description="Set cost, customer, and agent tier prices per bundle. Each agent role sees their column at checkout."
       icon={Package}
       actions={
         <Button size="sm" variant="secondary" onClick={() => setShowAdd((s) => !s)}>
@@ -98,117 +125,101 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
       }
     >
       {showAdd && (
-        <div className="admin-list-item mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-xs font-medium text-muted">
-            Network
-            <select
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.network}
-              onChange={(e) =>
-                setNewBundle((b) => ({
-                  ...b,
-                  network: e.target.value as "mtn" | "telecel" | "at",
-                  productLine: e.target.value === "at" ? b.productLine : "standard",
-                }))
-              }
-            >
-              {NETWORKS.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Name
-            <input
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.name}
-              onChange={(e) => setNewBundle((b) => ({ ...b, name: e.target.value }))}
-              placeholder="MTN 5GB"
-            />
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Data (MB)
-            <input
-              type="number"
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.dataMb}
-              onChange={(e) =>
-                setNewBundle((b) => ({ ...b, dataMb: Number(e.target.value) }))
-              }
-            />
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Validity (days)
-            <input
-              type="number"
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.validityDays}
-              onChange={(e) =>
-                setNewBundle((b) => ({ ...b, validityDays: Number(e.target.value) }))
-              }
-            />
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Wholesale ₵
-            <input
-              type="number"
-              step="0.01"
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.wholesalePrice}
-              onChange={(e) =>
-                setNewBundle((b) => ({ ...b, wholesalePrice: Number(e.target.value) }))
-              }
-            />
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Suggested retail ₵
-            <input
-              type="number"
-              step="0.01"
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.suggestedRetail}
-              onChange={(e) =>
-                setNewBundle((b) => ({ ...b, suggestedRetail: Number(e.target.value) }))
-              }
-            />
-          </label>
-          <label className="text-xs font-medium text-muted">
-            Min markup ₵
-            <input
-              type="number"
-              step="0.01"
-              className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-              value={newBundle.minMarkup}
-              onChange={(e) =>
-                setNewBundle((b) => ({ ...b, minMarkup: Number(e.target.value) }))
-              }
-            />
-          </label>
-          {newBundle.network === "at" && (
+        <div className="admin-list-item mb-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs font-medium text-muted">
-              Product line
+              Network
               <select
                 className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
-                value={newBundle.productLine}
+                value={newBundle.network}
                 onChange={(e) =>
                   setNewBundle((b) => ({
                     ...b,
-                    productLine: e.target.value as "standard" | "ishare" | "bigtime",
+                    network: e.target.value as "mtn" | "telecel" | "at",
+                    productLine: e.target.value === "at" ? b.productLine : "standard",
                   }))
                 }
               >
-                <option value="standard">Standard</option>
-                <option value="ishare">iShare</option>
-                <option value="bigtime">BigTime</option>
+                {NETWORKS.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.name}
+                  </option>
+                ))}
               </select>
             </label>
-          )}
-          <div className="flex items-end sm:col-span-2 lg:col-span-1">
-            <Button className="w-full" onClick={addBundle} disabled={pending === "new"}>
-              {pending === "new" ? "Saving…" : "Create bundle"}
-            </Button>
+            <label className="text-xs font-medium text-muted">
+              Name
+              <input
+                className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
+                value={newBundle.name}
+                onChange={(e) => setNewBundle((b) => ({ ...b, name: e.target.value }))}
+                placeholder="MTN 5GB"
+              />
+            </label>
+            <label className="text-xs font-medium text-muted">
+              Data (MB)
+              <input
+                type="number"
+                className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
+                value={newBundle.dataMb}
+                onChange={(e) =>
+                  setNewBundle((b) => ({ ...b, dataMb: Number(e.target.value) }))
+                }
+              />
+            </label>
+            <label className="text-xs font-medium text-muted">
+              Validity (days)
+              <input
+                type="number"
+                className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
+                value={newBundle.validityDays}
+                onChange={(e) =>
+                  setNewBundle((b) => ({ ...b, validityDays: Number(e.target.value) }))
+                }
+              />
+            </label>
+          </div>
+          <PriceMatrixInputs
+            prices={newBundle.prices}
+            onChange={(prices) => setNewBundle((b) => ({ ...b, prices }))}
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="text-xs font-medium text-muted">
+              Min markup ₵
+              <input
+                type="number"
+                step="0.01"
+                className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
+                value={newBundle.minMarkup}
+                onChange={(e) =>
+                  setNewBundle((b) => ({ ...b, minMarkup: Number(e.target.value) }))
+                }
+              />
+            </label>
+            {newBundle.network === "at" && (
+              <label className="text-xs font-medium text-muted">
+                Product line
+                <select
+                  className="mt-1 flex h-9 w-full rounded-lg border border-border px-2.5 text-sm"
+                  value={newBundle.productLine}
+                  onChange={(e) =>
+                    setNewBundle((b) => ({
+                      ...b,
+                      productLine: e.target.value as "standard" | "ishare" | "bigtime",
+                    }))
+                  }
+                >
+                  <option value="standard">Standard</option>
+                  <option value="ishare">iShare</option>
+                  <option value="bigtime">BigTime</option>
+                </select>
+              </label>
+            )}
+            <div className="flex items-end">
+              <Button className="w-full" onClick={addBundle} disabled={pending === "new"}>
+                {pending === "new" ? "Saving…" : "Create bundle"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -217,16 +228,18 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
         <AdminEmptyState
           icon={Package}
           title="No wholesale bundles"
-          description="Add your first bundle to let agents purchase data at wholesale prices."
+          description="Add your first bundle to let agents purchase data at tier-specific prices."
         />
       ) : (
-        <AdminDataTable minWidth="900px">
+        <AdminDataTable minWidth="1200px">
           <AdminTableHead>
-            <AdminTh>Bundle</AdminTh>
-            <AdminTh>Wholesale</AdminTh>
-            <AdminTh>Suggested retail</AdminTh>
-            <AdminTh>Min markup</AdminTh>
-            <AdminTh>Line</AdminTh>
+            <AdminTh>Volume</AdminTh>
+            <AdminTh>Cost price</AdminTh>
+            <AdminTh>Customer</AdminTh>
+            <AdminTh>Customer Pro</AdminTh>
+            <AdminTh>Agent</AdminTh>
+            <AdminTh>Agent Pro</AdminTh>
+            <AdminTh>Xpress Agent</AdminTh>
             <AdminTh>Status</AdminTh>
             <AdminTh />
           </AdminTableHead>
@@ -246,6 +259,68 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
   );
 }
 
+function PriceMatrixInputs({
+  prices,
+  onChange,
+  compact,
+}: {
+  prices: WholesalePriceMatrix;
+  onChange: (p: WholesalePriceMatrix) => void;
+  compact?: boolean;
+}) {
+  const fields: { key: keyof WholesalePriceMatrix; label: string }[] = [
+    { key: "costPrice", label: "Cost ₵" },
+    { key: "customerPrice", label: "Customer ₵" },
+    { key: "customerProPrice", label: "Customer Pro ₵" },
+    { key: "agentPrice", label: "Agent ₵" },
+    { key: "agentProPrice", label: "Agent Pro ₵" },
+    { key: "xpressAgentPrice", label: "Xpress ₵" },
+  ];
+
+  return (
+    <div className={compact ? "flex flex-wrap gap-1" : "grid gap-2 sm:grid-cols-3 lg:grid-cols-6"}>
+      {fields.map(({ key, label }) => (
+        <label key={key} className="text-[10px] font-medium text-muted">
+          {!compact && label}
+          <input
+            type="number"
+            step="0.01"
+            title={label}
+            className={
+              compact
+                ? "num w-14 rounded-md border border-border px-1 py-0.5 text-xs"
+                : "mt-0.5 flex h-8 w-full rounded-md border border-border px-2 text-sm"
+            }
+            value={prices[key]}
+            onChange={(e) => onChange({ ...prices, [key]: Number(e.target.value) })}
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function PriceInput({
+  value,
+  onChange,
+  title,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  title: string;
+}) {
+  return (
+    <input
+      type="number"
+      step="0.01"
+      title={title}
+      className="num w-16 rounded-md border border-border px-1.5 py-1 text-xs"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    />
+  );
+}
+
 function WholesaleRowEditor({
   row,
   saving,
@@ -253,10 +328,9 @@ function WholesaleRowEditor({
 }: {
   row: AdminWholesaleRow;
   saving: boolean;
-  onSave: (row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow>) => void;
+  onSave: (row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow> & { prices?: WholesalePriceMatrix }) => void;
 }) {
-  const [wholesalePrice, setWholesalePrice] = useState(row.wholesalePrice);
-  const [suggestedRetail, setSuggestedRetail] = useState(row.suggestedRetail);
+  const [prices, setPrices] = useState(() => pricesFromRow(row));
   const [minMarkup, setMinMarkup] = useState(row.minMarkup);
   const [active, setActive] = useState(row.active);
   const [popular, setPopular] = useState(row.popular);
@@ -264,9 +338,9 @@ function WholesaleRowEditor({
     row.productLine ?? "standard",
   );
 
+  const base = pricesFromRow(row);
   const dirty =
-    wholesalePrice !== row.wholesalePrice ||
-    suggestedRetail !== row.suggestedRetail ||
+    Object.keys(base).some((k) => prices[k as keyof WholesalePriceMatrix] !== base[k as keyof WholesalePriceMatrix]) ||
     minMarkup !== row.minMarkup ||
     active !== row.active ||
     popular !== row.popular ||
@@ -282,69 +356,72 @@ function WholesaleRowEditor({
             <p className="text-xs text-muted">
               {row.name} · {row.validityDays}d · <span className="font-mono">{row.sku}</span>
             </p>
+            {row.network === "at" && (
+              <select
+                className="mt-1 rounded border border-border px-1 py-0.5 text-[10px]"
+                value={productLine}
+                onChange={(e) =>
+                  setProductLine(e.target.value as "standard" | "ishare" | "bigtime")
+                }
+              >
+                <option value="standard">Standard</option>
+                <option value="ishare">iShare</option>
+                <option value="bigtime">BigTime</option>
+              </select>
+            )}
           </div>
         </div>
       </td>
       <td className="admin-table-td">
-        <input
-          type="number"
-          step="0.01"
-          className="num w-20 rounded-md border border-border px-2 py-1 text-sm"
-          value={wholesalePrice}
-          onChange={(e) => setWholesalePrice(Number(e.target.value))}
+        <PriceInput
+          title="Cost price"
+          value={prices.costPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, costPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
-        <input
-          type="number"
-          step="0.01"
-          className="num w-20 rounded-md border border-border px-2 py-1 text-sm"
-          value={suggestedRetail}
-          onChange={(e) => setSuggestedRetail(Number(e.target.value))}
+        <PriceInput
+          title="Customer price"
+          value={prices.customerPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, customerPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
-        <input
-          type="number"
-          step="0.01"
-          className="num w-16 rounded-md border border-border px-2 py-1 text-sm"
-          value={minMarkup}
-          onChange={(e) => setMinMarkup(Number(e.target.value))}
+        <PriceInput
+          title="Customer Pro price"
+          value={prices.customerProPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, customerProPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
-        {row.network === "at" ? (
-          <select
-            className="rounded-md border border-border px-2 py-1 text-xs"
-            value={productLine}
-            onChange={(e) =>
-              setProductLine(e.target.value as "standard" | "ishare" | "bigtime")
-            }
-          >
-            <option value="standard">Standard</option>
-            <option value="ishare">iShare</option>
-            <option value="bigtime">BigTime</option>
-          </select>
-        ) : (
-          <span className="text-xs text-muted">—</span>
-        )}
+        <PriceInput
+          title="Agent price"
+          value={prices.agentPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, agentPrice: v }))}
+        />
+      </td>
+      <td className="admin-table-td">
+        <PriceInput
+          title="Agent Pro price"
+          value={prices.agentProPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, agentProPrice: v }))}
+        />
+      </td>
+      <td className="admin-table-td">
+        <PriceInput
+          title="Xpress Agent price"
+          value={prices.xpressAgentPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, xpressAgentPrice: v }))}
+        />
       </td>
       <td className="admin-table-td">
         <div className="flex flex-col gap-1">
           <label className="flex items-center gap-1.5 text-xs">
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-            />
+            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
             Active
           </label>
           <label className="flex items-center gap-1.5 text-xs">
-            <input
-              type="checkbox"
-              checked={popular}
-              onChange={(e) => setPopular(e.target.checked)}
-            />
+            <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} />
             Popular
           </label>
           {!active && <Badge variant="neutral">Hidden</Badge>}
@@ -356,8 +433,7 @@ function WholesaleRowEditor({
           disabled={!dirty || saving}
           onClick={() =>
             onSave(row, {
-              wholesalePrice,
-              suggestedRetail,
+              prices,
               minMarkup,
               active,
               popular,
@@ -368,7 +444,6 @@ function WholesaleRowEditor({
           <Save className="h-3.5 w-3.5" />
           {saving ? "…" : "Save"}
         </Button>
-        <p className="mt-1 text-[10px] text-muted">Was {formatGHS(row.wholesalePrice)}</p>
       </td>
     </tr>
   );
