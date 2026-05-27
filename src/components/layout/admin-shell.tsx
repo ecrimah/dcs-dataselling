@@ -116,7 +116,7 @@ function AdminSidebarNav({
     <>
       {/* User chip */}
       <div className="border-b border-white/6 p-3">
-        <div className="susu-user-chip">
+        <div className="admin-user-chip">
           <div className="avatar">{adminName.slice(0, 2).toUpperCase()}</div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-bold text-white">{adminName}</p>
@@ -186,7 +186,7 @@ function AdminSidebar({
   className?: string;
 }) {
   return (
-    <aside className={cn("vault-sidebar vault-chrome susu-sidebar flex h-full w-56 flex-col border-r", className)}>
+    <aside className={cn("admin-sidebar flex h-full w-56 flex-col border-r", className)}>
       <Link
         href="/admin"
         onClick={onNavigate}
@@ -227,7 +227,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
   const title = pageTitleFromPath(pathname);
 
   return (
-    <div className="dashboard-compact admin-vault-theme vault-surface flex min-h-screen">
+    <div className="dashboard-compact admin-vault-theme flex min-h-screen">
       {/* Desktop sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">
         <AdminSidebar pathname={pathname} adminName={adminName} adminRole={adminRole} />
@@ -235,7 +235,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
 
       <div className="flex flex-1 flex-col lg:pl-56">
         {/* Top bar */}
-        <header className="vault-chrome susu-topbar sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b px-3 sm:px-5 lg:px-6">
+        <header className="admin-topbar sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b px-3 sm:px-5 lg:px-6">
           <button
             type="button"
             className="rounded-lg p-2 text-white/55 hover:bg-white/5 lg:hidden"
@@ -262,7 +262,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
               <Bell className="h-4 w-4" />
               <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
             </button>
-            <div className="susu-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
+            <div className="admin-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
               <div className="avatar !h-6 !w-6 !text-[10px]">
                 {adminName.slice(0, 2).toUpperCase()}
               </div>
