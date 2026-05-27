@@ -3452,3 +3452,27 @@ body {
     0 0 0 1px rgba(212, 175, 55, 0.08);
 }
 
+/* Vendor agent dashboard — same vault shell as admin */
+.admin-vault-theme .vendor-page-content,
+.admin-vault-theme .admin-page-root {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-vault-theme .vendor-mobile-nav {
+  background: rgba(10, 24, 48, 0.96);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.admin-vault-theme .vendor-mobile-nav button,
+.admin-vault-theme .vendor-mobile-nav a {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-vault-theme .vendor-mobile-nav button:hover,
+.admin-vault-theme .vendor-mobile-nav a:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
