@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase/server";
-import { getDashboardHome } from "@/lib/auth/roles";
+import { getPostLoginRedirect } from "@/lib/auth/onboarding";
 import type { UserRole } from "@/types";
 
 export type AuthActionState = {
@@ -35,12 +35,18 @@ export async function signIn(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
-    : { data: null };
+  if (!user) {
+    return { error: "Sign-in failed after authentication." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const role = (profile?.role as UserRole | undefined) ?? "customer";
-  redirect(getDashboardHome(role));
+  redirect(await getPostLoginRedirect(user.id, role));
 }
 
 export async function signOut() {

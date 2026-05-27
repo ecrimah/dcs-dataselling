@@ -7,6 +7,11 @@ import { getCurrentVendor, getSessionUser } from "@/lib/auth/session";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { SITE } from "@/lib/constants";
 import { getVendorSetupFee } from "@/lib/data/platform-config";
+import {
+  getPaidSetupAwaitingStore,
+  reconcileUserSetupPayments,
+} from "@/lib/payments/setup-fee";
+import type { SetupPaymentResume } from "@/lib/vendor/onboarding-types";
 import { CreateStoreWizard } from "./wizard";
 
 export const metadata: Metadata = {
@@ -38,8 +43,13 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function CreateStorePage() {
+export default async function CreateStorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ resume?: string }>;
+}) {
   let signedInEmail: string | null = null;
+  let resumePayment: SetupPaymentResume | null = null;
 
   if (hasSupabaseConfig()) {
     const vendor = await getCurrentVendor();
@@ -47,7 +57,15 @@ export default async function CreateStorePage() {
 
     const user = await getSessionUser();
     signedInEmail = user?.email ?? null;
+
+    if (user) {
+      await reconcileUserSetupPayments(user.id);
+      resumePayment = await getPaidSetupAwaitingStore(user.id);
+    }
   }
+
+  const { resume } = await searchParams;
+  const resumeMode = resume === "1" && Boolean(resumePayment);
 
   const setupFeeGhs = await getVendorSetupFee();
   return (
@@ -133,6 +151,7 @@ export default async function CreateStorePage() {
           <CreateStoreWizard
             signedInEmail={signedInEmail}
             setupFeeGhs={setupFeeGhs}
+            resumePayment={resumeMode ? resumePayment : null}
           />
         </Suspense>
       </div>

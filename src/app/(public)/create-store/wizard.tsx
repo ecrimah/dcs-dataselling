@@ -11,6 +11,7 @@ import { StepBranding } from "./steps/branding";
 import { StepPayout } from "./steps/payout";
 import { StepSetupFee } from "./steps/setup-fee";
 import { StepReview } from "./steps/review";
+import type { SetupPaymentResume } from "@/lib/vendor/onboarding-types";
 
 export interface StoreFormState {
   fullName: string;
@@ -45,6 +46,7 @@ const REVIEW_STEP = 4;
 type WizardProps = {
   signedInEmail?: string | null;
   setupFeeGhs: number;
+  resumePayment?: SetupPaymentResume | null;
 };
 
 const WIZARD_STORAGE_KEY = "dcs:create-store:wizard";
@@ -77,7 +79,11 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-export function CreateStoreWizard({ signedInEmail = null, setupFeeGhs }: WizardProps) {
+export function CreateStoreWizard({
+  signedInEmail = null,
+  setupFeeGhs,
+  resumePayment = null,
+}: WizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
@@ -111,17 +117,32 @@ export function CreateStoreWizard({ signedInEmail = null, setupFeeGhs }: WizardP
 
   // Re-hydrate non-secret wizard fields on mount so a Paystack redirect
   // (which kills in-memory React state) doesn't break the setup-fee verify
-  // step.
+  // step. Also restores paid setup when the user returns via ?resume=1.
   useEffect(() => {
     const persisted = loadPersisted();
-    if (Object.keys(persisted).length === 0) return;
+    const hasPersisted = Object.keys(persisted).length > 0;
+
+    if (resumePayment) {
+      setForm((f) => ({
+        ...f,
+        ...persisted,
+        businessName: persisted.businessName || resumePayment.businessName || f.businessName,
+        slug: persisted.slug || resumePayment.slug || f.slug,
+        setupFeePaid: true,
+        setupFeeReference: resumePayment.reference,
+      }));
+      setStep(REVIEW_STEP);
+      setIsSignedIn(true);
+      if (signedInEmail) setSessionEmail(signedInEmail);
+      return;
+    }
+
+    if (!hasPersisted) return;
     setForm((f) => ({ ...f, ...persisted }));
-    // If we have a payment reference but no payment confirmation yet, restore
-    // it so the callback effect below can use it.
     if (persisted.setupFeeReference) {
       setStep(SETUP_FEE_STEP);
     }
-  }, []);
+  }, [resumePayment, signedInEmail]);
 
   // Persist a safe slice of the wizard to sessionStorage whenever it changes.
   // Passwords and account credentials are intentionally excluded.
@@ -174,8 +195,8 @@ export function CreateStoreWizard({ signedInEmail = null, setupFeeGhs }: WizardP
           setupFeePaid: true,
           setupFeeReference: data.reference ?? reference,
         }));
-        setStep(SETUP_FEE_STEP);
-        toast.success("Store setup fee paid. You can submit your application.");
+        setStep(REVIEW_STEP);
+        toast.success("Store setup fee paid. Review your details and submit.");
         router.replace("/create-store");
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Could not verify payment");

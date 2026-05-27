@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ShoppingBag, Bell, MessageCircle, Settings as SettingsIcon } from "lucide-react";
-import { CreateStoreCta } from "@/components/home/create-store-cta";
+import { ArrowRight, ShoppingBag, Bell, MessageCircle, Settings as SettingsIcon } from "lucide-react";
 import { getSessionUser } from "@/lib/auth/session";
 import { getCurrentVendor } from "@/lib/auth/session";
+import {
+  getPaidSetupAwaitingStore,
+  reconcileUserSetupPayments,
+} from "@/lib/payments/setup-fee";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
 import { StoreIcon } from "@/components/vendor/store-icon";
-import { resolveThemeBackground } from "@/lib/vendor-theme";
 import { SITE } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,12 @@ export default async function AccountPage() {
   const user = await getSessionUser();
   if (!user) redirect("/auth/login");
 
+  await reconcileUserSetupPayments(user.id);
+
   const vendor = await getCurrentVendor();
+  if (vendor) redirect("/vendor/dashboard");
+
+  const paidSetup = await getPaidSetupAwaitingStore(user.id);
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
@@ -29,27 +35,22 @@ export default async function AccountPage() {
           <p className="mt-1 text-sm text-muted">{user.email}</p>
         </header>
 
-        {!vendor && <CreateStoreCta />}
-
-        {vendor && (
+        {paidSetup ? (
           <Link
-            href="/vendor/dashboard"
-            className="card-elevated flex items-center justify-between p-4"
+            href="/create-store?resume=1"
+            className="group flex items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 transition hover:bg-amber-100"
           >
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{ background: resolveThemeBackground(vendor.themeColor) }}
-              >
-                <StoreIcon icon={vendor.emoji} size={20} className="text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-bold">{vendor.businessName}</p>
-                <p className="text-xs text-muted">Manage your store</p>
-              </div>
+            <div>
+              <p className="text-sm font-bold">Continue store setup</p>
+              <p className="mt-0.5 text-xs text-amber-900/80">
+                Your setup fee is paid for <strong>/{paidSetup.slug}</strong>. Finish your
+                application to open the agent dashboard.
+              </p>
             </div>
-            <Badge variant="success">Active</Badge>
+            <ArrowRight className="h-5 w-5 text-amber-700 transition-transform group-hover:translate-x-0.5" />
           </Link>
+        ) : (
+          <CreateStorePrompt />
         )}
 
         <ul className="space-y-2">
@@ -65,6 +66,26 @@ export default async function AccountPage() {
         </ul>
       </div>
     </div>
+  );
+}
+
+function CreateStorePrompt() {
+  return (
+    <Link
+      href="/create-store"
+      className="group flex items-center justify-between gap-3 rounded-2xl bg-navy-900 p-4 text-white transition-all hover:bg-navy-800"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+          <StoreIcon icon="store" size={20} className="text-white" />
+        </div>
+        <div>
+          <p className="text-sm font-bold">Create Store</p>
+          <p className="text-xs text-slate-400">Launch your storefront</p>
+        </div>
+      </div>
+      <ArrowRight className="h-4 w-4 text-cyan-400 transition-transform group-hover:translate-x-1" />
+    </Link>
   );
 }
 

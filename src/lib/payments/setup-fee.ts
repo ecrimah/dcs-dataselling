@@ -96,3 +96,61 @@ export async function linkSetupPaymentToVendor(paymentId: string, vendorId: stri
     })
     .eq("id", vendorId);
 }
+
+import type { SetupPaymentResume } from "@/lib/vendor/onboarding-types";
+
+export type { SetupPaymentResume };
+
+/** Latest setup payment for a user that is paid but not yet linked to a store. */
+export async function getPaidSetupAwaitingStore(userId: string): Promise<SetupPaymentResume | null> {
+  const service = createServiceClient();
+  const { data } = await service
+    .from("vendor_setup_payments")
+    .select("reference, slug, business_name, amount, paid_at")
+    .eq("user_id", userId)
+    .eq("status", "paid")
+    .is("vendor_id", null)
+    .order("paid_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+  const row = data as {
+    reference: string;
+    slug: string;
+    business_name: string | null;
+    amount: number;
+    paid_at: string | null;
+  };
+  return {
+    reference: row.reference,
+    slug: row.slug,
+    businessName: row.business_name,
+    amount: Number(row.amount),
+    paidAt: row.paid_at,
+  };
+}
+
+/**
+ * Reconcile pending setup-fee rows against Paystack. Handles the common case
+ * where a customer paid but never returned to the callback URL (or the webhook
+ * was delayed). Safe to call on login / create-store page load.
+ */
+export async function reconcileUserSetupPayments(userId: string): Promise<number> {
+  const service = createServiceClient();
+  const { data: pending } = await service
+    .from("vendor_setup_payments")
+    .select("reference")
+    .eq("user_id", userId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const rows = (pending ?? []) as { reference: string }[];
+  let reconciled = 0;
+  for (const row of rows) {
+    const ok = await verifySetupPaymentWithPaystack(row.reference);
+    if (ok) reconciled += 1;
+  }
+  return reconciled;
+}
