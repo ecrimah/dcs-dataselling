@@ -56,7 +56,7 @@ export async function PATCH(
     .from("orders")
     .select(
       `
-      id, vendor_id, status, amount, platform_fee, reference, recipient_phone,
+      id, vendor_id, status, amount, platform_fee, reference, recipient_phone, reward_credited_at,
       bundles ( name, data_mb )
     `,
     )
@@ -70,22 +70,32 @@ export async function PATCH(
   }
 
   const prev = existing as {
+    id: string;
     vendor_id: string;
     status: string;
     amount: number;
     platform_fee: number;
     reference: string;
     recipient_phone: string;
+    reward_credited_at: string | null;
     bundles: { name: string; data_mb: number } | { name: string; data_mb: number }[] | null;
   } | null;
 
   if (body.status === "fulfilled" && prev && prev.status !== "fulfilled") {
-    const tier = await getVendorTierForReward(prev.vendor_id);
-    const settings = await getAgentTierSettings();
-    const rewardRate = getTierConfigFromSettings(tier, settings).rewardRate;
-    const markupEstimate = Math.max(0, Number(prev.amount) - Number(prev.platform_fee)) * rewardRate;
-    if (markupEstimate > 0) {
-      await creditVendorReward(prev.vendor_id, +markupEstimate.toFixed(2), prev.reference);
+    // Only credit if we haven't already (handles overlap with supplier webhook).
+    if (!prev.reward_credited_at) {
+      const tier = await getVendorTierForReward(prev.vendor_id);
+      const settings = await getAgentTierSettings();
+      const rewardRate = getTierConfigFromSettings(tier, settings).rewardRate;
+      const markupEstimate =
+        Math.max(0, Number(prev.amount) - Number(prev.platform_fee)) * rewardRate;
+      if (markupEstimate > 0) {
+        await creditVendorReward(prev.vendor_id, +markupEstimate.toFixed(2), prev.reference);
+        await service
+          .from("orders")
+          .update({ reward_credited_at: new Date().toISOString() })
+          .eq("id", prev.id);
+      }
     }
 
     const bundle = Array.isArray(prev.bundles) ? prev.bundles[0] : prev.bundles;

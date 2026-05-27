@@ -5,17 +5,17 @@ import { CheckCircle2, CreditCard, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { formatGHS } from "@/lib/format";
-import { VENDOR_STORE_SETUP_FEE_GHS } from "@/lib/constants";
 import type { StoreFormState } from "../wizard";
 
 interface Props {
   form: StoreFormState;
   update: <K extends keyof StoreFormState>(k: K, v: StoreFormState[K]) => void;
+  setupFeeGhs: number;
 }
 
-export function StepSetupFee({ form, update }: Props) {
+export function StepSetupFee({ form, update, setupFeeGhs }: Props) {
   const [paying, setPaying] = useState(false);
-  const fee = VENDOR_STORE_SETUP_FEE_GHS;
+  const fee = setupFeeGhs;
 
   async function handlePay() {
     if (form.businessName.trim().length < 3 || form.slug.trim().length < 3) {

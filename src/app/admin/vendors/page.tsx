@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CheckCircle2, Clock, ShieldAlert, Store } from "lucide-react";
 import {
   AdminConfigError,
@@ -72,11 +71,6 @@ export default async function AdminVendorsPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <RecalculateTiersButton />
-            {pending.length > 0 ? (
-              <Link href="/admin/kyc" className="susu-btn-gold">
-                Review pending
-              </Link>
-            ) : null}
           </div>
         }
       />

@@ -5,6 +5,10 @@ import { smsOrderFulfilled } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
 import { logWebhookEvent, verifyWebhookSignature } from "@/lib/suppliers/skanka5";
 import { resolveSupplierItemsProcessed } from "@/lib/suppliers/dispatch";
+import { creditVendorReward } from "@/lib/vendor/extras";
+import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import { getTierConfigFromSettings } from "@/lib/vendor/tiers";
+import type { VendorTier } from "@/types";
 
 /**
  * Skanka5 webhook receiver.
@@ -112,28 +116,58 @@ export async function POST(request: Request) {
         : null,
   });
 
-  // Send delivery SMS to any matched customer storefront orders.
+  // For matched customer storefront orders that just transitioned to
+  // `fulfilled`: (a) credit the vendor's reward balance at their current tier
+  // reward rate, and (b) send the delivery SMS to the recipient.
   if (hasSupabaseConfig() && result.customerOrdersFulfilled > 0 && event.status !== "FAILED") {
     const service = createServiceClient();
     const { data: rows } = await service
       .from("orders")
       .select(
         `
-        reference, recipient_phone,
+        id, reference, recipient_phone, vendor_id, amount, platform_fee, reward_credited_at,
+        vendors ( tier ),
         bundles ( name, data_mb )
       `,
       )
       .in("supplier_order_code", orderCodes);
 
-    type Row = {
+    type FulfilledRow = {
+      id: string;
       reference: string;
       recipient_phone: string;
+      vendor_id: string;
+      amount: number | string;
+      platform_fee: number | string;
+      reward_credited_at: string | null;
+      vendors:
+        | { tier: VendorTier | null }
+        | { tier: VendorTier | null }[]
+        | null;
       bundles:
         | { name: string; data_mb: number }
         | { name: string; data_mb: number }[]
         | null;
     };
-    for (const r of (rows ?? []) as Row[]) {
+
+    const settings = await getAgentTierSettings();
+
+    for (const r of (rows ?? []) as FulfilledRow[]) {
+      // Reward credit (idempotent: only if not yet credited)
+      if (!r.reward_credited_at && r.vendor_id) {
+        const tier = (Array.isArray(r.vendors) ? r.vendors[0]?.tier : r.vendors?.tier) ?? "starter";
+        const rewardRate = getTierConfigFromSettings(tier, settings).rewardRate;
+        const markup = Math.max(0, Number(r.amount) - Number(r.platform_fee)) * rewardRate;
+        if (markup > 0) {
+          await creditVendorReward(r.vendor_id, +markup.toFixed(2), r.reference);
+          await service
+            .from("orders")
+            .update({ reward_credited_at: new Date().toISOString() })
+            .eq("id", r.id);
+        }
+      }
+
+      // Fulfilment SMS
       const bundle = Array.isArray(r.bundles) ? r.bundles[0] : r.bundles;
       const bundleLabel = bundle
         ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`

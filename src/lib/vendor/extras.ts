@@ -99,7 +99,9 @@ export async function requestRewardWithdrawal(
   momoNumber: string,
 ) {
   if (!hasSupabaseConfig()) throw new Error("Database not configured");
-  if (amount < 50) throw new Error("Minimum withdrawal is ₵50");
+  // NOTE: minimum withdrawal is enforced per-tier by the API caller
+  // (src/app/api/vendor/rewards/route.ts) using the admin-configured value.
+  if (amount <= 0) throw new Error("Enter a valid amount");
 
   const normalized = momoNumber.replace(/\D/g, "");
   if (normalized.length < 10) throw new Error("Enter a valid MoMo number");

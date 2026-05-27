@@ -1,5 +1,4 @@
 import "server-only";
-import { SITE } from "@/lib/constants";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { dispatchWholesaleOrderToSupplier } from "@/lib/suppliers/dispatch";
 import type { WholesaleBundle } from "@/types";
@@ -69,42 +68,6 @@ export async function createWholesaleOrder(params: {
   }
 
   return o;
-}
-
-export async function initializeWholesalePaystack(params: {
-  email: string;
-  orderId: string;
-  reference: string;
-  amount: number;
-}) {
-  const secret = process.env.PAYSTACK_SECRET_KEY;
-  if (!secret) return null;
-
-  const res = await fetch("https://api.paystack.co/transaction/initialize", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: params.email,
-      amount: Math.round(params.amount * 100),
-      currency: "GHS",
-      reference: params.reference,
-      metadata: {
-        type: "wholesale_order",
-        wholesale_order_id: params.orderId,
-      },
-      channels: ["mobile_money", "card"],
-      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/vendor/dashboard/orders?paid=1&ref=${params.reference}`,
-    }),
-  });
-
-  const data = await res.json();
-  if (data.status && data.data?.authorization_url) {
-    return data.data.authorization_url as string;
-  }
-  return null;
 }
 
 export async function markWholesaleOrderPaid(reference: string, paymentReference: string) {

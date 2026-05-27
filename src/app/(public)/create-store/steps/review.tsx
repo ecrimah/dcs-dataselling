@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { formatGHS } from "@/lib/format";
-import { VENDOR_STORE_SETUP_FEE_GHS } from "@/lib/constants";
 import type { StoreFormState } from "../wizard";
 
 interface Props {
   form: StoreFormState;
   update: <K extends keyof StoreFormState>(k: K, v: StoreFormState[K]) => void;
   sessionEmail?: string;
+  setupFeeGhs: number;
 }
 
-export function StepReview({ form, update, sessionEmail }: Props) {
+export function StepReview({ form, update, sessionEmail, setupFeeGhs }: Props) {
   return (
     <div className="space-y-5">
       <div>
@@ -28,7 +28,7 @@ export function StepReview({ form, update, sessionEmail }: Props) {
         <Row label="MoMo" value={`${form.momoNetwork.toUpperCase()} · ${form.momoNumber}`} />
         <Row
           label="Setup fee"
-          value={form.setupFeePaid ? `Paid ${formatGHS(VENDOR_STORE_SETUP_FEE_GHS)}` : "Not paid"}
+          value={form.setupFeePaid ? `Paid ${formatGHS(setupFeeGhs)}` : "Not paid"}
         />
       </dl>
 

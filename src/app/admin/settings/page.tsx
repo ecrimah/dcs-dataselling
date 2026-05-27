@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Cable,
   Database,
+  DollarSign,
   MessageSquare,
   Package,
   Settings,
@@ -19,18 +20,23 @@ import {
   AdminSection,
 } from "@/components/admin";
 import { SITE } from "@/lib/constants";
+import { getPlatformConfig } from "@/lib/data/platform-config";
 import { isArkeselConfigured } from "@/lib/notifications/arkesel";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
+import { PlatformConfigEditor } from "./platform-config-editor";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
   const supabaseOk = hasSupabaseConfig();
   const paystackOk = Boolean(process.env.PAYSTACK_SECRET_KEY?.startsWith("sk_"));
   const arkeselOk = isArkeselConfigured();
   const skanka5Ok = isSkanka5Configured();
   const skanka5WebhookOk = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
+  const platformConfig = supabaseOk
+    ? await getPlatformConfig()
+    : { vendorSetupFeeGhs: 50 };
 
   return (
     <AdminPageRoot>
@@ -81,6 +87,14 @@ export default function AdminSettingsPage() {
           </AdminIntegrationList>
         </AdminSection>
       </div>
+
+      <AdminSection
+        title="Vendor onboarding fees"
+        description="Control the one-time activation fee every new agent pays before their store goes live."
+        icon={DollarSign}
+      >
+        <PlatformConfigEditor initialConfig={platformConfig} />
+      </AdminSection>
 
       <AdminSection title="Quick links" description="Jump to operational admin tools." icon={Database}>
         <AdminQuickLinks>

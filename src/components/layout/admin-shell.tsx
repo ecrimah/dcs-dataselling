@@ -51,7 +51,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/orders", label: "Orders", icon: FileText, match: (p) => p.startsWith("/admin/orders") },
       { href: "/admin/transactions", label: "Transactions", icon: Activity, match: (p) => p.startsWith("/admin/transactions") },
       { href: "/admin/wholesale", label: "Checkout", icon: ShoppingCart, match: (p) => p.startsWith("/admin/wholesale") },
-      { href: "/admin/vendors", label: "Store", icon: Store, match: (p) => p.startsWith("/admin/vendors") || p.startsWith("/admin/kyc") },
+      { href: "/admin/vendors", label: "Store", icon: Store, match: (p) => p.startsWith("/admin/vendors") },
     ],
   },
   {

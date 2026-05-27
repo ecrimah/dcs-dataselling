@@ -44,13 +44,40 @@ const REVIEW_STEP = 4;
 
 type WizardProps = {
   signedInEmail?: string | null;
+  setupFeeGhs: number;
 };
+
+const WIZARD_STORAGE_KEY = "dcs:create-store:wizard";
+
+type PersistedSlice = Pick<
+  StoreFormState,
+  | "fullName"
+  | "businessName"
+  | "slug"
+  | "emoji"
+  | "themeColor"
+  | "whatsapp"
+  | "momoNumber"
+  | "momoNetwork"
+  | "referralCode"
+  | "setupFeeReference"
+>;
+
+function loadPersisted(): Partial<PersistedSlice> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(WIZARD_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Partial<PersistedSlice>) : {};
+  } catch {
+    return {};
+  }
+}
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
+export function CreateStoreWizard({ signedInEmail = null, setupFeeGhs }: WizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
@@ -81,6 +108,54 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
 
   const update = <K extends keyof StoreFormState>(k: K, v: StoreFormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
+
+  // Re-hydrate non-secret wizard fields on mount so a Paystack redirect
+  // (which kills in-memory React state) doesn't break the setup-fee verify
+  // step.
+  useEffect(() => {
+    const persisted = loadPersisted();
+    if (Object.keys(persisted).length === 0) return;
+    setForm((f) => ({ ...f, ...persisted }));
+    // If we have a payment reference but no payment confirmation yet, restore
+    // it so the callback effect below can use it.
+    if (persisted.setupFeeReference) {
+      setStep(SETUP_FEE_STEP);
+    }
+  }, []);
+
+  // Persist a safe slice of the wizard to sessionStorage whenever it changes.
+  // Passwords and account credentials are intentionally excluded.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const slice: PersistedSlice = {
+      fullName: form.fullName,
+      businessName: form.businessName,
+      slug: form.slug,
+      emoji: form.emoji,
+      themeColor: form.themeColor,
+      whatsapp: form.whatsapp,
+      momoNumber: form.momoNumber,
+      momoNetwork: form.momoNetwork,
+      referralCode: form.referralCode,
+      setupFeeReference: form.setupFeeReference,
+    };
+    try {
+      window.sessionStorage.setItem(WIZARD_STORAGE_KEY, JSON.stringify(slice));
+    } catch {
+      // sessionStorage may be unavailable (Safari private). Silent fallback.
+    }
+  }, [
+    form.fullName,
+    form.businessName,
+    form.slug,
+    form.emoji,
+    form.themeColor,
+    form.whatsapp,
+    form.momoNumber,
+    form.momoNetwork,
+    form.referralCode,
+    form.setupFeeReference,
+  ]);
 
   const verifySetupPayment = useCallback(
     async (reference: string, slug: string) => {
@@ -116,7 +191,13 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
     const ref = searchParams.get("ref");
     if (mode !== "callback" || !ref || paymentCallbackHandled.current) return;
 
-    const slug = form.slug.trim().toLowerCase();
+    // Prefer the in-memory slug, fall back to sessionStorage in case the
+    // Paystack redirect wiped React state.
+    let slug = form.slug.trim().toLowerCase();
+    if (slug.length < 3) {
+      const persisted = loadPersisted();
+      slug = (persisted.slug ?? "").trim().toLowerCase();
+    }
     if (slug.length < 3) {
       toast.error("Enter your store handle on step 1, then return from payment.");
       router.replace("/create-store");
@@ -230,6 +311,11 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
       const res = await fetch("/api/vendor/create-store", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create store");
+      try {
+        window.sessionStorage.removeItem(WIZARD_STORAGE_KEY);
+      } catch {
+        /* ignore */
+      }
       toast.success("Your store is live! Open your dashboard to add bundles.");
       router.push(`/vendor/dashboard?welcome=1`);
     } catch (e) {
@@ -320,12 +406,15 @@ export function CreateStoreWizard({ signedInEmail = null }: WizardProps) {
           )}
           {step === 1 && <StepBranding form={form} update={update} />}
           {step === 2 && <StepPayout form={form} update={update} />}
-          {step === SETUP_FEE_STEP && <StepSetupFee form={form} update={update} />}
+          {step === SETUP_FEE_STEP && (
+            <StepSetupFee form={form} update={update} setupFeeGhs={setupFeeGhs} />
+          )}
           {step === REVIEW_STEP && (
             <StepReview
               form={form}
               update={update}
               sessionEmail={sessionEmail || form.accountEmail}
+              setupFeeGhs={setupFeeGhs}
             />
           )}
 

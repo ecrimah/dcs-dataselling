@@ -94,8 +94,19 @@ export async function initializeWalletTopupPaystack(params: {
   return null;
 }
 
-export async function markWalletTopupPaid(reference: string, paymentReference: string) {
-  if (!hasSupabaseConfig()) return;
+export interface WalletTopupCompletion {
+  vendorId: string;
+  amount: number;
+  reference: string;
+  /** Best-effort vendor phone for SMS notification (momo number or whatsapp). */
+  notifyPhone: string | null;
+}
+
+export async function markWalletTopupPaid(
+  reference: string,
+  paymentReference: string,
+): Promise<WalletTopupCompletion | null> {
+  if (!hasSupabaseConfig()) return null;
   const service = createServiceClient();
 
   const { data: topup } = await service
@@ -111,7 +122,7 @@ export async function markWalletTopupPaid(reference: string, paymentReference: s
     status: string;
   } | null;
 
-  if (!t || t.status !== "pending") return;
+  if (!t || t.status !== "pending") return null;
 
   await service
     .from("wallet_topups")
@@ -123,6 +134,21 @@ export async function markWalletTopupPaid(reference: string, paymentReference: s
     .eq("id", t.id);
 
   await creditVendorWallet(t.vendor_id, Number(t.amount), "topup", reference, "Wallet top-up");
+
+  const { data: vendor } = await service
+    .from("vendors")
+    .select("momo_number, whatsapp")
+    .eq("id", t.vendor_id)
+    .maybeSingle();
+
+  const v = vendor as { momo_number: string | null; whatsapp: string | null } | null;
+
+  return {
+    vendorId: t.vendor_id,
+    amount: Number(t.amount),
+    reference,
+    notifyPhone: v?.momo_number ?? v?.whatsapp ?? null,
+  };
 }
 
 export async function creditVendorWallet(

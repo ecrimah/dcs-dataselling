@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const service = createServiceClient();
-    const amount = getVendorStoreSetupFeeGhs();
+    const amount = await getVendorStoreSetupFeeGhs();
 
     const { data: slugTaken } = await service
       .from("vendors")

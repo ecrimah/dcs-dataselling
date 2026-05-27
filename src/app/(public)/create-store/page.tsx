@@ -6,6 +6,7 @@ import { Shield, Sparkles, Zap, Clock } from "lucide-react";
 import { getCurrentVendor, getSessionUser } from "@/lib/auth/session";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { SITE } from "@/lib/constants";
+import { getVendorSetupFee } from "@/lib/data/platform-config";
 import { CreateStoreWizard } from "./wizard";
 
 export const metadata: Metadata = {
@@ -47,6 +48,8 @@ export default async function CreateStorePage() {
     const user = await getSessionUser();
     signedInEmail = user?.email ?? null;
   }
+
+  const setupFeeGhs = await getVendorSetupFee();
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Hero band */}
@@ -127,7 +130,10 @@ export default async function CreateStorePage() {
             <div className="skeleton mx-auto h-[520px] max-w-2xl rounded-2xl shadow-xl" />
           }
         >
-          <CreateStoreWizard signedInEmail={signedInEmail} />
+          <CreateStoreWizard
+            signedInEmail={signedInEmail}
+            setupFeeGhs={setupFeeGhs}
+          />
         </Suspense>
       </div>
     </div>

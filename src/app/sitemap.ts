@@ -88,12 +88,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${base}/vendor/apply`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
       url: `${base}/auth/login`,
       lastModified: now,
       changeFrequency: "yearly",

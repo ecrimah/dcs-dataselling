@@ -1,10 +1,13 @@
 import "server-only";
-import { VENDOR_STORE_SETUP_FEE_GHS } from "@/lib/constants";
+import { getVendorSetupFee } from "@/lib/data/platform-config";
 import { createServiceClient } from "@/lib/supabase/server";
 
-export function getVendorStoreSetupFeeGhs() {
-  const fee = VENDOR_STORE_SETUP_FEE_GHS;
-  return Number.isFinite(fee) && fee > 0 ? fee : 50;
+/**
+ * Read the current vendor setup fee from `platform_settings` (admin-controlled).
+ * Falls back to env / hard default if the row is missing.
+ */
+export async function getVendorStoreSetupFeeGhs(): Promise<number> {
+  return getVendorSetupFee();
 }
 
 export function generateSetupFeeReference() {

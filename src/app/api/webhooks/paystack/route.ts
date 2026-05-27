@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { markSetupPaymentPaid } from "@/lib/payments/setup-fee";
 import { markWalletTopupPaid } from "@/lib/payments/wallet";
 import { markWholesaleOrderPaid } from "@/lib/payments/wholesale-order";
-import { smsOrderPaymentReceived } from "@/lib/notifications/sms";
+import { smsOrderPaymentReceived, smsWalletTopup } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
 import { dispatchCustomerOrderToSupplier } from "@/lib/suppliers/dispatch";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -51,7 +51,15 @@ export async function POST(request: Request) {
     }
 
     if (meta.type === "wallet_topup") {
-      await markWalletTopupPaid(event.data.reference, event.data.reference);
+      const topup = await markWalletTopupPaid(event.data.reference, event.data.reference);
+      if (topup && topup.notifyPhone) {
+        void smsWalletTopup({
+          phone: topup.notifyPhone,
+          amount: topup.amount,
+          reference: topup.reference,
+          context: { vendor_id: topup.vendorId },
+        });
+      }
       return NextResponse.json({ received: true });
     }
 
