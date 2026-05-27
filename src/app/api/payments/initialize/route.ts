@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { SITE } from "@/lib/constants";
+import { getMomoDirectConfig } from "@/lib/data/platform-config";
+import { generateMomoOrderReference } from "@/lib/payments/momo-direct";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const schema = z.object({
   bundleId: z.string().uuid(),
   recipientPhone: z.string().min(10).max(20),
-  provider: z.literal("paystack").default("paystack"),
+  provider: z.enum(["paystack", "momo_direct"]).default("paystack"),
 });
 
 export async function POST(request: Request) {
@@ -47,10 +49,17 @@ export async function POST(request: Request) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const reference = `DCS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random()
-      .toString(36)
-      .slice(2, 8)
-      .toUpperCase()}`;
+    // MoMo-direct gets a short, easy-to-type reference. Paystack keeps the
+    // existing dated format that Paystack expects.
+    const reference =
+      body.provider === "momo_direct"
+        ? generateMomoOrderReference()
+        : `DCS-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random()
+            .toString(36)
+            .slice(2, 8)
+            .toUpperCase()}`;
+
+    const initialStatus = body.provider === "momo_direct" ? "awaiting_momo" : "pending";
 
     const { data: order, error: orderErr } = await service
       .from("orders")
@@ -63,7 +72,7 @@ export async function POST(request: Request) {
         amount: bundle.price,
         platform_fee: platformFee,
         vendor_payout: vendorPayout,
-        status: "pending",
+        status: initialStatus,
         payment_provider: body.provider,
       })
       .select("id, reference")
@@ -72,6 +81,26 @@ export async function POST(request: Request) {
     if (orderErr || !order) {
       console.error("[order_insert]", orderErr);
       return NextResponse.json({ error: "Could not create order" }, { status: 500 });
+    }
+
+    // MoMo-direct: no Paystack call, return merchant numbers + reference so the
+    // checkout page can show the "Send GHS X to 02XXXXXXXX" instructions.
+    if (body.provider === "momo_direct") {
+      const momo = await getMomoDirectConfig();
+      if (!momo.enabled) {
+        return NextResponse.json(
+          { error: "MoMo direct is currently disabled by the admin." },
+          { status: 503 },
+        );
+      }
+      return NextResponse.json({
+        provider: "momo_direct",
+        orderId: order.id,
+        reference: order.reference,
+        amount: Number(bundle.price),
+        merchantNumbers: momo.merchantNumbers,
+        merchantName: momo.merchantName,
+      });
     }
 
     if (body.provider === "paystack" && process.env.PAYSTACK_SECRET_KEY) {

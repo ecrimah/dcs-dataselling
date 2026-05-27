@@ -2,10 +2,23 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { getPlatformConfig, savePlatformConfig } from "@/lib/data/platform-config";
+import { normalizePlatformConfig } from "@/lib/platform/config-types";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
+
+const momoDirectSchema = z.object({
+  enabled: z.boolean(),
+  merchantNumbers: z.object({
+    mtn: z.string().max(20),
+    telecel: z.string().max(20),
+    at: z.string().max(20),
+  }),
+  merchantName: z.string().max(80),
+  smsForwarderSecret: z.string().max(200),
+});
 
 const schema = z.object({
   vendorSetupFeeGhs: z.number().min(1).max(100000),
+  momoDirect: momoDirectSchema.optional(),
 });
 
 export async function GET() {
@@ -39,7 +52,12 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid settings" }, { status: 400 });
   }
 
-  await savePlatformConfig(body);
+  // Merge with current settings so partial updates from older UIs don't wipe
+  // newer fields (e.g. saving just vendorSetupFeeGhs preserves momoDirect).
+  const current = await getPlatformConfig();
+  const merged = normalizePlatformConfig({ ...current, ...body });
+
+  await savePlatformConfig(merged);
   const config = await getPlatformConfig();
   return NextResponse.json({ ok: true, config });
 }

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Lock } from "lucide-react";
 import { fetchBundleById } from "@/lib/data/queries";
+import { getMomoDirectConfig } from "@/lib/data/platform-config";
 import { CheckoutForm } from "./checkout-form";
 
 export const metadata: Metadata = {
@@ -18,7 +19,18 @@ export default async function CheckoutPage({
   searchParams: Promise<{ bundle?: string }>;
 }) {
   const { bundle: bundleId } = await searchParams;
-  const bundle = bundleId ? await fetchBundleById(bundleId) : null;
+  const [bundle, momo] = await Promise.all([
+    bundleId ? fetchBundleById(bundleId) : Promise.resolve(null),
+    getMomoDirectConfig(),
+  ]);
+
+  // Only offer MoMo direct in the UI if admin enabled it AND at least one
+  // merchant number is set for the current bundle's network.
+  const momoDirectEnabled =
+    momo.enabled &&
+    Boolean(
+      bundle && momo.merchantNumbers[bundle.network as keyof typeof momo.merchantNumbers],
+    );
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -66,7 +78,11 @@ export default async function CheckoutPage({
             </div>
           }
         >
-          <CheckoutForm bundle={bundle} />
+          <CheckoutForm
+            bundle={bundle}
+            momoDirectEnabled={momoDirectEnabled}
+            momoMerchantName={momo.merchantName}
+          />
         </Suspense>
       </div>
     </div>

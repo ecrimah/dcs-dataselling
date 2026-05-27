@@ -51,3 +51,8 @@ export async function getVendorSetupFee(): Promise<number> {
   const config = await getPlatformConfig();
   return config.vendorSetupFeeGhs;
 }
+
+export async function getMomoDirectConfig() {
+  const config = await getPlatformConfig();
+  return config.momoDirect;
+}

@@ -21,6 +21,7 @@ import {
 } from "@/components/admin";
 import { SITE } from "@/lib/constants";
 import { getPlatformConfig } from "@/lib/data/platform-config";
+import { DEFAULT_PLATFORM_CONFIG } from "@/lib/platform/config-types";
 import { isArkeselConfigured } from "@/lib/notifications/arkesel";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
@@ -36,7 +37,7 @@ export default async function AdminSettingsPage() {
   const skanka5WebhookOk = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
   const platformConfig = supabaseOk
     ? await getPlatformConfig()
-    : { vendorSetupFeeGhs: 50 };
+    : DEFAULT_PLATFORM_CONFIG;
 
   return (
     <AdminPageRoot>
