@@ -57,7 +57,7 @@ export interface WholesaleBundle {
   agentPrice: number;
   /** Pro agent buy price. */
   agentProPrice: number;
-  /** Super / Xpress agent buy price (verified tier). */
+  /** Super Agent buy price (verified tier). */
   xpressAgentPrice: number;
   /** @deprecated use agentPrice — kept for API compat */
   wholesalePrice: number;

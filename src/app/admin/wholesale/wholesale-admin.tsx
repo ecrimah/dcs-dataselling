@@ -56,7 +56,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
     validityDays: 30,
     minMarkup: 0.5,
     productLine: "standard" as "standard" | "ishare" | "bigtime",
-    prices: { ...EMPTY_PRICES, agentPrice: 5, customerPrice: 7 },
+    prices: { ...EMPTY_PRICES, costPrice: 4, agentPrice: 5, xpressAgentPrice: 4.8, agentProPrice: 4.6 },
   });
 
   async function saveRow(row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow> & { prices?: WholesalePriceMatrix }) {
@@ -115,7 +115,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
   return (
     <AdminSection
       title="Pricing matrix"
-      description="Set cost, customer, and agent tier prices per bundle. Each agent role sees their column at checkout."
+      description="Set the cost and the buy price for each agent role per bundle. Agents see their role's price at checkout."
       icon={Package}
       actions={
         <Button size="sm" variant="secondary" onClick={() => setShowAdd((s) => !s)}>
@@ -231,15 +231,13 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
           description="Add your first bundle to let agents purchase data at tier-specific prices."
         />
       ) : (
-        <AdminDataTable minWidth="1200px">
+        <AdminDataTable minWidth="900px">
           <AdminTableHead>
             <AdminTh>Volume</AdminTh>
             <AdminTh>Cost price</AdminTh>
-            <AdminTh>Customer</AdminTh>
-            <AdminTh>Customer Pro</AdminTh>
             <AdminTh>Agent</AdminTh>
-            <AdminTh>Agent Pro</AdminTh>
-            <AdminTh>Xpress Agent</AdminTh>
+            <AdminTh>Super Agent</AdminTh>
+            <AdminTh>Pro Agent</AdminTh>
             <AdminTh>Status</AdminTh>
             <AdminTh />
           </AdminTableHead>
@@ -270,15 +268,13 @@ function PriceMatrixInputs({
 }) {
   const fields: { key: keyof WholesalePriceMatrix; label: string }[] = [
     { key: "costPrice", label: "Cost ₵" },
-    { key: "customerPrice", label: "Customer ₵" },
-    { key: "customerProPrice", label: "Customer Pro ₵" },
     { key: "agentPrice", label: "Agent ₵" },
-    { key: "agentProPrice", label: "Agent Pro ₵" },
-    { key: "xpressAgentPrice", label: "Xpress ₵" },
+    { key: "xpressAgentPrice", label: "Super Agent ₵" },
+    { key: "agentProPrice", label: "Pro Agent ₵" },
   ];
 
   return (
-    <div className={compact ? "flex flex-wrap gap-1" : "grid gap-2 sm:grid-cols-3 lg:grid-cols-6"}>
+    <div className={compact ? "flex flex-wrap gap-1" : "grid gap-2 sm:grid-cols-2 lg:grid-cols-4"}>
       {fields.map(({ key, label }) => (
         <label key={key} className="text-[10px] font-medium text-muted">
           {!compact && label}
@@ -381,20 +377,6 @@ function WholesaleRowEditor({
       </td>
       <td className="admin-table-td">
         <PriceInput
-          title="Customer price"
-          value={prices.customerPrice}
-          onChange={(v) => setPrices((p) => ({ ...p, customerPrice: v }))}
-        />
-      </td>
-      <td className="admin-table-td">
-        <PriceInput
-          title="Customer Pro price"
-          value={prices.customerProPrice}
-          onChange={(v) => setPrices((p) => ({ ...p, customerProPrice: v }))}
-        />
-      </td>
-      <td className="admin-table-td">
-        <PriceInput
           title="Agent price"
           value={prices.agentPrice}
           onChange={(v) => setPrices((p) => ({ ...p, agentPrice: v }))}
@@ -402,16 +384,16 @@ function WholesaleRowEditor({
       </td>
       <td className="admin-table-td">
         <PriceInput
-          title="Agent Pro price"
-          value={prices.agentProPrice}
-          onChange={(v) => setPrices((p) => ({ ...p, agentProPrice: v }))}
+          title="Super Agent price"
+          value={prices.xpressAgentPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, xpressAgentPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
         <PriceInput
-          title="Xpress Agent price"
-          value={prices.xpressAgentPrice}
-          onChange={(v) => setPrices((p) => ({ ...p, xpressAgentPrice: v }))}
+          title="Pro Agent price"
+          value={prices.agentProPrice}
+          onChange={(v) => setPrices((p) => ({ ...p, agentProPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
