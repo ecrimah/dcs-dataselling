@@ -17,7 +17,6 @@ import {
   Shield,
   User,
   Menu,
-  Bell,
   ShieldCheck,
   AlertTriangle,
   BarChart3,
@@ -30,6 +29,7 @@ import {
 import { useEffect, useState } from "react";
 import { signOut } from "@/app/auth/actions";
 import { DcsLogo } from "@/components/brand/dcs-logo";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -256,14 +256,7 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Open · {time}
             </span>
-            <button
-              type="button"
-              className="relative rounded-lg p-1.5 text-white/55 hover:bg-white/5"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
-            </button>
+            <NotificationBell apiUrl="/api/admin/notifications" variant="dark" />
             <div className="admin-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
               <div className="avatar !h-6 !w-6 !text-[10px]">
                 {adminName.slice(0, 2).toUpperCase()}

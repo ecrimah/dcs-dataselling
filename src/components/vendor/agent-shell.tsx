@@ -19,13 +19,13 @@ import {
   Shield,
   User,
   Menu,
-  Bell,
   ChevronLeft,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
 import { DcsLogo } from "@/components/brand/dcs-logo";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { AgentFabStack } from "@/components/vendor/agent-fab-stack";
 import { useVendorCart } from "@/components/vendor/vendor-cart-context";
 import { cn } from "@/lib/utils";
@@ -313,14 +313,7 @@ export function AgentShell({
             </h1>
 
             <div className="ml-auto flex items-center gap-1.5">
-              <button
-                type="button"
-                className="relative rounded-lg p-1.5 text-white/55 hover:bg-white/5"
-                aria-label="Notifications"
-              >
-                <Bell className="h-4 w-4" />
-                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-rose-400" />
-              </button>
+              <NotificationBell apiUrl="/api/vendor/notifications" variant="dark" />
               <Link
                 href="/vendor/dashboard/wholesale?cart=1"
                 className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-navy-950 shadow-md shadow-amber-500/25 lg:hidden"

@@ -3,18 +3,42 @@ import { z } from "zod";
 import { getVendorApiContext, isVendorApiError } from "@/lib/auth/vendor-api";
 import { fetchWholesaleCatalogue } from "@/lib/data/wholesale";
 import { resolveAgentBuyPrice } from "@/lib/wholesale/tier-pricing";
+import {
+  parseBulkOrders,
+  validBulkRows,
+  type BulkNetworkKey,
+} from "@/lib/wholesale/bulk-parse";
 import { debitVendorWallet, getOrCreateVendorWallet } from "@/lib/payments/wallet";
 import {
   createWholesaleOrder,
   markWholesaleOrderPaid,
 } from "@/lib/payments/wholesale-order";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
-import { parseBulkOrderCsv, validBulkRows } from "@/lib/wholesale/bulk-parse";
 
 const bulkSchema = z.object({
-  csv: z.string().min(1),
+  networkKey: z.enum(["mtn", "telecel", "at-ishare", "at-bigtime"]).optional(),
+  orders: z.string().min(1).optional(),
+  csv: z.string().min(1).optional(),
   confirm: z.boolean().optional(),
 });
+
+function mapPreviewRow(
+  r: ReturnType<typeof parseBulkOrders>[number],
+  tier: Parameters<typeof resolveAgentBuyPrice>[1],
+) {
+  const unit = r.bundle ? resolveAgentBuyPrice(r.bundle, tier) : 0;
+  return {
+    row: r.row,
+    phone: r.phone,
+    sku: r.sku ?? r.bundle?.sku,
+    bundleName: r.bundle?.name,
+    sizeLabel: r.sizeLabel,
+    dataMb: r.bundle?.dataMb,
+    quantity: r.quantity,
+    lineTotal: r.bundle ? +(unit * r.quantity).toFixed(2) : 0,
+    error: r.error,
+  };
+}
 
 export async function POST(request: Request) {
   if (!hasSupabaseConfig()) {
@@ -26,8 +50,19 @@ export async function POST(request: Request) {
 
   try {
     const body = bulkSchema.parse(await request.json());
+    const text = (body.orders ?? body.csv ?? "").trim();
+    if (!text) {
+      return NextResponse.json({ error: "No orders provided" }, { status: 400 });
+    }
+
     const catalogue = await fetchWholesaleCatalogue();
-    const parsed = parseBulkOrderCsv(body.csv, catalogue);
+    const networkKey = body.networkKey as BulkNetworkKey | undefined;
+
+    if (!networkKey && !body.csv) {
+      return NextResponse.json({ error: "Select a network for bulk orders" }, { status: 400 });
+    }
+
+    const parsed = parseBulkOrders(text, catalogue, networkKey);
     const valid = validBulkRows(parsed);
     const invalid = parsed.filter((r) => r.error);
 
@@ -41,17 +76,7 @@ export async function POST(request: Request) {
         validCount: valid.length,
         invalidCount: invalid.length,
         totalAmount: +total.toFixed(2),
-        rows: parsed.map((r) => ({
-          row: r.row,
-          phone: r.phone,
-          sku: r.sku ?? r.bundle?.sku,
-          bundleName: r.bundle?.name,
-          quantity: r.quantity,
-          lineTotal: r.bundle
-            ? +(resolveAgentBuyPrice(r.bundle, ctx.tier) * r.quantity).toFixed(2)
-            : 0,
-          error: r.error,
-        })),
+        rows: parsed.map((r) => mapPreviewRow(r, ctx.tier)),
       });
     }
 

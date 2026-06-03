@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  FileSpreadsheet,
+  ClipboardList,
   Loader2,
   Phone,
   Plus,
   ShoppingCart,
-  Upload,
   Wallet,
   X,
 } from "lucide-react";
+import { BulkOrdersPanel } from "@/components/vendor/bulk-orders-panel";
 import { toast } from "sonner";
 import type { NetworkId } from "@/lib/constants";
 import { formatDataAmount, formatGHS } from "@/lib/format";
@@ -73,24 +73,6 @@ export function WholesaleTerminal({
   const [topupOpen, setTopupOpen] = useState(openTopupOnMount);
   const [topupAmount, setTopupAmount] = useState("100");
   const [loading, setLoading] = useState(false);
-
-  const [csv, setCsv] = useState(
-    "phone,sku\n0241234567,MTN-1024MB-30D\n0559876543,MTN-2048MB-30D",
-  );
-  const [preview, setPreview] = useState<{
-    validCount: number;
-    invalidCount: number;
-    totalAmount: number;
-    rows: {
-      row: number;
-      phone: string;
-      sku?: string;
-      bundleName?: string;
-      quantity: number;
-      lineTotal: number;
-      error?: string;
-    }[];
-  } | null>(null);
 
   const refreshBalance = useCallback(async () => {
     try {
@@ -220,61 +202,6 @@ export function WholesaleTerminal({
     }
   }
 
-  async function previewBulk() {
-    setLoading(true);
-    setPreview(null);
-    try {
-      const res = await fetch("/api/vendor/wholesale/orders/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csv, confirm: false }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Preview failed");
-      setPreview(data);
-      if (data.validCount === 0) toast.error("No valid rows");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Preview failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function confirmBulk() {
-    if (!preview || preview.validCount === 0) return;
-    if (balance < preview.totalAmount) {
-      toast.error("Insufficient balance — top up first");
-      setTopupOpen(true);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/vendor/wholesale/orders/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csv, confirm: true }),
-      });
-      const data = await res.json();
-      if (res.status === 402) {
-        toast.error("Insufficient wallet balance");
-        setTopupOpen(true);
-        return;
-      }
-      if (!res.ok) throw new Error(data.error ?? "Order failed");
-      if (data.success) {
-        setBalance(Number(data.balance ?? balance - preview.totalAmount));
-        setPreview(null);
-        toast.success(`Bulk order placed · ${data.reference}`);
-        return;
-      }
-      toast.error(data.error ?? "Order failed");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Order failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const networkPills: { id: NetworkFilter; label: string }[] = [
     { id: "all", label: "All" },
     { id: "mtn", label: "MTN" },
@@ -330,7 +257,7 @@ export function WholesaleTerminal({
             {(
               [
                 { id: "shop" as const, label: "Products", icon: ShoppingCart },
-                { id: "bulk" as const, label: "Bulk CSV", icon: FileSpreadsheet },
+                { id: "bulk" as const, label: "Bulk orders", icon: ClipboardList },
               ] as const
             ).map((m) => (
               <button
@@ -439,84 +366,12 @@ export function WholesaleTerminal({
           </div>
         )}
 
-        {/* Bulk */}
         {mode === "bulk" && (
-          <div className="grid gap-4 px-4 pb-6 lg:grid-cols-2">
-            <div className="space-y-3 rounded-xl border border-white/10 bg-navy-900/80 p-4">
-              <div className="flex items-center gap-2">
-                <Upload className="h-4 w-4 text-gold" />
-                <h3 className="text-sm font-bold">CSV / Excel export</h3>
-              </div>
-              <p className="text-[11px] leading-relaxed text-white/45">
-                Columns: <code className="text-gold/80">phone,sku</code> or{" "}
-                <code className="text-gold/80">phone,network,data_mb,validity_days</code>
-              </p>
-              <textarea
-                value={csv}
-                onChange={(e) => {
-                  setCsv(e.target.value);
-                  setPreview(null);
-                }}
-                rows={8}
-                className="w-full rounded-lg border border-white/10 bg-navy-950/60 p-3 font-mono text-xs text-white focus:border-gold/40 focus:outline-none"
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-                  onClick={previewBulk}
-                  disabled={loading}
-                >
-                  Preview
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-gold text-navy-950"
-                  onClick={confirmBulk}
-                  disabled={loading || !preview || preview.validCount === 0}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Place bulk order"}
-                </Button>
-              </div>
-              <p className="text-[10px] text-white/35">Paid from wallet · {formatGHS(balance)} available</p>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-navy-900/80 p-4">
-              <h3 className="text-sm font-bold">Preview</h3>
-              {!preview ? (
-                <p className="mt-3 text-xs text-white/45">Validate rows before placing order.</p>
-              ) : (
-                <>
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                    <span className="font-semibold text-emerald-400">{preview.validCount} valid</span>
-                    {preview.invalidCount > 0 && (
-                      <span className="font-semibold text-red-400">{preview.invalidCount} errors</span>
-                    )}
-                    <span className="ml-auto font-bold text-gold">{formatGHS(preview.totalAmount)}</span>
-                  </div>
-                  <ul className="mt-3 max-h-64 space-y-1.5 overflow-y-auto text-[11px]">
-                    {preview.rows.map((r) => (
-                      <li
-                        key={r.row}
-                        className={cn(
-                          "rounded-lg border px-2.5 py-1.5",
-                          r.error ? "border-red-500/30 bg-red-500/10" : "border-white/8 bg-white/5",
-                        )}
-                      >
-                        #{r.row} {r.phone} · {r.sku ?? "—"}{" "}
-                        {r.error ? (
-                          <span className="text-red-400">— {r.error}</span>
-                        ) : (
-                          <span className="text-white/45">— {formatGHS(r.lineTotal)}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
+          <BulkOrdersPanel
+            balance={balance}
+            onBalanceChange={setBalance}
+            onNeedTopup={() => setTopupOpen(true)}
+          />
         )}
       </div>
 
