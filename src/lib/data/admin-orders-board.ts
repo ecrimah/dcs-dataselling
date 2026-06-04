@@ -10,6 +10,8 @@ export interface AdminOrderBoardRow {
   kind: AdminOrderLineKind;
   orderCode: string;
   packageName: string;
+  network: string;
+  dataMb: number;
   price: number;
   beneficiary: string;
   orderReference: string;
@@ -165,6 +167,8 @@ export async function fetchAdminOrderBoardRows(
         kind: "wholesale_item",
         orderCode,
         packageName: bundle.name,
+        network: bundle.network,
+        dataMb: bundle.data_mb,
         price: Number(row.line_total ?? row.unit_price),
         beneficiary: row.recipient_phone,
         orderReference: order.reference,
@@ -253,6 +257,8 @@ export async function fetchAdminOrderBoardRows(
         kind: "customer",
         orderCode: row.supplier_order_code ?? row.reference,
         packageName: bundle?.name ?? "Bundle",
+        network: bundle?.network ?? "",
+        dataMb: bundle?.data_mb ?? 0,
         price: Number(row.amount),
         beneficiary: row.recipient_phone,
         orderReference: row.reference,

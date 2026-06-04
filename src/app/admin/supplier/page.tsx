@@ -22,6 +22,7 @@ import {
 } from "@/components/admin";
 import { requireRole } from "@/lib/auth/session";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
+import { isSuccessBizHubConfigured } from "@/lib/suppliers/successbizhub";
 import { getNetworkSupplierMatrix } from "@/lib/suppliers/registry";
 import {
   fetchSupplierLogs,
@@ -48,8 +49,16 @@ export default async function SupplierConsolePage() {
   ]);
 
   const configured = isSkanka5Configured();
+  const sbhConfigured = isSuccessBizHubConfigured();
   const webhookConfigured = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
   const unsignedMode = process.env.SKANKA5_ALLOW_UNSIGNED_WEBHOOKS === "1";
+
+  const sbhEnvChecks: Array<{ name: string; present: boolean; required: boolean }> = [
+    { name: "SUCCESSBIZHUB_API_KEY", present: sbhConfigured, required: true },
+    { name: "SUCCESSBIZHUB_OFFER_SLUG_MTN", present: Boolean(process.env.SUCCESSBIZHUB_OFFER_SLUG_MTN), required: false },
+    { name: "SUCCESSBIZHUB_OFFER_SLUG_TELECEL", present: Boolean(process.env.SUCCESSBIZHUB_OFFER_SLUG_TELECEL), required: false },
+    { name: "SUCCESSBIZHUB_OFFER_SLUG_AT", present: Boolean(process.env.SUCCESSBIZHUB_OFFER_SLUG_AT), required: false },
+  ];
 
   const matrix = getNetworkSupplierMatrix();
   const automatedNetworks = matrix.filter((m) => !m.manual).length;
@@ -148,6 +157,35 @@ export default async function SupplierConsolePage() {
         </AdminAlert>
       </AdminSection>
 
+      <AdminSection
+        title="Success Biz Hub (alternate supplier)"
+        description="Second wholesale API — docs at Postman. Route a network with SUPPLIER_FOR_*=successbizhub."
+        icon={Cable}
+      >
+        <div className="flex flex-wrap gap-1.5">
+          <AdminStatusBadge ok={sbhConfigured} label="API key" />
+        </div>
+        <AdminAlert
+          tone={sbhConfigured ? "success" : "warning"}
+          title={sbhConfigured ? "Success Biz Hub API key detected" : "SUCCESSBIZHUB_API_KEY not set"}
+        >
+          <AdminEnvCheckList items={sbhEnvChecks} />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Docs:{" "}
+            <a
+              href="https://documenter.getpostman.com/view/36783125/2sBXcLfxJU"
+              className="font-semibold text-amber-800 hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Success Biz Hub API
+            </a>
+            . Webhook endpoint:{" "}
+            <code>/api/webhooks/successbizhub</code>
+          </p>
+        </AdminAlert>
+      </AdminSection>
+
       {unsignedMode && (
         <AdminAlert tone="danger" title="Unsigned webhook mode is ON">
           <code>SKANKA5_ALLOW_UNSIGNED_WEBHOOKS=1</code> is set. Webhooks are accepted without verifying{" "}
@@ -206,7 +244,11 @@ export default async function SupplierConsolePage() {
           description="Ping GET /fetch-networks to confirm connectivity."
           icon={Activity}
         >
-          <SupplierPingButton disabled={!configured} />
+          <SupplierPingButton disabled={!configured} supplier="skanka5" />
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">Success Biz Hub</p>
+            <SupplierPingButton disabled={!sbhConfigured} supplier="successbizhub" />
+          </div>
           <dl className="admin-kv-list mt-3 border-t border-slate-100 pt-3">
             <div className="admin-kv-row">
               <dt className="admin-kv-label">Awaiting dispatch</dt>

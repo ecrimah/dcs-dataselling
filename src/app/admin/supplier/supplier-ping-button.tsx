@@ -4,7 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Activity, Loader2 } from "lucide-react";
 
-export function SupplierPingButton({ disabled }: { disabled?: boolean }) {
+export function SupplierPingButton({
+  disabled,
+  supplier = "skanka5",
+  label,
+}: {
+  disabled?: boolean;
+  supplier?: "skanka5" | "successbizhub";
+  label?: string;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<
@@ -16,7 +24,9 @@ export function SupplierPingButton({ disabled }: { disabled?: boolean }) {
   async function ping() {
     setStatus({ kind: "idle" });
     try {
-      const res = await fetch("/api/admin/supplier/ping", { method: "POST" });
+      const res = await fetch(`/api/admin/supplier/ping?supplier=${supplier}`, {
+        method: "POST",
+      });
       const data = (await res.json()) as
         | { ok: true; networks: unknown }
         | { ok: false; error: string };
@@ -46,7 +56,7 @@ export function SupplierPingButton({ disabled }: { disabled?: boolean }) {
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy-900 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
-        Ping /fetch-networks
+        {label ?? (supplier === "successbizhub" ? "Ping wallet balance" : "Ping /fetch-networks")}
       </button>
 
       {status.kind === "ok" && (

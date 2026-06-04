@@ -2,6 +2,7 @@ import "server-only";
 
 import { manualClient } from "./manual";
 import { skanka5Client } from "./skanka5-client";
+import { successBizHubClient } from "./successbizhub-client";
 import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
 /**
@@ -14,6 +15,7 @@ import type { SupplierClient, SupplierNetworkSlug } from "./types";
  */
 const SUPPLIERS: Record<string, SupplierClient> = {
   skanka5: skanka5Client,
+  successbizhub: successBizHubClient,
   manual: manualClient,
 };
 

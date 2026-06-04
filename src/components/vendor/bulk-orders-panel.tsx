@@ -47,7 +47,7 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
   const [inputMode, setInputMode] = useState<BulkInputMode>("paste");
   const [networkKey, setNetworkKey] = useState<BulkNetworkKey | "">("");
   const [pasteText, setPasteText] = useState(
-    "0241234567 2gb\n0551234567 25gig\n0248111626\n5gb",
+    "0241234567 10\n0551234567 20\n0201234567 5",
   );
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [loading, setLoading] = useState(false);
@@ -218,6 +218,10 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
       {inputMode === "paste" ? (
         <div className="space-y-3 rounded-xl border border-white/10 bg-navy-900/80 p-4">
           <h3 className="text-sm font-bold">Paste your orders</h3>
+          <p className="text-[11px] text-white/45">
+            One line per order: phone, space, size (GB as a number only). Network is set above —
+            do not include MTN or GB in each line.
+          </p>
           <textarea
             value={pasteText}
             onChange={(e) => {
@@ -228,28 +232,25 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
             disabled={!networkKey}
             placeholder={
               networkKey
-                ? "0241234567 2gb\n0551234567 25gig\n0248111626\n5gb"
+                ? "0241234567 10\n0551234567 20\n0201234567 100"
                 : "Select network first, then paste orders here"
             }
             className="w-full rounded-lg border border-white/10 bg-navy-950/60 p-3 font-mono text-xs text-white placeholder:text-white/25 focus:border-gold/40 focus:outline-none disabled:opacity-50"
           />
           <div className="rounded-lg border border-white/8 bg-navy-950/50 p-3 text-[11px] leading-relaxed text-white/50">
-            <p className="font-semibold text-gold/90">Accepted formats</p>
-            <ul className="mt-1.5 space-y-0.5 text-white/45">
+            <p className="font-semibold text-gold/90">Recommended</p>
+            <p className="mt-1 text-white/45">
+              <span className="font-mono text-gold/80">0241234567 10</span> — same as admin export
+              columns <strong className="text-white/60">Number</strong> +{" "}
+              <strong className="text-white/60">Volume</strong> (copy both columns from Excel).
+            </p>
+            <p className="mt-2 font-semibold text-white/40">Also accepted</p>
+            <ul className="mt-1 space-y-0.5 text-white/40">
               <li>
-                <span className="text-gold/80">0241234567 2</span> — phone + GB
+                <span className="font-mono text-gold/70">0241234567,10</span> — from CSV template
               </li>
               <li>
-                <span className="text-gold/80">0241234567 2gb</span> — with unit
-              </li>
-              <li>
-                <span className="text-gold/80">0241234567 2gig</span> — gig format
-              </li>
-              <li>
-                <span className="text-gold/80">0241234567 1024mb</span> — MB format
-              </li>
-              <li>
-                <span className="text-gold/80">0248111626</span> then <span className="text-gold/80">5gb</span> on the next line
+                <span className="font-mono text-gold/70">0241234567 2gb</span> — with unit suffix
               </li>
             </ul>
             <p className="mt-2 text-white/40">
@@ -262,8 +263,9 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
         <div className="space-y-3 rounded-xl border border-white/10 bg-navy-900/80 p-4">
           <h3 className="text-sm font-bold">Upload orders file</h3>
           <p className="text-[11px] text-white/45">
-            Prepare a CSV with two columns: <strong className="text-white/70">phone</strong> and{" "}
-            <strong className="text-white/70">gb</strong>. Use our template for the correct format.
+            Use the template: <strong className="text-white/70">Number</strong> and{" "}
+            <strong className="text-white/70">Volume</strong> (plain GB, no unit). Select the
+            matching network before upload.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button

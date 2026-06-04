@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   CheckSquare,
   ClipboardList,
+  ClipboardPaste,
   Download,
   MoreHorizontal,
   RefreshCw,
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { AdminOrderBoardRow } from "@/lib/data/admin-orders-board";
 import { downloadOrdersCsv } from "@/lib/admin/orders-export";
+import { dataMbToVolumeGb, formatBulkPasteLine } from "@/lib/wholesale/bulk-format";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -167,15 +169,46 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
     }
   }
 
+  function exportRows() {
+    return selectedRows.length > 0 ? selectedRows : rows;
+  }
+
   function handleExport() {
-    const exportRows = selectedRows.length > 0 ? selectedRows : rows;
-    if (exportRows.length === 0) {
+    const target = exportRows();
+    if (target.length === 0) {
       toast.error("No orders to export");
       return;
     }
     const stamp = format(new Date(), "yyyy-MM-dd-HHmm");
-    downloadOrdersCsv(exportRows, `dcs-orders-${stamp}.csv`);
-    toast.success(`Exported ${exportRows.length} row(s)`);
+    downloadOrdersCsv(target, `dcs-orders-${stamp}.csv`);
+    toast.success(
+      `Exported ${target.length} row(s) — Number + Volume columns ready for bulk paste`,
+    );
+  }
+
+  async function handleCopyForPaste() {
+    const target = exportRows();
+    if (target.length === 0) {
+      toast.error("No orders to copy");
+      return;
+    }
+    const lines = target
+      .map((r) => {
+        const vol = dataMbToVolumeGb(r.dataMb);
+        if (!r.beneficiary || vol <= 0) return null;
+        return formatBulkPasteLine(r.beneficiary, vol);
+      })
+      .filter(Boolean);
+    if (lines.length === 0) {
+      toast.error("Selected rows have no phone or volume");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      toast.success(`Copied ${lines.length} line(s) for bulk paste`);
+    } catch {
+      toast.error("Could not copy to clipboard");
+    }
   }
 
   async function rowAction(row: AdminOrderBoardRow, status: string) {
@@ -193,7 +226,7 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
   return (
     <AdminSection
       title="Order board"
-      description="Filter, select, bulk-update status, or export to Excel (CSV) when the API supplier is down."
+      description="Export or copy Number + Volume for agent bulk paste when the supplier API is down."
     >
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -285,9 +318,18 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
               <RefreshCw className={cn("mr-1 h-3.5 w-3.5", pending && "animate-spin")} />
               Update status
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={rows.length === 0}
+              onClick={() => void handleCopyForPaste()}
+            >
+              <ClipboardPaste className="mr-1 h-3.5 w-3.5" />
+              Copy for paste
+            </Button>
             <Button size="sm" variant="secondary" disabled={rows.length === 0} onClick={handleExport}>
               <Download className="mr-1 h-3.5 w-3.5" />
-              Export Excel
+              Export bulk CSV
             </Button>
           </div>
         </div>

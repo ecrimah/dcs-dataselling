@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
-import { legacyPriceSync, normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
+import {
+  legacyPriceSync,
+  prepareWholesalePricesForSave,
+  validateWholesalePrices,
+} from "@/lib/wholesale/tier-pricing";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const priceSchema = z.object({
@@ -43,13 +47,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const prices = normalizeWholesalePrices(
+  const prices = prepareWholesalePricesForSave(
     body.prices ?? {
       agentPrice: body.wholesalePrice,
       customerPrice: body.suggestedRetail,
     },
+    body.minMarkup,
   );
-  const legacy = legacyPriceSync(prices);
+  const validationError = validateWholesalePrices(prices, body.minMarkup);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
+  }
+  const legacy = legacyPriceSync(prices, body.minMarkup);
 
   const sku = `${body.network.toUpperCase().slice(0, 3)}-${body.dataMb}MB-${body.validityDays}D`;
 

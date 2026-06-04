@@ -24,6 +24,7 @@ import { getPlatformConfig } from "@/lib/data/platform-config";
 import { DEFAULT_PLATFORM_CONFIG } from "@/lib/platform/config-types";
 import { isArkeselConfigured } from "@/lib/notifications/arkesel";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
+import { isSuccessBizHubConfigured } from "@/lib/suppliers/successbizhub";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { PlatformConfigEditor } from "./platform-config-editor";
 
@@ -34,6 +35,7 @@ export default async function AdminSettingsPage() {
   const paystackOk = Boolean(process.env.PAYSTACK_SECRET_KEY?.startsWith("sk_"));
   const arkeselOk = isArkeselConfigured();
   const skanka5Ok = isSkanka5Configured();
+  const successBizHubOk = isSuccessBizHubConfigured();
   const skanka5WebhookOk = Boolean(process.env.SKANKA5_WEBHOOK_SECRET);
   const platformConfig = supabaseOk
     ? await getPlatformConfig()
@@ -84,6 +86,11 @@ export default async function AdminSettingsPage() {
               label="Skanka5 webhook signing"
               ok={skanka5WebhookOk}
               hint="Set SKANKA5_WEBHOOK_SECRET to verify supplier callbacks"
+            />
+            <AdminIntegrationRow
+              label="Success Biz Hub supplier"
+              ok={successBizHubOk}
+              hint="Set SUCCESSBIZHUB_API_KEY and offer slugs; route via SUPPLIER_FOR_*"
             />
           </AdminIntegrationList>
         </AdminSection>

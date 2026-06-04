@@ -183,6 +183,10 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             prices={newBundle.prices}
             onChange={(prices) => setNewBundle((b) => ({ ...b, prices }))}
           />
+          <p className="text-xs text-muted-foreground">
+            Pro ≤ Super ≤ Agent. Storefront base is auto-set to at least Agent price + min markup
+            (e.g. Agent ₵5 + markup ₵0.50 → retail ₵5.50).
+          </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs font-medium text-muted">
               Min markup ₵

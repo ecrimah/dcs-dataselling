@@ -62,11 +62,72 @@ export function tierBuyPriceLabel(tier: VendorTier): string {
 }
 
 /** Keep legacy columns in sync when admin saves the matrix. */
-export function legacyPriceSync(prices: WholesalePriceMatrix) {
+export function legacyPriceSync(prices: WholesalePriceMatrix, minMarkup = 0) {
+  const wholesale = prices.agentPrice;
+  const minRetail = round(wholesale + Math.max(0, minMarkup));
+  const suggested = Math.max(prices.customerPrice, minRetail);
   return {
-    wholesale_price: prices.agentPrice,
-    suggested_retail: prices.customerPrice,
+    wholesale_price: wholesale,
+    suggested_retail: suggested,
   };
+}
+
+/**
+ * Normalize admin matrix input and satisfy DB rules:
+ * - Tier ladder: cost ≤ Pro ≤ Super ≤ Agent
+ * - Legacy columns: suggested_retail ≥ wholesale_price (+ min markup headroom for vendors)
+ */
+export function prepareWholesalePricesForSave(
+  input: RowLike,
+  minMarkup: number,
+): WholesalePriceMatrix {
+  const raw = normalizeWholesalePrices(input);
+  const cost = num(raw.costPrice, 0);
+  let agent = num(raw.agentPrice, 0);
+  let pro = num(raw.agentProPrice, agent);
+  let xpress = num(raw.xpressAgentPrice, agent);
+
+  agent = Math.max(agent, cost);
+  pro = clamp(pro, cost, agent);
+  xpress = clamp(xpress, pro, agent);
+
+  const markup = Math.max(0, minMarkup);
+  const minRetail = round(agent + markup);
+  const customer = Math.max(raw.customerPrice, minRetail);
+
+  return {
+    costPrice: cost,
+    agentPrice: agent,
+    agentProPrice: pro,
+    xpressAgentPrice: xpress,
+    customerPrice: customer,
+    customerProPrice: Math.min(num(raw.customerProPrice, round(customer * 0.93)), customer),
+  };
+}
+
+/** Human-readable validation before hitting Postgres. */
+export function validateWholesalePrices(
+  prices: WholesalePriceMatrix,
+  minMarkup: number,
+): string | null {
+  if (prices.costPrice > prices.agentProPrice) {
+    return "Cost must be less than or equal to Pro Agent price.";
+  }
+  if (prices.agentProPrice > prices.xpressAgentPrice) {
+    return "Pro Agent price must be less than or equal to Super Agent price.";
+  }
+  if (prices.xpressAgentPrice > prices.agentPrice) {
+    return "Super Agent price must be less than or equal to Agent price.";
+  }
+  const minRetail = prices.agentPrice + Math.max(0, minMarkup);
+  if (prices.customerPrice < minRetail - 0.001) {
+    return `Storefront base price must be at least ₵${minRetail.toFixed(2)} (Agent ₵${prices.agentPrice.toFixed(2)} + min markup ₵${minMarkup.toFixed(2)}).`;
+  }
+  return null;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function num(value: unknown, fallback: number): number {

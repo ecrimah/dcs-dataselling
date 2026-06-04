@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
-import { legacyPriceSync, normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
+import {
+  legacyPriceSync,
+  prepareWholesalePricesForSave,
+  validateWholesalePrices,
+} from "@/lib/wholesale/tier-pricing";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const priceSchema = z.object({
@@ -50,7 +54,7 @@ export async function PATCH(
   const { data: existing } = await service
     .from("wholesale_bundles")
     .select(
-      "cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail",
+      "cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail, min_markup",
     )
     .eq("id", id)
     .maybeSingle();
@@ -59,18 +63,26 @@ export async function PATCH(
 
   if (body.prices || body.wholesalePrice !== undefined || body.suggestedRetail !== undefined) {
     const row = existing as Record<string, number | null> | null;
-    const merged = normalizeWholesalePrices({
-      costPrice: body.prices?.costPrice ?? row?.cost_price ?? undefined,
-      customerPrice:
-        body.prices?.customerPrice ?? body.suggestedRetail ?? row?.customer_price ?? undefined,
-      customerProPrice: body.prices?.customerProPrice ?? row?.customer_pro_price ?? undefined,
-      agentPrice: body.prices?.agentPrice ?? body.wholesalePrice ?? row?.agent_price ?? undefined,
-      agentProPrice: body.prices?.agentProPrice ?? row?.agent_pro_price ?? undefined,
-      xpressAgentPrice: body.prices?.xpressAgentPrice ?? row?.xpress_agent_price ?? undefined,
-      wholesalePrice: row?.wholesale_price ?? undefined,
-      suggestedRetail: row?.suggested_retail ?? undefined,
-    });
-    const legacy = legacyPriceSync(merged);
+    const minMarkup = Number(body.minMarkup ?? row?.min_markup ?? 0.5);
+    const merged = prepareWholesalePricesForSave(
+      {
+        costPrice: body.prices?.costPrice ?? row?.cost_price ?? undefined,
+        customerPrice:
+          body.prices?.customerPrice ?? body.suggestedRetail ?? row?.customer_price ?? undefined,
+        customerProPrice: body.prices?.customerProPrice ?? row?.customer_pro_price ?? undefined,
+        agentPrice: body.prices?.agentPrice ?? body.wholesalePrice ?? row?.agent_price ?? undefined,
+        agentProPrice: body.prices?.agentProPrice ?? row?.agent_pro_price ?? undefined,
+        xpressAgentPrice: body.prices?.xpressAgentPrice ?? row?.xpress_agent_price ?? undefined,
+        wholesalePrice: row?.wholesale_price ?? undefined,
+        suggestedRetail: row?.suggested_retail ?? undefined,
+      },
+      minMarkup,
+    );
+    const validationError = validateWholesalePrices(merged, minMarkup);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+    const legacy = legacyPriceSync(merged, minMarkup);
     updates.cost_price = merged.costPrice;
     updates.customer_price = merged.customerPrice;
     updates.customer_pro_price = merged.customerProPrice;

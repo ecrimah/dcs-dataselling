@@ -1,6 +1,8 @@
 import type { NetworkId } from "@/lib/constants";
 import type { WholesaleBundle } from "@/types";
 
+export { BULK_ORDER_TEMPLATE_CSV, BULK_TEMPLATE_HEADERS } from "@/lib/wholesale/bulk-format";
+
 export type BulkNetworkKey = "mtn" | "telecel" | "at-ishare" | "at-bigtime";
 
 export const BULK_NETWORK_OPTIONS: {
@@ -103,8 +105,13 @@ function extractOrderEntries(text: string): { phoneRaw: string; sizeRaw: string 
 
   const first = lines[0].toLowerCase();
   const skipHeader =
-    first.includes("phone") &&
-    (first.includes("gb") || first.includes("gig") || first.includes("sku") || first.includes("data"));
+    (first.includes("phone") || first.includes("number")) &&
+    (first.includes("gb") ||
+      first.includes("gig") ||
+      first.includes("volume") ||
+      first.includes("sku") ||
+      first.includes("data") ||
+      first.includes("package"));
   const dataLines = skipHeader ? lines.slice(1) : lines;
 
   const entries: { phoneRaw: string; sizeRaw: string }[] = [];
@@ -249,8 +256,19 @@ export function parseBulkOrderCsv(
 
   const header = lines[0].toLowerCase();
   const hasHeader =
-    header.includes("phone") || header.includes("sku") || header.includes("network");
+    header.includes("phone") ||
+    header.includes("number") ||
+    header.includes("volume") ||
+    header.includes("sku") ||
+    header.includes("network");
   const dataLines = hasHeader ? lines.slice(1) : lines;
+
+  let volumeCol = 1;
+  if (hasHeader) {
+    const cols = lines[0].split(/[,;\t]/).map((c) => c.trim().toLowerCase());
+    const volIdx = cols.findIndex((c) => c === "volume" || c === "gb" || c === "data");
+    if (volIdx >= 0) volumeCol = volIdx;
+  }
 
   return dataLines.map((line, idx) => {
     const row = hasHeader ? idx + 2 : idx + 1;
@@ -264,19 +282,20 @@ export function parseBulkOrderCsv(
     let bundle: WholesaleBundle | undefined;
     let quantity = 1;
 
-    if (cols[1] && !cols[1].toUpperCase().includes("-")) {
-      const dataMb = parseDataSizeToMb(cols[1]);
+    const sizeRaw = cols[volumeCol] ?? cols[1] ?? "";
+    if (sizeRaw && !sizeRaw.toUpperCase().includes("-")) {
+      const dataMb = parseDataSizeToMb(sizeRaw);
       if (dataMb !== null) {
         bundle = findBundleForSize(catalogue, dataMb);
         if (!bundle) {
-          return { row, phone, sizeLabel: cols[1], quantity, error: `No bundle for ${cols[1]}` };
+          return { row, phone, sizeLabel: sizeRaw, quantity, error: `No bundle for ${sizeRaw}` };
         }
         return { row, phone, sku: bundle.sku, quantity, bundle };
       }
     }
 
-    if (cols[1]?.toUpperCase().includes("-") || cols.length === 2) {
-      const sku = (cols[1] ?? "").toUpperCase();
+    if (sizeRaw.toUpperCase().includes("-") || (cols.length === 2 && volumeCol === 1)) {
+      const sku = (sizeRaw || (cols[1] ?? "")).toUpperCase();
       bundle = bySku.get(sku);
       if (cols[2]) quantity = Math.max(1, parseInt(cols[2], 10) || 1);
       if (!bundle) {
@@ -320,8 +339,6 @@ export function parseBulkOrders(
   if (networkKey) return parseBulkPasteOrders(text, networkKey, catalogue);
   return parseBulkOrderCsv(text, catalogue);
 }
-
-export const BULK_ORDER_TEMPLATE_CSV = "phone,gb\n0241234567,2\n0551234567,5\n";
 
 export function validBulkRows(rows: BulkOrderRow[]): BulkOrderRow[] {
   return rows.filter((r) => r.bundle && !r.error);

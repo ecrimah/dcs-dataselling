@@ -57,7 +57,7 @@ export default async function AdminOrdersPage({
     <AdminPageRoot>
       <AdminPageIntro
         badge="Order pipeline"
-        description="Skanka5-style board — filter by status, mark all, bulk update, or export CSV for manual fulfilment."
+        description="Filter, bulk-update, or export Number + Volume CSV — copy into agent bulk paste when the API is down."
         meta={`${rows.length} rows · ${processing} in progress · ${undelivered} undelivered`}
       />
 

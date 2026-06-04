@@ -1,4 +1,10 @@
 import type { AdminOrderBoardRow } from "@/lib/data/admin-orders-board";
+import {
+  BULK_TEMPLATE_HEADERS,
+  dataMbToVolumeGb,
+  exportOrderTypeLabel,
+  networkPackageLabel,
+} from "@/lib/wholesale/bulk-format";
 
 function csvCell(value: string | number | null | undefined): string {
   const s = String(value ?? "");
@@ -8,52 +14,23 @@ function csvCell(value: string | number | null | undefined): string {
   return s;
 }
 
+/** Bulk-paste layout: Number + Volume side by side (matches dcs-bulk-orders-template.csv). */
 export function buildOrdersExportCsv(rows: AdminOrderBoardRow[]): string {
-  const headers = [
-    "Order Code",
-    "Package",
-    "Price (GHS)",
-    "Beneficiary",
-    "Order Reference",
-    "Data Volume",
-    "Order Date",
-    "Agent",
-    "Order Type",
-    "Payment Method",
-    "Order Status",
-    "Payment Status",
-    "Commission (GHS)",
-    "API Status",
-    "API Source",
-    "API Reference",
-    "Line Kind",
-  ];
+  const headers = [...BULK_TEMPLATE_HEADERS];
 
   const lines = [
     headers.join(","),
-    ...rows.map((r) =>
-      [
-        r.orderCode,
-        r.packageName,
-        r.price.toFixed(2),
+    ...rows.map((r) => {
+      const volume = dataMbToVolumeGb(r.dataMb);
+      return [
         r.beneficiary,
-        r.orderReference,
-        r.dataVolume,
-        r.orderedAt,
-        r.agentName,
-        r.orderType,
-        r.paymentMethod,
-        r.orderStatus,
-        r.paymentStatus,
-        r.commission != null ? r.commission.toFixed(2) : "",
-        r.apiStatus ?? "",
-        r.apiSource ?? "",
-        r.apiReference ?? "",
-        r.kind,
+        volume > 0 ? volume : "",
+        exportOrderTypeLabel(r.orderType),
+        networkPackageLabel(r.network),
       ]
         .map(csvCell)
-        .join(","),
-    ),
+        .join(",");
+    }),
   ];
 
   return lines.join("\r\n");

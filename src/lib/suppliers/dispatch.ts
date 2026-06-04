@@ -392,6 +392,110 @@ export async function resolveSupplierItemsProcessed(args: {
   return { customerOrdersFulfilled, wholesaleItemsFulfilled };
 }
 
+/** Apply Success Biz Hub (and similar) webhooks that key off supplier reference / order id. */
+export async function resolveSupplierDeliveryByReference(args: {
+  supplierReference: string;
+  supplierOrderId?: string | null;
+  outcome: "fulfilled" | "failed";
+  supplierStatus: string;
+  rawPayload?: unknown;
+}): Promise<{ customerOrdersFulfilled: number; wholesaleItemsFulfilled: number }> {
+  if (!hasSupabaseConfig()) {
+    return { customerOrdersFulfilled: 0, wholesaleItemsFulfilled: 0 };
+  }
+
+  const service = createServiceClient();
+  const now = new Date().toISOString();
+  const isFulfilled = args.outcome === "fulfilled";
+  const refs = [args.supplierReference, args.supplierOrderId].filter(
+    (v): v is string => typeof v === "string" && v.length > 0,
+  );
+
+  let customerOrdersFulfilled = 0;
+  let wholesaleItemsFulfilled = 0;
+
+  for (const ref of refs) {
+    const customerPatch = {
+      status: isFulfilled ? "fulfilled" : "failed",
+      supplier_status: args.supplierStatus,
+      supplier_response: (args.rawPayload as object | undefined) ?? null,
+      fulfilled_at: isFulfilled ? now : null,
+    };
+
+    const [byRef, byCode] = await Promise.all([
+      service.from("orders").update(customerPatch).eq("supplier_reference", ref).select("id"),
+      service.from("orders").update(customerPatch).eq("supplier_order_code", ref).select("id"),
+    ]);
+    customerOrdersFulfilled +=
+      ((byRef.data as { id: string }[] | null)?.length ?? 0) +
+      ((byCode.data as { id: string }[] | null)?.length ?? 0);
+
+    const itemPatch = {
+      status: isFulfilled ? "fulfilled" : "failed",
+      supplier_status: args.supplierStatus,
+      supplier_response: (args.rawPayload as object | undefined) ?? null,
+      supplier_fulfilled_at: isFulfilled ? now : null,
+    };
+    const { data: itemHits } = await service
+      .from("wholesale_order_items")
+      .update(itemPatch)
+      .eq("supplier_order_code", ref)
+      .select("id, wholesale_order_id");
+    wholesaleItemsFulfilled += (itemHits as unknown as { id: string }[] | null)?.length ?? 0;
+
+    const parentIds = Array.from(
+      new Set(
+        ((itemHits as unknown as { wholesale_order_id: string }[] | null) ?? []).map(
+          (i) => i.wholesale_order_id,
+        ),
+      ),
+    );
+    for (const parentId of parentIds) {
+      const { data: itemStatuses } = await service
+        .from("wholesale_order_items")
+        .select("status")
+        .eq("wholesale_order_id", parentId);
+      const rows = (itemStatuses ?? []) as { status: string }[];
+      const allDone = rows.length > 0 && rows.every((r) => r.status === "fulfilled");
+      const anyFailed = rows.some((r) => r.status === "failed");
+      if (allDone) {
+        await service
+          .from("wholesale_orders")
+          .update({ status: "fulfilled", fulfilled_at: now })
+          .eq("id", parentId);
+        await fireVendorWebhookForWholesaleOrder(parentId, "order.fulfilled");
+      } else if (anyFailed && rows.every((r) => ["fulfilled", "failed"].includes(r.status))) {
+        await service
+          .from("wholesale_orders")
+          .update({ status: "failed" })
+          .eq("id", parentId);
+        await fireVendorWebhookForWholesaleOrder(parentId, "order.failed");
+      }
+    }
+
+    const { data: wholesaleByRef } = await service
+      .from("wholesale_orders")
+      .update({
+        status: isFulfilled ? "fulfilled" : "failed",
+        supplier_status: args.supplierStatus,
+        supplier_response: (args.rawPayload as object | undefined) ?? null,
+        fulfilled_at: isFulfilled ? now : null,
+      })
+      .ilike("supplier_reference", `%${ref}%`)
+      .select("id");
+    if ((wholesaleByRef as unknown as { id: string }[] | null)?.length) {
+      for (const o of wholesaleByRef as { id: string }[]) {
+        await fireVendorWebhookForWholesaleOrder(
+          o.id,
+          isFulfilled ? "order.fulfilled" : "order.failed",
+        );
+      }
+    }
+  }
+
+  return { customerOrdersFulfilled, wholesaleItemsFulfilled };
+}
+
 async function fireVendorWebhookForWholesaleOrder(
   wholesaleOrderId: string,
   event: "order.fulfilled" | "order.failed",
