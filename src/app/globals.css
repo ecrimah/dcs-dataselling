@@ -3454,6 +3454,22 @@ body {
   color: rgba(255, 255, 255, 0.72) !important;
 }
 
+/* Supplier diagnostics ping results */
+.admin-ping-result.is-ok {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #065f46;
+}
+.admin-ping-result.is-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+.admin-ping-result-pre {
+  background: #fff;
+  color: #0f172a;
+}
+
 /* Expandable log rows (SMS debugger, supplier console) */
 .admin-vault-theme .admin-log-row {
   background: rgba(8, 23, 49, 0.55);
@@ -3507,6 +3523,34 @@ body {
 .admin-vault-theme .admin-filter-chip.is-active {
   background: rgba(212, 175, 55, 0.16);
   border-color: rgba(212, 175, 55, 0.35);
+  color: #f4d160;
+}
+.admin-routing-chip {
+  border-color: #e5e7eb;
+  background: #fff;
+  color: #334155;
+}
+.admin-routing-chip.is-active {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #fef7e0;
+  color: #92400e;
+}
+.admin-vault-theme .admin-supplier-routing {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.04);
+}
+.admin-vault-theme .admin-supplier-routing > div > div {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.admin-vault-theme .admin-routing-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.75);
+}
+.admin-vault-theme .admin-routing-chip.is-active {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: rgba(212, 175, 55, 0.4);
   color: #f4d160;
 }
 .admin-vault-theme .admin-status-sent {

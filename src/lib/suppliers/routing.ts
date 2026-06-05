@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getPlatformConfig } from "@/lib/data/platform-config";
-import type { SupplierRoutingConfig } from "@/lib/platform/config-types";
+import type { NetworkSupplierId, SupplierRoutingConfig } from "@/lib/platform/config-types";
 import {
   getSupplierById,
   getSupplierIdForNetwork,
@@ -9,22 +9,19 @@ import {
 } from "./registry";
 import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
-const SUPPLIER_LABELS: Record<string, string> = {
+const SUPPLIER_LABELS: Record<NetworkSupplierId, string> = {
   skanka5: "Skanka5",
   successbizhub: "Success Biz Hub",
   manual: "Manual fulfilment (no automated supplier)",
 };
 
-/** Resolve effective supplier id for a network (env + admin overrides). */
+/** Resolve effective supplier id for a network (admin override, then env, then default). */
 export function resolveSupplierId(
   network: SupplierNetworkSlug,
   routing?: SupplierRoutingConfig,
 ): string {
-  if (network === "telecel" && routing?.telecel) {
-    return routing.telecel;
-  }
-  // AirtelTigo third-party API not live yet — stay manual regardless of env.
-  if (network === "at") return "manual";
+  const override = routing?.[network];
+  if (override) return override;
   return getSupplierIdForNetwork(network);
 }
 
@@ -40,11 +37,14 @@ export function routingSource(
   network: SupplierNetworkSlug,
   routing?: SupplierRoutingConfig,
 ): NetworkSupplierStatus["source"] {
-  if (network === "telecel" && routing?.telecel) return "admin";
-  if (network === "at") return "default";
+  if (routing?.[network]) return "admin";
   const envVar = `SUPPLIER_FOR_${network.toUpperCase()}`;
   const fromEnv = process.env[envVar]?.trim().toLowerCase();
   return fromEnv ? "env" : "default";
+}
+
+export function envDefaultSupplierId(network: SupplierNetworkSlug): string {
+  return getSupplierIdForNetwork(network);
 }
 
 export async function getNetworkSupplierMatrixResolved(): Promise<NetworkSupplierStatus[]> {
@@ -52,14 +52,14 @@ export async function getNetworkSupplierMatrixResolved(): Promise<NetworkSupplie
   const networks: SupplierNetworkSlug[] = ["mtn", "telecel", "at"];
 
   return networks.map((network) => {
-    const id = resolveSupplierId(network, config.supplierRouting);
+    const id = resolveSupplierId(network, config.supplierRouting) as NetworkSupplierId;
     const client = getSupplierById(id) ?? getSupplierById("manual")!;
     const manual = client.id === "manual";
     const configured = manual || client.isConfigured();
     return {
       network,
       supplierId: client.id,
-      supplierLabel: SUPPLIER_LABELS[client.id] ?? client.label,
+      supplierLabel: SUPPLIER_LABELS[id] ?? client.label,
       configured,
       manual,
       source: routingSource(network, config.supplierRouting),

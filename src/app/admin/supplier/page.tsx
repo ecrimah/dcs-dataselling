@@ -100,7 +100,7 @@ export default async function SupplierConsolePage() {
 
       <AdminSection
         title="Network → supplier routing"
-        description="MTN uses Skanka5. Telecel uses Success Biz Hub — switch to manual below when needed. AirtelTigo awaits a third API."
+        description="Assign each network to Skanka5, Success Biz Hub, or manual fulfilment below — any API can handle any network."
         icon={Layers}
       >
         <ul className="admin-network-list">
@@ -113,20 +113,28 @@ export default async function SupplierConsolePage() {
               envKey={`SUPPLIER_FOR_${row.network.toUpperCase()}`}
               source={row.source}
               status={
-                row.network === "at"
-                  ? "awaiting"
-                  : row.manual
-                    ? "manual"
-                    : row.configured
-                      ? "connected"
-                      : "misconfigured"
+                row.manual
+                  ? "manual"
+                  : row.configured
+                    ? "connected"
+                    : "misconfigured"
               }
             />
           ))}
         </ul>
         <SupplierRoutingControls
-          telecelMode={platformConfig.supplierRouting.telecel ?? null}
-          envDefault={process.env.SUPPLIER_FOR_TELECEL?.trim().toLowerCase() ?? "manual"}
+          routing={platformConfig.supplierRouting}
+          envDefaults={{
+            mtn: process.env.SUPPLIER_FOR_MTN?.trim().toLowerCase() ?? "skanka5",
+            telecel: process.env.SUPPLIER_FOR_TELECEL?.trim().toLowerCase() ?? "manual",
+            at: process.env.SUPPLIER_FOR_AT?.trim().toLowerCase() ?? "manual",
+          }}
+          effective={{
+            mtn: matrix.find((m) => m.network === "mtn")?.supplierId ?? "skanka5",
+            telecel: matrix.find((m) => m.network === "telecel")?.supplierId ?? "manual",
+            at: matrix.find((m) => m.network === "at")?.supplierId ?? "manual",
+          }}
+          skanka5Configured={configured}
           sbhConfigured={sbhConfigured}
         />
         {manualNetworks > 0 && (

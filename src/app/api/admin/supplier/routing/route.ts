@@ -3,12 +3,41 @@ import { z } from "zod";
 
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { getPlatformConfig, savePlatformConfig } from "@/lib/data/platform-config";
-import { normalizePlatformConfig } from "@/lib/platform/config-types";
+import { normalizePlatformConfig, type NetworkSupplierId } from "@/lib/platform/config-types";
+import {
+  envDefaultSupplierId,
+  resolveSupplierId,
+} from "@/lib/suppliers/routing";
+import type { SupplierNetworkSlug } from "@/lib/suppliers/types";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 
-const schema = z.object({
-  telecel: z.enum(["manual", "successbizhub"]),
-});
+const supplierIdSchema = z.enum(["manual", "skanka5", "successbizhub"]);
+
+const patchSchema = z
+  .object({
+    network: z.enum(["mtn", "telecel", "at"]).optional(),
+    supplier: supplierIdSchema.optional(),
+    mtn: supplierIdSchema.optional(),
+    telecel: supplierIdSchema.optional(),
+    at: supplierIdSchema.optional(),
+  })
+  .refine(
+    (body) =>
+      (body.network != null && body.supplier != null) ||
+      body.mtn != null ||
+      body.telecel != null ||
+      body.at != null,
+    { message: "Provide network+supplier or at least one network key" },
+  );
+
+function effectiveRouting(
+  routing: ReturnType<typeof normalizePlatformConfig>["supplierRouting"],
+) {
+  const networks: SupplierNetworkSlug[] = ["mtn", "telecel", "at"];
+  return Object.fromEntries(
+    networks.map((n) => [n, resolveSupplierId(n, routing)]),
+  ) as Record<SupplierNetworkSlug, string>;
+}
 
 export async function GET() {
   if (!hasSupabaseConfig()) {
@@ -21,9 +50,11 @@ export async function GET() {
   }
 
   const config = await getPlatformConfig();
+  const networks: SupplierNetworkSlug[] = ["mtn", "telecel", "at"];
   return NextResponse.json({
-    telecel: config.supplierRouting.telecel ?? null,
-    envDefault: process.env.SUPPLIER_FOR_TELECEL?.trim().toLowerCase() ?? "manual",
+    routing: config.supplierRouting,
+    envDefaults: Object.fromEntries(networks.map((n) => [n, envDefaultSupplierId(n)])),
+    effective: effectiveRouting(config.supplierRouting),
   });
 }
 
@@ -37,22 +68,32 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  let body: z.infer<typeof schema>;
+  let body: z.infer<typeof patchSchema>;
   try {
-    body = schema.parse(await request.json());
+    body = patchSchema.parse(await request.json());
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
   const current = await getPlatformConfig();
+  const nextRouting = { ...current.supplierRouting };
+
+  if (body.network && body.supplier) {
+    nextRouting[body.network] = body.supplier;
+  }
+  if (body.mtn) nextRouting.mtn = body.mtn;
+  if (body.telecel) nextRouting.telecel = body.telecel;
+  if (body.at) nextRouting.at = body.at;
+
   const merged = normalizePlatformConfig({
     ...current,
-    supplierRouting: { telecel: body.telecel },
+    supplierRouting: nextRouting,
   });
 
   await savePlatformConfig(merged);
   return NextResponse.json({
     ok: true,
-    telecel: merged.supplierRouting.telecel ?? null,
+    routing: merged.supplierRouting,
+    effective: effectiveRouting(merged.supplierRouting),
   });
 }

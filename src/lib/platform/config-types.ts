@@ -18,15 +18,14 @@ export interface MomoDirectConfig {
   smsForwarderSecret: string;
 }
 
-/** Admin override for Telecel supplier routing (Success Biz Hub vs manual). */
-export type TelecelSupplierMode = "manual" | "successbizhub";
+/** Automated or manual supplier module for a network. */
+export type NetworkSupplierId = "manual" | "skanka5" | "successbizhub";
 
 export interface SupplierRoutingConfig {
-  /**
-   * Telecel fulfilment mode. When omitted, follows SUPPLIER_FOR_TELECEL in env.
-   * Admin can switch to manual without redeploying.
-   */
-  telecel?: TelecelSupplierMode;
+  /** Per-network admin override. When omitted, follows SUPPLIER_FOR_<NETWORK> env. */
+  mtn?: NetworkSupplierId;
+  telecel?: NetworkSupplierId;
+  at?: NetworkSupplierId;
 }
 
 export interface PlatformConfig {
@@ -80,16 +79,27 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
   };
 }
 
+const VALID_SUPPLIER_IDS = new Set<NetworkSupplierId>(["manual", "skanka5", "successbizhub"]);
+
+function normalizeNetworkSupplierId(value: unknown): NetworkSupplierId | undefined {
+  return typeof value === "string" && VALID_SUPPLIER_IDS.has(value as NetworkSupplierId)
+    ? (value as NetworkSupplierId)
+    : undefined;
+}
+
 function normalizeSupplierRouting(
   input: Partial<SupplierRoutingConfig> | undefined,
   fallback: SupplierRoutingConfig,
 ): SupplierRoutingConfig {
   if (!input || typeof input !== "object") return fallback;
-  const telecel =
-    input.telecel === "manual" || input.telecel === "successbizhub"
-      ? input.telecel
-      : fallback.telecel;
-  return telecel ? { telecel } : {};
+  const out: SupplierRoutingConfig = {};
+  const mtn = normalizeNetworkSupplierId(input.mtn) ?? fallback.mtn;
+  const telecel = normalizeNetworkSupplierId(input.telecel) ?? fallback.telecel;
+  const at = normalizeNetworkSupplierId(input.at) ?? fallback.at;
+  if (mtn) out.mtn = mtn;
+  if (telecel) out.telecel = telecel;
+  if (at) out.at = at;
+  return out;
 }
 
 function clampInt(value: unknown, fallback: number, min: number, max: number): number {
