@@ -18,6 +18,17 @@ export interface MomoDirectConfig {
   smsForwarderSecret: string;
 }
 
+/** Admin override for Telecel supplier routing (Success Biz Hub vs manual). */
+export type TelecelSupplierMode = "manual" | "successbizhub";
+
+export interface SupplierRoutingConfig {
+  /**
+   * Telecel fulfilment mode. When omitted, follows SUPPLIER_FOR_TELECEL in env.
+   * Admin can switch to manual without redeploying.
+   */
+  telecel?: TelecelSupplierMode;
+}
+
 export interface PlatformConfig {
   /** One-time fee (GHS) every new agent pays before their store goes live. */
   vendorSetupFeeGhs: number;
@@ -30,6 +41,8 @@ export interface PlatformConfig {
   referralRewardGhs: number;
   /** SMS-forwarder-based direct MoMo payment settings. */
   momoDirect: MomoDirectConfig;
+  /** Per-network supplier overrides (admin-controlled without env redeploy). */
+  supplierRouting: SupplierRoutingConfig;
 }
 
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
@@ -45,6 +58,7 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
     merchantName: "",
     smsForwarderSecret: "",
   },
+  supplierRouting: {},
 };
 
 export function normalizePlatformConfig(input: unknown): PlatformConfig {
@@ -62,7 +76,20 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
     ),
     referralRewardGhs: clampNum(raw.referralRewardGhs, base.referralRewardGhs, 1, 10000),
     momoDirect: normalizeMomoDirect(raw.momoDirect, base.momoDirect),
+    supplierRouting: normalizeSupplierRouting(raw.supplierRouting, base.supplierRouting),
   };
+}
+
+function normalizeSupplierRouting(
+  input: Partial<SupplierRoutingConfig> | undefined,
+  fallback: SupplierRoutingConfig,
+): SupplierRoutingConfig {
+  if (!input || typeof input !== "object") return fallback;
+  const telecel =
+    input.telecel === "manual" || input.telecel === "successbizhub"
+      ? input.telecel
+      : fallback.telecel;
+  return telecel ? { telecel } : {};
 }
 
 function clampInt(value: unknown, fallback: number, min: number, max: number): number {

@@ -6,7 +6,7 @@ import {
   tryCreditReferralForCustomerOrder,
   tryCreditReferralForWholesaleItem,
 } from "@/lib/referrals/vendor-referral";
-import { getSupplierForNetwork } from "./registry";
+import { getResolvedSupplierForNetwork } from "./routing";
 import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
 /**
@@ -66,7 +66,7 @@ export async function dispatchCustomerOrderToSupplier(orderId: string): Promise<
     return;
   }
 
-  const supplier = getSupplierForNetwork(bundle.network);
+  const supplier = await getResolvedSupplierForNetwork(bundle.network);
 
   const result = await supplier.submitSingle({
     network: bundle.network,
@@ -205,7 +205,7 @@ export async function dispatchWholesaleOrderToSupplier(orderId: string): Promise
   let anyManual = false;
 
   for (const [network, groupItems] of byNetwork.entries()) {
-    const supplier: SupplierClient = getSupplierForNetwork(network);
+    const supplier: SupplierClient = await getResolvedSupplierForNetwork(network);
     suppliersUsed.add(supplier.id);
 
     // Expand quantities (each unit is a separate MSISDN delivery)

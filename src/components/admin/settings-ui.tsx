@@ -104,14 +104,16 @@ export function AdminNetworkRoute({
   supplierLabel: string;
   envKey: string;
   source: string;
-  status: "connected" | "manual" | "misconfigured";
+  status: "connected" | "manual" | "misconfigured" | "awaiting";
 }) {
   const badgeText =
     status === "connected"
       ? "Connected"
       : status === "manual"
-        ? "Awaiting integration"
-        : "Misconfigured";
+        ? "Manual"
+        : status === "awaiting"
+          ? "Awaiting integration"
+          : "Misconfigured";
 
   return (
     <li className="admin-network-route">
@@ -128,7 +130,7 @@ export function AdminNetworkRoute({
         className={cn(
           "admin-status-badge",
           status === "connected" && "is-ok",
-          status === "manual" && "is-warn",
+          (status === "manual" || status === "awaiting") && "is-warn",
           status === "misconfigured" && "is-warn",
         )}
         style={

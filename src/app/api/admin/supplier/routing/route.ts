@@ -1,31 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { getPlatformConfig, savePlatformConfig } from "@/lib/data/platform-config";
 import { normalizePlatformConfig } from "@/lib/platform/config-types";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 
-const momoDirectSchema = z.object({
-  enabled: z.boolean(),
-  merchantNumbers: z.object({
-    mtn: z.string().max(20),
-    telecel: z.string().max(20),
-    at: z.string().max(20),
-  }),
-  merchantName: z.string().max(80),
-  smsForwarderSecret: z.string().max(200),
-});
-
 const schema = z.object({
-  vendorSetupFeeGhs: z.number().min(1).max(100000).optional(),
-  recipientOrderCooldownMinutes: z.number().min(1).max(3).optional(),
-  referralRewardGhs: z.number().min(1).max(10000).optional(),
-  momoDirect: momoDirectSchema.optional(),
-  supplierRouting: z
-    .object({
-      telecel: z.enum(["manual", "successbizhub"]).optional(),
-    })
-    .optional(),
+  telecel: z.enum(["manual", "successbizhub"]),
 });
 
 export async function GET() {
@@ -39,7 +21,10 @@ export async function GET() {
   }
 
   const config = await getPlatformConfig();
-  return NextResponse.json({ config });
+  return NextResponse.json({
+    telecel: config.supplierRouting.telecel ?? null,
+    envDefault: process.env.SUPPLIER_FOR_TELECEL?.trim().toLowerCase() ?? "manual",
+  });
 }
 
 export async function PATCH(request: Request) {
@@ -56,15 +41,18 @@ export async function PATCH(request: Request) {
   try {
     body = schema.parse(await request.json());
   } catch {
-    return NextResponse.json({ error: "Invalid settings" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Merge with current settings so partial updates from older UIs don't wipe
-  // newer fields (e.g. saving just vendorSetupFeeGhs preserves momoDirect).
   const current = await getPlatformConfig();
-  const merged = normalizePlatformConfig({ ...current, ...body });
+  const merged = normalizePlatformConfig({
+    ...current,
+    supplierRouting: { telecel: body.telecel },
+  });
 
   await savePlatformConfig(merged);
-  const config = await getPlatformConfig();
-  return NextResponse.json({ ok: true, config });
+  return NextResponse.json({
+    ok: true,
+    telecel: merged.supplierRouting.telecel ?? null,
+  });
 }

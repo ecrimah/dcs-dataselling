@@ -23,7 +23,8 @@ import {
 import { requireRole } from "@/lib/auth/session";
 import { isSkanka5Configured } from "@/lib/suppliers/skanka5";
 import { isSuccessBizHubConfigured } from "@/lib/suppliers/successbizhub";
-import { getNetworkSupplierMatrix } from "@/lib/suppliers/registry";
+import { getPlatformConfig } from "@/lib/data/platform-config";
+import { getNetworkSupplierMatrixResolved } from "@/lib/suppliers/routing";
 import {
   fetchSupplierLogs,
   fetchSupplierSummary,
@@ -34,6 +35,7 @@ import { SupplierPingButton } from "./supplier-ping-button";
 import { SupplierLogTable } from "./supplier-log-table";
 import { FailedOrderList } from "./failed-order-list";
 import { AwaitingManualList } from "./awaiting-manual-list";
+import { SupplierRoutingControls } from "./supplier-routing-controls";
 
 export const dynamic = "force-dynamic";
 
@@ -41,11 +43,13 @@ export default async function SupplierConsolePage() {
   const profile = await requireRole(["admin", "ops"]);
   if (!profile) redirect("/auth/login");
 
-  const [summary, logs, failed, manualQueue] = await Promise.all([
+  const [summary, logs, failed, manualQueue, platformConfig, matrix] = await Promise.all([
     fetchSupplierSummary(),
     fetchSupplierLogs(100),
     fetchFailedSupplierOrders(),
     fetchAwaitingManualOrders(),
+    getPlatformConfig(),
+    getNetworkSupplierMatrixResolved(),
   ]);
 
   const configured = isSkanka5Configured();
@@ -60,7 +64,6 @@ export default async function SupplierConsolePage() {
     { name: "SUCCESSBIZHUB_OFFER_SLUG_AT", present: Boolean(process.env.SUCCESSBIZHUB_OFFER_SLUG_AT), required: false },
   ];
 
-  const matrix = getNetworkSupplierMatrix();
   const automatedNetworks = matrix.filter((m) => !m.manual).length;
   const manualNetworks = matrix.filter((m) => m.manual).length;
 
@@ -97,7 +100,7 @@ export default async function SupplierConsolePage() {
 
       <AdminSection
         title="Network → supplier routing"
-        description="Each network dispatches to its configured supplier. Manual networks stay queued until fulfilled."
+        description="MTN uses Skanka5. Telecel uses Success Biz Hub — switch to manual below when needed. AirtelTigo awaits a third API."
         icon={Layers}
       >
         <ul className="admin-network-list">
@@ -110,16 +113,26 @@ export default async function SupplierConsolePage() {
               envKey={`SUPPLIER_FOR_${row.network.toUpperCase()}`}
               source={row.source}
               status={
-                row.manual ? "manual" : row.configured ? "connected" : "misconfigured"
+                row.network === "at"
+                  ? "awaiting"
+                  : row.manual
+                    ? "manual"
+                    : row.configured
+                      ? "connected"
+                      : "misconfigured"
               }
             />
           ))}
         </ul>
+        <SupplierRoutingControls
+          telecelMode={platformConfig.supplierRouting.telecel ?? null}
+          envDefault={process.env.SUPPLIER_FOR_TELECEL?.trim().toLowerCase() ?? "manual"}
+          sbhConfigured={sbhConfigured}
+        />
         {manualNetworks > 0 && (
           <AdminAlert tone="warning" title={`${manualNetworks} network${manualNetworks === 1 ? "" : "s"} on manual fulfilment`}>
             Paid orders for those networks stay in <code>queued</code> with{" "}
-            <code>supplier_status = awaiting_manual</code> until you wire up a supplier and set the
-            matching <code>SUPPLIER_FOR_*</code> env var.
+            <code>supplier_status = awaiting_manual</code> until automated routing is turned back on.
           </AdminAlert>
         )}
       </AdminSection>
@@ -159,7 +172,7 @@ export default async function SupplierConsolePage() {
 
       <AdminSection
         title="Success Biz Hub (alternate supplier)"
-        description="Second wholesale API — docs at Postman. Route a network with SUPPLIER_FOR_*=successbizhub."
+        description="Telecel automated supplier — toggle routing above or set SUPPLIER_FOR_TELECEL=successbizhub in env."
         icon={Cable}
       >
         <div className="flex flex-wrap gap-1.5">

@@ -55,7 +55,7 @@ export interface NetworkSupplierStatus {
   supplierLabel: string;
   configured: boolean;
   manual: boolean;
-  source: "env" | "default";
+  source: "env" | "default" | "admin";
 }
 
 export function getNetworkSupplierMatrix(): NetworkSupplierStatus[] {
