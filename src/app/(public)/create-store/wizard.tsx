@@ -144,6 +144,15 @@ export function CreateStoreWizard({
     }
   }, [resumePayment, signedInEmail]);
 
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (!ref) return;
+    setForm((f) => {
+      if (f.referralCode.trim()) return f;
+      return { ...f, referralCode: ref.trim().toUpperCase() };
+    });
+  }, [searchParams]);
+
   // Persist a safe slice of the wizard to sessionStorage whenever it changes.
   // Passwords and account credentials are intentionally excluded.
   useEffect(() => {

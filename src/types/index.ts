@@ -16,6 +16,60 @@ export type VendorStatus = "pending" | "approved" | "suspended" | "rejected";
 export type KycStatus = "not_started" | "pending_review" | "verified" | "rejected";
 export type VendorTier = "starter" | "verified" | "pro";
 
+export interface AdminProfileRecord {
+  id: string;
+  email: string;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  role: UserRole;
+  roleLabel: string;
+  username: string;
+  memberSince: string;
+  accountAge: string;
+  createdAt: string;
+}
+
+export interface AdminPlatformSnapshot {
+  gmv30d: number;
+  platformRevenue30d: number;
+  ordersToday: number;
+  activeVendors: number;
+  successRate: number;
+}
+
+export interface AdminOrderSnapshot {
+  totalOrders: number;
+  completedOrders: number;
+  successRate: number;
+  lifetimeRevenue: number;
+}
+
+export interface WishlistItem {
+  id: string;
+  wholesaleBundleId: string;
+  createdAt: string;
+  bundle: WholesaleBundle & { tierBuyPrice?: number };
+}
+
+export interface VendorReferralStats {
+  referralCode: string;
+  inviteLink: string;
+  rewardAmount: number;
+  totalInvites: number;
+  pendingInvites: number;
+  rewardedInvites: number;
+  totalEarned: number;
+  recent: {
+    id: string;
+    businessName: string;
+    status: string;
+    rewardedAt: string | null;
+    createdAt: string;
+  }[];
+}
+
 export interface Vendor {
   id: string;
   slug: string;

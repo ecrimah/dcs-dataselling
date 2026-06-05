@@ -24,6 +24,7 @@ import {
   Layers,
   MessageCircle,
   Cable,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -53,6 +54,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/transactions", label: "Transactions", icon: Activity, match: (p) => p.startsWith("/admin/transactions") },
       { href: "/admin/momo-payments", label: "MoMo Payments", icon: Smartphone, match: (p) => p.startsWith("/admin/momo-payments") },
       { href: "/admin/wholesale", label: "Checkout", icon: ShoppingCart, match: (p) => p.startsWith("/admin/wholesale") },
+      { href: "/admin/wishlist", label: "Wishlist", icon: Heart, match: (p) => p.startsWith("/admin/wishlist") },
       { href: "/admin/vendors", label: "Store", icon: Store, match: (p) => p.startsWith("/admin/vendors") },
     ],
   },
@@ -83,6 +85,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/sms-debugger", label: "SMS Debugger", icon: MessageCircle, match: (p) => p.startsWith("/admin/sms-debugger") },
       { href: "/admin/supplier", label: "Supplier Console", icon: Cable, match: (p) => p.startsWith("/admin/supplier") },
       { href: "/admin/settings", label: "Settings", icon: Settings, match: (p) => p.startsWith("/admin/settings") },
+      { href: "/admin/profile", label: "My Profile", icon: User, match: (p) => p.startsWith("/admin/profile") },
     ],
   },
 ];
@@ -118,15 +121,13 @@ function AdminSidebarNav({
     <>
       {/* User chip */}
       <div className="border-b border-white/6 p-3">
-        <div className="admin-user-chip">
+        <Link href="/admin/profile" onClick={onNavigate} className="admin-user-chip block transition hover:bg-white/5">
           <div className="avatar">{adminName.slice(0, 2).toUpperCase()}</div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-bold text-white">{adminName}</p>
-            <p className="truncate text-[11px] text-white/55">
-              {adminRole === "super_admin" ? "admin@dcselite.com" : adminRole}
-            </p>
+            <p className="truncate text-[11px] text-white/55">{adminRole}</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="flex-1 space-y-4 overflow-y-auto px-2.5 py-3">
@@ -257,14 +258,17 @@ export function AdminShell({ adminName, adminRole, children }: AdminShellProps) 
               Open · {time}
             </span>
             <NotificationBell apiUrl="/api/admin/notifications" variant="dark" />
-            <div className="admin-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 sm:flex">
+            <Link
+              href="/admin/profile"
+              className="admin-user-chip hidden h-8 items-center gap-1.5 px-2 py-1 transition hover:bg-white/10 sm:flex"
+            >
               <div className="avatar !h-6 !w-6 !text-[10px]">
                 {adminName.slice(0, 2).toUpperCase()}
               </div>
               <span className="text-xs font-bold text-white">
                 {adminName.split(" ")[0]}
               </span>
-            </div>
+            </Link>
           </div>
         </header>
 

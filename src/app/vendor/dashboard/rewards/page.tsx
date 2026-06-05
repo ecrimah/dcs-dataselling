@@ -3,6 +3,7 @@ import { AdminPageIntro, AdminPageRoot } from "@/components/admin";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import { ensureVendorReferralCode } from "@/lib/referrals/vendor-referral";
 import { fetchVendorRewards } from "@/lib/vendor/extras";
 import { getTierConfigFromSettings } from "@/lib/vendor/tiers";
 import { RewardsClient } from "./rewards-client";
@@ -14,7 +15,10 @@ export default async function RewardsPage() {
   if (!vendor) redirect("/auth/login");
   if (!vendor.setupFeePaidAt) return <SetupFeeGate />;
 
-  const { balance, withdrawals } = await fetchVendorRewards(vendor.id);
+  const [referralCode, { balance, withdrawals }] = await Promise.all([
+    ensureVendorReferralCode(vendor.id),
+    fetchVendorRewards(vendor.id),
+  ]);
   const tierSettings = await getAgentTierSettings();
   const tierConfig = getTierConfigFromSettings(vendor.tier, tierSettings);
 
@@ -27,7 +31,7 @@ export default async function RewardsPage() {
       />
       <RewardsClient
         initialBalance={balance}
-        referralCode={vendor.referralCode ?? "—"}
+        referralCode={referralCode || vendor.referralCode || "—"}
         withdrawals={withdrawals}
         minWithdrawal={tierConfig.minWithdrawal}
       />

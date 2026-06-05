@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Package, Plus, Save } from "lucide-react";
+import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { toast } from "sonner";
 import {
   AdminDataTable,
@@ -22,6 +23,7 @@ import type { AdminWholesaleRow } from "@/lib/data/wholesale";
 
 interface Props {
   bundles: AdminWholesaleRow[];
+  wishlistIds?: string[];
 }
 
 const EMPTY_PRICES: WholesalePriceMatrix = {
@@ -44,7 +46,7 @@ function pricesFromRow(row: AdminWholesaleRow): WholesalePriceMatrix {
   };
 }
 
-export function WholesaleAdmin({ bundles: initial }: Props) {
+export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
   const router = useRouter();
   const [rows] = useState(initial);
   const [pending, setPending] = useState<string | null>(null);
@@ -243,6 +245,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
             <AdminTh>Super Agent</AdminTh>
             <AdminTh>Pro Agent</AdminTh>
             <AdminTh>Status</AdminTh>
+            <AdminTh>Save</AdminTh>
             <AdminTh />
           </AdminTableHead>
           <AdminTableBody>
@@ -252,6 +255,7 @@ export function WholesaleAdmin({ bundles: initial }: Props) {
                 row={row}
                 saving={pending === row.id}
                 onSave={saveRow}
+                wishlistSaved={wishlistIds.includes(row.id)}
               />
             ))}
           </AdminTableBody>
@@ -325,10 +329,12 @@ function WholesaleRowEditor({
   row,
   saving,
   onSave,
+  wishlistSaved = false,
 }: {
   row: AdminWholesaleRow;
   saving: boolean;
   onSave: (row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow> & { prices?: WholesalePriceMatrix }) => void;
+  wishlistSaved?: boolean;
 }) {
   const [prices, setPrices] = useState(() => pricesFromRow(row));
   const [minMarkup, setMinMarkup] = useState(row.minMarkup);
@@ -412,6 +418,14 @@ function WholesaleRowEditor({
           </label>
           {!active && <Badge variant="neutral">Hidden</Badge>}
         </div>
+      </td>
+      <td className="admin-table-td">
+        <WishlistToggle
+          bundleId={row.id}
+          apiBase="/api/admin/wishlist"
+          initialSaved={wishlistSaved}
+          className="border-border bg-slate-50 text-slate-500 hover:text-rose-500"
+        />
       </td>
       <td className="admin-table-td">
         <Button

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { applyCustomerOrderStatus } from "@/lib/admin/customer-order-status";
 import { syncWholesaleOrderFromItems } from "@/lib/admin/wholesale-order-sync";
+import { tryCreditReferralForWholesaleItem } from "@/lib/referrals/vendor-referral";
 import type { OrderStatus } from "@/lib/constants";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
@@ -79,6 +80,9 @@ export async function POST(request: Request) {
       updated += 1;
       const orderId = (row as { wholesale_order_id?: string } | null)?.wholesale_order_id;
       if (orderId) parentOrderIds.add(orderId);
+      if (status.data === "fulfilled") {
+        void tryCreditReferralForWholesaleItem(id);
+      }
     }
 
     for (const orderId of parentOrderIds) {

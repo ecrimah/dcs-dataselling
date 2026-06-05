@@ -6,6 +6,7 @@ import { getAgentTierSettings } from "@/lib/data/tier-settings";
 import { getTierConfigFromSettings } from "@/lib/vendor/tiers";
 import { smsOrderFulfilled } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
+import { tryCreditReferralForCustomerOrder } from "@/lib/referrals/vendor-referral";
 import type { OrderStatus } from "@/lib/constants";
 
 export async function applyCustomerOrderStatus(
@@ -72,6 +73,8 @@ export async function applyCustomerOrderStatus(
       reference: prev.reference,
       bundleLabel,
     });
+
+    void tryCreditReferralForCustomerOrder(prev.id);
   }
 
   return { ok: true };

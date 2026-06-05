@@ -11,7 +11,9 @@ import { getCurrentVendor } from "@/lib/auth/session";
 import { StoreIcon } from "@/components/vendor/store-icon";
 import { resolveThemeBackground } from "@/lib/vendor-theme";
 import { Button } from "@/components/ui/button";
+import { ReferralShareCard } from "@/components/vendor/referral-share-card";
 import { ShareKit } from "@/components/vendor/share-kit";
+import { fetchVendorReferralStats, getReferralRewardAmount } from "@/lib/referrals/vendor-referral";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,8 @@ export default async function StorefrontPage() {
   if (!vendor) redirect("/auth/login");
 
   const storeUrl = `${SITE.url.replace(/\/$/, "")}/vendor/${vendor.slug}`;
+  const referralStats = await fetchVendorReferralStats(vendor.id);
+  const rewardAmount = await getReferralRewardAmount();
 
   return (
     <AdminPageRoot>
@@ -66,13 +70,16 @@ export default async function StorefrontPage() {
         <ShareKit storeUrl={storeUrl} businessName={vendor.businessName} />
       </AdminSection>
 
-      <AdminSection title="Refer & earn" description="Invite friends to sell on DCS — earn ₵10 when they make their first sale." icon={Store}>
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-slate-50 px-3 py-2.5">
-          <code className="admin-promo-code flex-1">{vendor.referralCode}</code>
-          <Button size="sm" variant="ghost">
-            Copy code
-          </Button>
-        </div>
+      <AdminSection
+        title="Refer & earn"
+        description={`Invite friends to sell on DCS — earn ₵${rewardAmount.toFixed(0)} when they make their first sale.`}
+        icon={Store}
+      >
+        <ReferralShareCard
+          referralCode={referralStats.referralCode}
+          inviteLink={referralStats.inviteLink}
+          rewardAmount={rewardAmount}
+        />
       </AdminSection>
     </AdminPageRoot>
   );

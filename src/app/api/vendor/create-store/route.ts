@@ -5,6 +5,10 @@ import {
 } from "@/lib/payments/setup-fee";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import {
+  attachReferralOnSignup,
+  ensureVendorReferralCode,
+} from "@/lib/referrals/vendor-referral";
 import { tierUpdatesFor } from "@/lib/vendor/tiers";
 
 export async function POST(request: Request) {
@@ -88,6 +92,14 @@ export async function POST(request: Request) {
       .eq("id", vendorId);
 
     await linkSetupPaymentToVendor(setupPayment.id, vendorId as string, setupFeeReference);
+
+    await ensureVendorReferralCode(vendorId as string);
+    if (referralCode.trim()) {
+      const refResult = await attachReferralOnSignup(vendorId as string, referralCode);
+      if (!refResult.ok) {
+        console.warn("[create-store] referral:", refResult.error);
+      }
+    }
 
     return NextResponse.json({ vendorId, ok: true });
   } catch (e) {

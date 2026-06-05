@@ -26,6 +26,8 @@ export interface PlatformConfig {
    * Admin range: 1–3.
    */
   recipientOrderCooldownMinutes: number;
+  /** Reward (GHS) credited to referrer when an invited agent completes their first sale. */
+  referralRewardGhs: number;
   /** SMS-forwarder-based direct MoMo payment settings. */
   momoDirect: MomoDirectConfig;
 }
@@ -36,6 +38,7 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
       ? VENDOR_STORE_SETUP_FEE_GHS
       : 50,
   recipientOrderCooldownMinutes: 3,
+  referralRewardGhs: 10,
   momoDirect: {
     enabled: false,
     merchantNumbers: { mtn: "", telecel: "", at: "" },
@@ -57,6 +60,7 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
       1,
       3,
     ),
+    referralRewardGhs: clampNum(raw.referralRewardGhs, base.referralRewardGhs, 1, 10000),
     momoDirect: normalizeMomoDirect(raw.momoDirect, base.momoDirect),
   };
 }

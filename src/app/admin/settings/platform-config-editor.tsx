@@ -110,6 +110,24 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
             className="admin-form-field-input"
           />
         </Field>
+        <Field
+          label="Referral reward (GHS)"
+          hint="Amount credited to the referrer when an invited agent completes their first sale."
+        >
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={config.referralRewardGhs}
+            onChange={(e) =>
+              setConfig((c) => ({
+                ...c,
+                referralRewardGhs: Number(e.target.value),
+              }))
+            }
+            className="admin-form-field-input"
+          />
+        </Field>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">

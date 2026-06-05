@@ -2,6 +2,10 @@ import "server-only";
 
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { deliverVendorWebhook } from "@/lib/notifications/vendor-webhook";
+import {
+  tryCreditReferralForCustomerOrder,
+  tryCreditReferralForWholesaleItem,
+} from "@/lib/referrals/vendor-referral";
 import { getSupplierForNetwork } from "./registry";
 import type { SupplierClient, SupplierNetworkSlug } from "./types";
 
@@ -344,7 +348,10 @@ export async function resolveSupplierItemsProcessed(args: {
       })
       .in("supplier_order_code", args.orderCodes)
       .select("id");
-    customerOrdersFulfilled = (customerHits as unknown as { id: string }[] | null)?.length ?? 0;
+    const customerIds = ((customerHits as unknown as { id: string }[] | null) ?? []).map(
+      (r) => r.id,
+    );
+    customerOrdersFulfilled = customerIds.length;
 
     const { data: itemHits } = await service
       .from("wholesale_order_items")
@@ -356,7 +363,10 @@ export async function resolveSupplierItemsProcessed(args: {
       })
       .in("supplier_order_code", args.orderCodes)
       .select("id, wholesale_order_id");
-    wholesaleItemsFulfilled = (itemHits as unknown as { id: string }[] | null)?.length ?? 0;
+    const wholesaleItemIds = ((itemHits as unknown as { id: string }[] | null) ?? []).map(
+      (r) => r.id,
+    );
+    wholesaleItemsFulfilled = wholesaleItemIds.length;
 
     const parentIds = Array.from(
       new Set(
@@ -387,6 +397,11 @@ export async function resolveSupplierItemsProcessed(args: {
         await fireVendorWebhookForWholesaleOrder(parentId, "order.failed");
       }
     }
+
+    if (isFulfilled) {
+      for (const id of customerIds) void tryCreditReferralForCustomerOrder(id);
+      for (const id of wholesaleItemIds) void tryCreditReferralForWholesaleItem(id);
+    }
   }
 
   return { customerOrdersFulfilled, wholesaleItemsFulfilled };
@@ -411,8 +426,8 @@ export async function resolveSupplierDeliveryByReference(args: {
     (v): v is string => typeof v === "string" && v.length > 0,
   );
 
-  let customerOrdersFulfilled = 0;
-  let wholesaleItemsFulfilled = 0;
+  const customerIds = new Set<string>();
+  const wholesaleItemIds = new Set<string>();
 
   for (const ref of refs) {
     const customerPatch = {
@@ -426,9 +441,8 @@ export async function resolveSupplierDeliveryByReference(args: {
       service.from("orders").update(customerPatch).eq("supplier_reference", ref).select("id"),
       service.from("orders").update(customerPatch).eq("supplier_order_code", ref).select("id"),
     ]);
-    customerOrdersFulfilled +=
-      ((byRef.data as { id: string }[] | null)?.length ?? 0) +
-      ((byCode.data as { id: string }[] | null)?.length ?? 0);
+    for (const row of (byRef.data as { id: string }[] | null) ?? []) customerIds.add(row.id);
+    for (const row of (byCode.data as { id: string }[] | null) ?? []) customerIds.add(row.id);
 
     const itemPatch = {
       status: isFulfilled ? "fulfilled" : "failed",
@@ -441,7 +455,9 @@ export async function resolveSupplierDeliveryByReference(args: {
       .update(itemPatch)
       .eq("supplier_order_code", ref)
       .select("id, wholesale_order_id");
-    wholesaleItemsFulfilled += (itemHits as unknown as { id: string }[] | null)?.length ?? 0;
+    for (const row of (itemHits as unknown as { id: string }[] | null) ?? []) {
+      wholesaleItemIds.add(row.id);
+    }
 
     const parentIds = Array.from(
       new Set(
@@ -493,7 +509,15 @@ export async function resolveSupplierDeliveryByReference(args: {
     }
   }
 
-  return { customerOrdersFulfilled, wholesaleItemsFulfilled };
+  if (isFulfilled) {
+    for (const id of customerIds) void tryCreditReferralForCustomerOrder(id);
+    for (const id of wholesaleItemIds) void tryCreditReferralForWholesaleItem(id);
+  }
+
+  return {
+    customerOrdersFulfilled: customerIds.size,
+    wholesaleItemsFulfilled: wholesaleItemIds.size,
+  };
 }
 
 async function fireVendorWebhookForWholesaleOrder(

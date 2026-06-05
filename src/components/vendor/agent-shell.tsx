@@ -13,6 +13,7 @@ import {
   Activity,
   Store,
   Gift,
+  Heart,
   DollarSign,
   Tags,
   TrendingUp,
@@ -79,6 +80,7 @@ const NAV_SECTIONS: NavSection[] = [
           p.startsWith("/vendor/dashboard/transactions"),
       },
       { href: "/vendor/dashboard/wholesale", label: "Buy Data", icon: ShoppingCart, match: (p) => p.startsWith("/vendor/dashboard/wholesale") },
+      { href: "/vendor/dashboard/wishlist", label: "Wishlist", icon: Heart, match: (p) => p.startsWith("/vendor/dashboard/wishlist") },
       { href: "/vendor/dashboard/catalogue", label: "My Prices", icon: Tags, match: (p) => p.startsWith("/vendor/dashboard/catalogue") },
       { href: "/vendor/dashboard/earnings", label: "Earnings", icon: TrendingUp, match: (p) => p.startsWith("/vendor/dashboard/earnings") },
       { href: "/vendor/dashboard/storefront", label: "Storefront", icon: Store, match: (p) => p.startsWith("/vendor/dashboard/storefront") },
@@ -87,6 +89,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Account",
     items: [
+      { href: "/vendor/dashboard/referrals", label: "Referrals", icon: Gift, match: (p) => p.startsWith("/vendor/dashboard/referrals") },
       { href: "/vendor/dashboard/rewards", label: "Rewards", icon: Gift, match: (p) => p === "/vendor/dashboard/rewards" },
       { href: "/vendor/dashboard/rewards#withdraw", label: "Reward Withdrawal", icon: DollarSign, match: (p) => p.startsWith("/vendor/dashboard/rewards") },
       { href: "/vendor/dashboard/complaints", label: "My Complaints", icon: MessageSquare, match: (p) => p.startsWith("/vendor/dashboard/complaints") },

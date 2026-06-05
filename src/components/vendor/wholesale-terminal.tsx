@@ -10,6 +10,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { BulkOrdersPanel } from "@/components/vendor/bulk-orders-panel";
 import { toast } from "sonner";
 import type { NetworkId } from "@/lib/constants";
@@ -33,6 +34,7 @@ interface Props {
   initialMode?: Mode;
   openTopupOnMount?: boolean;
   openCartOnMount?: boolean;
+  wishlistIds?: string[];
 }
 
 const TOPUP_PRESETS = [50, 100, 200, 500];
@@ -62,6 +64,7 @@ export function WholesaleTerminal({
   initialMode = "shop",
   openTopupOnMount = false,
   openCartOnMount = false,
+  wishlistIds = [],
 }: Props) {
   const { cart, addLine, removeLine, clearCart } = useVendorCart();
   const [balance, setBalance] = useState(initialBalance);
@@ -331,9 +334,16 @@ export function WholesaleTerminal({
                           {formatDataAmount(wb.dataMb)} · {wb.validityDays}d
                         </p>
                       </div>
-                      <p className="num shrink-0 text-lg font-bold text-gold">
-                        {formatGHS(buyPrice(wb))}
-                      </p>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <WishlistToggle
+                          bundleId={wb.id}
+                          apiBase="/api/vendor/wishlist"
+                          initialSaved={wishlistIds.includes(wb.id)}
+                        />
+                        <p className="num text-lg font-bold text-gold">
+                          {formatGHS(buyPrice(wb))}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="mt-3 flex items-center gap-2 rounded-lg border border-white/10 bg-navy-950/60 px-3 py-2">

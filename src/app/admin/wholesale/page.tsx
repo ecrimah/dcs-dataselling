@@ -1,3 +1,5 @@
+import { getCurrentProfile } from "@/lib/auth/session";
+import { fetchAdminWishlistIds } from "@/lib/data/wishlist";
 import { fetchAdminWholesaleCatalogue } from "@/lib/data/wholesale";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { AdminConfigError, AdminPageIntro, AdminPageRoot } from "@/components/admin";
@@ -10,7 +12,11 @@ export default async function AdminWholesalePage() {
     return <AdminConfigError />;
   }
 
-  const bundles = await fetchAdminWholesaleCatalogue();
+  const profile = await getCurrentProfile();
+  const [bundles, wishlistIds] = await Promise.all([
+    fetchAdminWholesaleCatalogue(),
+    profile ? fetchAdminWishlistIds(profile.id) : Promise.resolve([]),
+  ]);
   const active = bundles.filter((b) => b.active).length;
 
   return (
@@ -20,7 +26,7 @@ export default async function AdminWholesalePage() {
         description="Set wholesale prices agents pay — they add markup in their own storefront catalogue."
         meta={`${bundles.length} bundles · ${active} active for vendors`}
       />
-      <WholesaleAdmin bundles={bundles} />
+      <WholesaleAdmin bundles={bundles} wishlistIds={wishlistIds} />
     </AdminPageRoot>
   );
 }

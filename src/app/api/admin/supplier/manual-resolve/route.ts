@@ -5,6 +5,7 @@ import { assertAdminApi } from "@/lib/auth/admin-api";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { smsOrderFulfilled } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
+import { tryCreditReferralForCustomerOrder } from "@/lib/referrals/vendor-referral";
 
 const schema = z.object({
   orderId: z.string().uuid(),
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
       reference: o.reference,
       bundleLabel,
     });
+
+    void tryCreditReferralForCustomerOrder(o.id);
 
     await service.from("supplier_logs").insert({
       supplier: "manual",

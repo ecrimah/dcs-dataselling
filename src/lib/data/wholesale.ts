@@ -5,10 +5,10 @@ import { normalizeWholesalePrices, resolveAgentBuyPrice } from "@/lib/wholesale/
 import type { VendorTier } from "@/types";
 import type { WholesaleBundle } from "@/types";
 
-const WHOLESALE_SELECT =
+export const WHOLESALE_SELECT =
   "id, sku, network, name, data_mb, validity_days, cost_price, customer_price, customer_pro_price, agent_price, agent_pro_price, xpress_agent_price, wholesale_price, suggested_retail, min_markup, max_markup, popular, active, product_line";
 
-interface WholesaleRow {
+export interface WholesaleRow {
   id: string;
   sku: string;
   network: NetworkId;
@@ -30,7 +30,7 @@ interface WholesaleRow {
   product_line?: string | null;
 }
 
-function rowToWholesale(row: WholesaleRow): WholesaleBundle {
+export function rowToWholesale(row: WholesaleRow): WholesaleBundle {
   const line = row.product_line as WholesaleBundle["productLine"];
   const prices = normalizeWholesalePrices({
     costPrice: row.cost_price ?? undefined,
