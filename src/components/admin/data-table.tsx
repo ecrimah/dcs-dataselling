@@ -3,16 +3,22 @@ import { cn } from "@/lib/utils";
 export function AdminDataTable({
   children,
   minWidth = "720px",
+  fluid = false,
   className,
 }: {
   children: React.ReactNode;
   minWidth?: string;
+  /** Fit table to container width without horizontal scroll */
+  fluid?: boolean;
   className?: string;
 }) {
   return (
-    <div className={cn("admin-data-table", className)}>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm" style={{ minWidth }}>
+    <div className={cn("admin-data-table", fluid && "admin-data-table-fluid", className)}>
+      <div className={cn(!fluid && "overflow-x-auto")}>
+        <table
+          className="w-full text-sm"
+          style={fluid ? undefined : { minWidth }}
+        >
           {children}
         </table>
       </div>
@@ -45,11 +51,17 @@ export function AdminTh({
 export function AdminTd({
   children,
   className,
+  title,
 }: {
   children: React.ReactNode;
   className?: string;
+  title?: string;
 }) {
-  return <td className={cn("admin-table-td", className)}>{children}</td>;
+  return (
+    <td className={cn("admin-table-td", className)} title={title}>
+      {children}
+    </td>
+  );
 }
 
 export function AdminTr({

@@ -2510,6 +2510,21 @@ body {
   border-radius: 0.625rem;
   background: #ffffff;
 }
+.admin-data-table-fluid table {
+  table-layout: fixed;
+  width: 100%;
+}
+.admin-data-table-fluid .admin-table-th,
+.admin-data-table-fluid .admin-table-td {
+  padding: 0.3125rem 0.4375rem;
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-data-table-fluid .admin-table-th {
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+}
 .admin-table-head-row {
   border-bottom: 1px solid #e5e7eb;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
@@ -3333,8 +3348,20 @@ body {
 .admin-vault-theme .hover\:bg-slate-100:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+.admin-vault-theme .hover\:bg-slate-50:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.admin-vault-theme .hover\:bg-slate-200:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
 .admin-vault-theme .hover\:bg-rose-50:hover {
   background: rgba(248, 113, 113, 0.1);
+}
+.admin-vault-theme .bg-slate-100 {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+.admin-vault-theme .bg-slate-200 {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .admin-vault-theme .border-slate-100,
@@ -3348,11 +3375,133 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Action bars / toolbars built for light theme */
+.admin-vault-theme .admin-action-bar {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Secondary & outline buttons — dark royal text on faux-white is unreadable */
+.admin-vault-theme .bg-white.text-royal,
+.admin-vault-theme button.bg-white.text-royal,
+.admin-vault-theme a.bg-white.text-royal {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+.admin-vault-theme .bg-white.text-royal:hover:not(:disabled),
+.admin-vault-theme button.bg-white.text-royal:hover:not(:disabled),
+.admin-vault-theme a.bg-white.text-royal:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+}
+.admin-vault-theme .border-slate-300.bg-white.text-foreground,
+.admin-vault-theme button.border-slate-300.bg-white {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+.admin-vault-theme .border-slate-300.bg-white.text-foreground:hover:not(:disabled),
+.admin-vault-theme button.border-slate-300.bg-white:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  color: #fff !important;
+}
+
+.admin-vault-theme .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+.admin-vault-theme .text-royal {
+  color: #f4d160;
+}
+.admin-vault-theme .bg-white.text-foreground,
+.admin-vault-theme button.bg-white.text-foreground,
+.admin-vault-theme a.bg-white.text-foreground {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+.admin-vault-theme .bg-white.text-foreground:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+}
+.admin-vault-theme .bg-slate-50.text-slate-500,
+.admin-vault-theme .border-border.bg-slate-50 {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Expandable log rows (SMS debugger, supplier console) */
+.admin-vault-theme .admin-log-row {
+  background: rgba(8, 23, 49, 0.55);
+}
+.admin-vault-theme .admin-log-row-trigger {
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .admin-log-row-trigger:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.admin-vault-theme .admin-log-row-detail {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+.admin-vault-theme .admin-log-code-block {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+.admin-vault-theme .admin-filter-chip {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.admin-vault-theme .admin-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme .admin-filter-chip.is-active {
+  background: rgba(212, 175, 55, 0.16);
+  border-color: rgba(212, 175, 55, 0.35);
+  color: #f4d160;
+}
+.admin-vault-theme .admin-status-sent {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+.admin-vault-theme .admin-status-failed {
+  background: rgba(248, 113, 113, 0.15) !important;
+  color: #fca5a5 !important;
+}
+.admin-vault-theme .admin-status-skipped {
+  background: rgba(251, 191, 36, 0.15) !important;
+  color: #fcd34d !important;
+}
+.admin-vault-theme .admin-status-neutral {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+.admin-vault-theme .text-red-600 {
+  color: #fca5a5 !important;
+}
+
 .admin-vault-theme select,
 .admin-vault-theme .admin-page-content select {
   background: rgba(8, 23, 49, 0.95);
   border-color: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-vault-theme main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-vault-theme .admin-page-content input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  background: rgba(8, 23, 49, 0.95);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
+}
+.admin-vault-theme main input::placeholder,
+.admin-vault-theme .admin-page-content input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
 }
 
 .admin-vault-theme .gold-progress {

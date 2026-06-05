@@ -10,9 +10,9 @@ const STATUS_FILTERS = ["all", "sent", "failed", "skipped"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
 const STATUS_STYLES: Record<SmsLogRow["status"], string> = {
-  sent: "bg-emerald-100 text-emerald-700",
-  failed: "bg-red-100 text-red-700",
-  skipped: "bg-amber-100 text-amber-700",
+  sent: "admin-status-sent",
+  failed: "admin-status-failed",
+  skipped: "admin-status-skipped",
 };
 
 export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
@@ -44,7 +44,7 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter by phone, template, message, or error…"
-            className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-3 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            className="w-full rounded-lg border border-border py-2 pl-9 pr-3 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
           />
         </div>
         <div className="flex gap-1">
@@ -54,10 +54,8 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
               type="button"
               onClick={() => setStatusFilter(s)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
-                statusFilter === s
-                  ? "bg-navy-900 text-white"
-                  : "bg-slate-100 text-muted hover:bg-slate-200",
+                "admin-filter-chip rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+                statusFilter === s && "is-active",
               )}
             >
               {s}
@@ -77,11 +75,11 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
           {filtered.map((log) => {
             const isOpen = expanded === log.id;
             return (
-              <li key={log.id} className="bg-white">
+              <li key={log.id} className="admin-log-row">
                 <button
                   type="button"
                   onClick={() => setExpanded(isOpen ? null : log.id)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                  className="admin-log-row-trigger flex w-full items-center gap-3 px-4 py-3 text-left transition-colors"
                 >
                   <span
                     className={cn(
@@ -112,7 +110,7 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
                   )}
                 </button>
                 {isOpen && (
-                  <div className="space-y-2 border-t border-border bg-slate-50 px-4 py-3 text-xs">
+                  <div className="admin-log-row-detail space-y-2 border-t border-border px-4 py-3 text-xs">
                     <DetailRow label="Sent" value={new Date(log.createdAt).toLocaleString()} />
                     <DetailRow label="Provider" value={log.provider} />
                     <DetailRow
@@ -130,7 +128,7 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                         Message
                       </p>
-                      <p className="mt-1 whitespace-pre-wrap rounded-lg bg-white p-2 text-foreground">
+                      <p className="admin-log-code-block mt-1 whitespace-pre-wrap rounded-lg p-2">
                         {log.message}
                       </p>
                     </div>
@@ -139,7 +137,7 @@ export function SmsLogTable({ logs }: { logs: SmsLogRow[] }) {
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                           Context
                         </p>
-                        <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-white p-2 font-mono text-[11px] text-foreground">
+                        <pre className="admin-log-code-block mt-1 max-h-40 overflow-auto rounded-lg p-2 font-mono text-[11px]">
                           {JSON.stringify(log.context, null, 2)}
                         </pre>
                       </div>

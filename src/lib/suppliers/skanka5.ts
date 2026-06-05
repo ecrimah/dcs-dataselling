@@ -86,6 +86,32 @@ export function normalizeMsisdn(raw: string): string | null {
   return null;
 }
 
+/**
+ * Map our catalogue `data_mb` (binary GB, e.g. 1024 = 1GB) to Skanka5 `volume_mb`
+ * values from `/fetch-data-packages` (decimal GB × 1000, e.g. 1GB → 1000).
+ */
+export function toSkanka5VolumeMb(dataMb: number): number {
+  if (!Number.isFinite(dataMb) || dataMb <= 0) return 0;
+  return Math.round(dataMb / 1024) * 1000;
+}
+
+function extractApiError(parsed: unknown, status: number): string {
+  if (!parsed || typeof parsed !== "object") return `HTTP ${status}`;
+  const obj = parsed as Record<string, unknown>;
+  if (typeof obj.message === "string" && obj.message.trim()) return obj.message.trim();
+  const errors = obj.errors;
+  if (errors && typeof errors === "object") {
+    const parts: string[] = [];
+    for (const value of Object.values(errors as Record<string, unknown>)) {
+      if (Array.isArray(value)) parts.push(...value.map(String));
+      else if (value != null) parts.push(String(value));
+    }
+    if (parts.length > 0) return parts.join("; ");
+  }
+  if (typeof obj.error === "string" && obj.error.trim()) return obj.error.trim();
+  return `HTTP ${status}`;
+}
+
 interface LogInput {
   eventType: "submit_single" | "submit_bulk" | "status_poll" | "webhook" | "ping";
   scope?: "customer_order" | "wholesale_order" | null;
@@ -152,11 +178,12 @@ async function call<T>(
     }
 
     if (!res.ok) {
-      const errMsg =
-        (parsed && typeof parsed === "object" && "message" in parsed
-          ? String((parsed as { message: unknown }).message)
-          : undefined) ?? `HTTP ${res.status}`;
-      return { ok: false, status: res.status, error: errMsg, data: parsed };
+      return {
+        ok: false,
+        status: res.status,
+        error: extractApiError(parsed, res.status),
+        data: parsed,
+      };
     }
     return { ok: true, status: res.status, data: parsed as T };
   } catch (err) {
@@ -204,7 +231,20 @@ export async function submitSingleOrder(
     return { ok: false, status: 0, error };
   }
 
-  const body = { network_id: networkId, msisdn, volume_mb: params.volumeMb };
+  const volumeMb = toSkanka5VolumeMb(params.volumeMb);
+  if (!volumeMb) {
+    const error = `Invalid volume_mb for Skanka5: ${params.volumeMb}`;
+    await logSupplierEvent({
+      eventType: "submit_single",
+      scope: params.scope,
+      reference: params.reference,
+      ok: false,
+      error,
+    });
+    return { ok: false, status: 0, error };
+  }
+
+  const body = { network_id: networkId, msisdn, volume_mb: volumeMb };
   const result = await call<Skanka5SubmitResponse>("POST", "/orders", {
     body,
     idempotencyKey: params.reference,
@@ -249,11 +289,15 @@ export async function submitBulkOrder(
   }
 
   const recipients = params.recipients
-    .map((r) => ({ msisdn: normalizeMsisdn(r.msisdn), volume_mb: r.volumeMb }))
-    .filter((r): r is { msisdn: string; volume_mb: number } => r.msisdn != null);
+    .map((r) => {
+      const msisdn = normalizeMsisdn(r.msisdn);
+      const volume_mb = toSkanka5VolumeMb(r.volumeMb);
+      return msisdn && volume_mb > 0 ? { msisdn, volume_mb } : null;
+    })
+    .filter((r): r is { msisdn: string; volume_mb: number } => r != null);
 
   if (recipients.length === 0) {
-    const error = "No valid recipients";
+    const error = "No valid recipients (check phone numbers and bundle sizes)";
     await logSupplierEvent({
       eventType: "submit_bulk",
       scope: params.scope,

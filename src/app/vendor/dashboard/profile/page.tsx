@@ -46,6 +46,7 @@ export default async function ProfilePage() {
       fullName={displayName}
       firstName={firstName}
       lastName={lastName}
+      avatarUrl={profile?.avatarUrl ?? null}
       email={profile?.email ?? "—"}
       phone={phone ?? vendor.momoNumber ?? null}
       whatsapp={vendor.whatsappNumber ?? null}

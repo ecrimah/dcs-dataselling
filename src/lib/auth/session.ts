@@ -21,7 +21,7 @@ export async function getCurrentProfile() {
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role")
+    .select("id, email, full_name, role, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -31,6 +31,7 @@ export async function getCurrentProfile() {
     id: data.id as string,
     email: data.email as string,
     fullName: (data.full_name as string | null) ?? null,
+    avatarUrl: (data.avatar_url as string | null) ?? null,
     role: data.role as UserRole,
   };
 }

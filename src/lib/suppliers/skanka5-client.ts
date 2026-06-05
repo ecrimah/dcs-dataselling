@@ -42,6 +42,18 @@ export const skanka5Client: SupplierClient = {
   },
 
   async submitBulk(params: SupplierSubmitBulkParams): Promise<SupplierSubmitResult> {
+    // Skanka5 docs: use POST /orders for a single flat body; /orders/bulk for arrays.
+    if (params.recipients.length === 1) {
+      const only = params.recipients[0]!;
+      return this.submitSingle({
+        network: params.network,
+        msisdn: only.msisdn,
+        volumeMb: only.volumeMb,
+        reference: params.reference,
+        scope: params.scope,
+      });
+    }
+
     const r = await submitBulkOrder({
       network: params.network,
       recipients: params.recipients,

@@ -42,7 +42,7 @@ export async function fetchAdminProfileRecord(userId: string): Promise<AdminProf
   const service = createServiceClient();
   const { data } = await service
     .from("profiles")
-    .select("id, email, full_name, phone, role, created_at")
+    .select("id, email, full_name, phone, role, avatar_url, created_at")
     .eq("id", userId)
     .maybeSingle();
 
@@ -54,6 +54,7 @@ export async function fetchAdminProfileRecord(userId: string): Promise<AdminProf
     full_name: string | null;
     phone: string | null;
     role: UserRole;
+    avatar_url: string | null;
     created_at: string;
   };
 
@@ -67,6 +68,7 @@ export async function fetchAdminProfileRecord(userId: string): Promise<AdminProf
     firstName,
     lastName,
     phone: row.phone,
+    avatarUrl: row.avatar_url,
     role: row.role,
     roleLabel: roleLabel(row.role),
     username: row.email.split("@")[0],

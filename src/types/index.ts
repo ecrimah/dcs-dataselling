@@ -22,6 +22,7 @@ export interface AdminProfileRecord {
   fullName: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
   phone: string | null;
   role: UserRole;
   roleLabel: string;

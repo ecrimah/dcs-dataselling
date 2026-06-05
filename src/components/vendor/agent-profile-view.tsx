@@ -11,11 +11,13 @@ import {
   UserCircle,
   Wallet,
 } from "lucide-react";
+import { DashboardModal } from "@/components/shared/dashboard-modal";
 import {
   DashboardInfoCard,
   DashboardInfoField,
   DashboardProfileHero,
 } from "@/components/shared/dashboard-page-hero";
+import { ProfilePhotoField } from "@/components/shared/profile-photo-field";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ export interface AgentProfileViewProps {
   fullName: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
   email: string;
   phone: string | null;
   whatsapp: string | null;
@@ -44,34 +47,6 @@ export interface AgentProfileViewProps {
   tierHint: string | null;
 }
 
-function ModalShell({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm font-medium text-slate-500 hover:text-slate-800"
-          >
-            Close
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export function AgentProfileView(props: AgentProfileViewProps) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -86,6 +61,7 @@ export function AgentProfileView(props: AgentProfileViewProps) {
     password: "",
     confirm: "",
   });
+  const [avatarUrl, setAvatarUrl] = useState(props.avatarUrl);
 
   const initials = props.fullName
     .split(/\s+/)
@@ -149,6 +125,7 @@ export function AgentProfileView(props: AgentProfileViewProps) {
         initials={initials || "AG"}
         fullName={props.fullName}
         email={props.email}
+        avatarUrl={avatarUrl}
         badges={
           <>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white">
@@ -300,71 +277,61 @@ export function AgentProfileView(props: AgentProfileViewProps) {
         </div>
       </DashboardInfoCard>
 
-      {editOpen && (
-        <ModalShell title="Edit profile" onClose={() => setEditOpen(false)}>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Full name
-              <Input
-                className="mt-1"
-                value={editForm.fullName}
-                onChange={(e) => setEditForm((f) => ({ ...f, fullName: e.target.value }))}
-              />
-            </label>
-            <label className="block text-sm font-medium text-slate-700">
-              Phone
-              <Input
-                className="mt-1"
-                value={editForm.phone}
-                onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder="0241234567"
-              />
-            </label>
-            <label className="block text-sm font-medium text-slate-700">
-              WhatsApp
-              <Input
-                className="mt-1"
-                value={editForm.whatsapp}
-                onChange={(e) => setEditForm((f) => ({ ...f, whatsapp: e.target.value }))}
-                placeholder="0241234567"
-              />
-            </label>
-            <Button className="w-full" disabled={saving} onClick={saveProfile}>
-              {saving ? "Saving…" : "Save changes"}
-            </Button>
-          </div>
-        </ModalShell>
-      )}
+      <DashboardModal open={editOpen} title="Edit profile" onClose={() => setEditOpen(false)}>
+        <div className="space-y-4">
+          <ProfilePhotoField
+            initials={initials || "AG"}
+            avatarUrl={avatarUrl}
+            uploadUrl="/api/vendor/profile/avatar"
+            onUploaded={(url) => {
+              setAvatarUrl(url);
+              router.refresh();
+            }}
+          />
+          <Input
+            label="Full name"
+            value={editForm.fullName}
+            onChange={(e) => setEditForm((f) => ({ ...f, fullName: e.target.value }))}
+          />
+          <Input
+            label="Phone"
+            value={editForm.phone}
+            onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
+            placeholder="0241234567"
+          />
+          <Input
+            label="WhatsApp"
+            value={editForm.whatsapp}
+            onChange={(e) => setEditForm((f) => ({ ...f, whatsapp: e.target.value }))}
+            placeholder="0241234567"
+          />
+          <Button className="w-full" disabled={saving} onClick={saveProfile}>
+            {saving ? "Saving…" : "Save changes"}
+          </Button>
+        </div>
+      </DashboardModal>
 
-      {passwordOpen && (
-        <ModalShell title="Change password" onClose={() => setPasswordOpen(false)}>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              New password
-              <Input
-                className="mt-1"
-                type="password"
-                value={passwordForm.password}
-                onChange={(e) => setPasswordForm((f) => ({ ...f, password: e.target.value }))}
-                autoComplete="new-password"
-              />
-            </label>
-            <label className="block text-sm font-medium text-slate-700">
-              Confirm password
-              <Input
-                className="mt-1"
-                type="password"
-                value={passwordForm.confirm}
-                onChange={(e) => setPasswordForm((f) => ({ ...f, confirm: e.target.value }))}
-                autoComplete="new-password"
-              />
-            </label>
-            <Button className="w-full" disabled={saving} onClick={savePassword}>
-              {saving ? "Updating…" : "Update password"}
-            </Button>
-          </div>
-        </ModalShell>
-      )}
+      <DashboardModal open={passwordOpen} title="Change password" onClose={() => setPasswordOpen(false)}>
+        <div className="space-y-4">
+          <Input
+            label="New password"
+            type="password"
+            value={passwordForm.password}
+            onChange={(e) => setPasswordForm((f) => ({ ...f, password: e.target.value }))}
+            autoComplete="new-password"
+          />
+          <Input
+            label="Confirm password"
+            type="password"
+            value={passwordForm.confirm}
+            onChange={(e) => setPasswordForm((f) => ({ ...f, confirm: e.target.value }))}
+            autoComplete="new-password"
+          />
+          <Button className="w-full" disabled={saving} onClick={savePassword}>
+            {saving ? "Updating…" : "Update password"}
+          </Button>
+        </div>
+      </DashboardModal>
     </div>
   );
 }

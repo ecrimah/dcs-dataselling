@@ -51,6 +51,7 @@ interface ProfileHeroProps {
   initials: string;
   fullName: string;
   email: string;
+  avatarUrl?: string | null;
   badges: React.ReactNode;
   actions: React.ReactNode;
 }
@@ -59,6 +60,7 @@ export function DashboardProfileHero({
   initials,
   fullName,
   email,
+  avatarUrl,
   badges,
   actions,
 }: ProfileHeroProps) {
@@ -67,9 +69,18 @@ export function DashboardProfileHero({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <div className="relative shrink-0">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/15 bg-white/10 text-2xl font-bold text-white backdrop-blur-sm sm:h-24 sm:w-24">
-              {initials}
-            </div>
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt=""
+                className="h-20 w-20 rounded-full border-2 border-white/15 object-cover shadow-md sm:h-24 sm:w-24"
+              />
+            ) : (
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/15 bg-white/10 text-2xl font-bold text-white backdrop-blur-sm sm:h-24 sm:w-24">
+                {initials}
+              </div>
+            )}
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-xl font-extrabold uppercase tracking-wide text-white sm:text-2xl">

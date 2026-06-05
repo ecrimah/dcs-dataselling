@@ -46,7 +46,7 @@ export function SupplierLogTable({ logs }: { logs: SupplierLogRow[] }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter by reference, supplier reference, scope, or error…"
-            className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-3 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+            className="w-full rounded-lg border border-border py-2 pl-9 pr-3 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
           />
         </div>
         <div className="flex flex-wrap gap-1">
@@ -56,10 +56,8 @@ export function SupplierLogTable({ logs }: { logs: SupplierLogRow[] }) {
               type="button"
               onClick={() => setEventFilter(s)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
-                eventFilter === s
-                  ? "bg-navy-900 text-white"
-                  : "bg-slate-100 text-muted hover:bg-slate-200",
+                "admin-filter-chip rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
+                eventFilter === s && "is-active",
               )}
             >
               {s.replace("_", " ")}
@@ -79,20 +77,20 @@ export function SupplierLogTable({ logs }: { logs: SupplierLogRow[] }) {
           {filtered.map((log) => {
             const isOpen = expanded === log.id;
             return (
-              <li key={log.id} className="bg-white">
+              <li key={log.id} className="admin-log-row">
                 <button
                   type="button"
                   onClick={() => setExpanded(isOpen ? null : log.id)}
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                  className="admin-log-row-trigger flex w-full items-center gap-3 px-4 py-3 text-left transition-colors"
                 >
                   <span
                     className={cn(
                       "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
                       log.ok === true
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "admin-status-sent"
                         : log.ok === false
-                          ? "bg-red-100 text-red-700"
-                          : "bg-slate-100 text-slate-600",
+                          ? "admin-status-failed"
+                          : "admin-status-neutral",
                     )}
                   >
                     {log.ok === true ? "ok" : log.ok === false ? "fail" : "info"}
@@ -126,7 +124,7 @@ export function SupplierLogTable({ logs }: { logs: SupplierLogRow[] }) {
                   )}
                 </button>
                 {isOpen && (
-                  <div className="space-y-3 border-t border-border bg-slate-50 px-4 py-3 text-xs">
+                  <div className="admin-log-row-detail space-y-3 border-t border-border px-4 py-3 text-xs">
                     <DetailRow label="Time" value={new Date(log.createdAt).toLocaleString()} />
                     <DetailRow label="Supplier" value={log.supplier} />
                     {log.scope && <DetailRow label="Scope" value={log.scope} />}
@@ -160,7 +158,7 @@ function Json({ label, value }: { label: string; value: unknown }) {
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted">{label}</p>
-      <pre className="mt-1 max-h-56 overflow-auto rounded-lg bg-white p-2 font-mono text-[11px] text-foreground">
+      <pre className="admin-log-code-block mt-1 max-h-56 overflow-auto rounded-lg p-2 font-mono text-[11px]">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>

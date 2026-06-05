@@ -78,6 +78,23 @@ function rowKey(row: AdminOrderBoardRow) {
   return `${row.kind}:${row.id}`;
 }
 
+function shortOrderCode(code: string) {
+  const tail = code.split("-").pop();
+  if (tail && tail.length <= 10) return tail;
+  return code.length > 10 ? `…${code.slice(-8)}` : code;
+}
+
+function shortAgentLabel(name: string, slug: string) {
+  if (slug) return `@${slug}`;
+  return name.length > 16 ? `${name.slice(0, 14)}…` : name;
+}
+
+function channelLabel(row: AdminOrderBoardRow) {
+  const type = row.orderType === "wholesale" ? "WS" : row.orderType === "bulk" ? "Bulk" : "Store";
+  const pay = row.paymentMethod === "wallet" ? "Wallet" : row.paymentMethod;
+  return `${type} · ${pay}`;
+}
+
 interface Props {
   rows: AdminOrderBoardRow[];
   initialStatus: string;
@@ -233,7 +250,7 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <select
-            className="h-9 rounded-lg border border-border bg-white px-3 text-sm"
+            className="h-9 rounded-lg border border-border px-3 text-sm"
             value={initialStatus}
             onChange={(e) => applyFilters(e.target.value, initialKind, search)}
           >
@@ -244,7 +261,7 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
             ))}
           </select>
           <select
-            className="h-9 rounded-lg border border-border bg-white px-3 text-sm"
+            className="h-9 rounded-lg border border-border px-3 text-sm"
             value={initialKind}
             onChange={(e) => applyFilters(initialStatus, e.target.value, search)}
           >
@@ -276,16 +293,16 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
           </form>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-slate-50/80 px-3 py-2">
+        <div className="admin-action-bar flex flex-wrap items-center gap-2 rounded-xl border border-border px-3 py-2">
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 hover:text-slate-900"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white"
             onClick={toggleAll}
           >
             {allSelected ? (
-              <CheckSquare className="h-4 w-4 text-amber-600" />
+              <CheckSquare className="h-4 w-4 text-amber-400" />
             ) : (
-              <Square className="h-4 w-4" />
+              <Square className="h-4 w-4 text-white/55" />
             )}
             {allSelected ? "Unmark all" : "Mark all"}
           </button>
@@ -299,7 +316,7 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
           )}
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <select
-              className="h-8 rounded-lg border border-border bg-white px-2 text-sm disabled:opacity-50"
+              className="h-8 rounded-lg border border-border px-2 text-sm disabled:opacity-50"
               value={bulkStatus}
               disabled={!someSelected || mixedKinds || pending}
               onChange={(e) => setBulkStatus(e.target.value)}
@@ -344,34 +361,26 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
           description="Try another status or clear filters to see recent agent and storefront orders."
         />
       ) : (
-        <AdminDataTable minWidth="1400px">
+        <AdminDataTable fluid>
           <AdminTableHead>
-            <AdminTh className="w-10">
+            <AdminTh className="w-8">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-border"
+                className="h-3.5 w-3.5 rounded border-border"
                 checked={allSelected}
                 onChange={toggleAll}
                 aria-label="Mark all"
               />
             </AdminTh>
-            <AdminTh>Order code</AdminTh>
-            <AdminTh>Package</AdminTh>
-            <AdminTh>Price</AdminTh>
-            <AdminTh>Beneficiary</AdminTh>
-            <AdminTh>Reference</AdminTh>
-            <AdminTh>Data</AdminTh>
-            <AdminTh>Ordered</AdminTh>
-            <AdminTh>Agent</AdminTh>
-            <AdminTh>Type</AdminTh>
-            <AdminTh>Payment</AdminTh>
-            <AdminTh>Status</AdminTh>
-            <AdminTh>Pay status</AdminTh>
-            <AdminTh>Commission</AdminTh>
-            <AdminTh>API status</AdminTh>
-            <AdminTh>API source</AdminTh>
-            <AdminTh>API ref</AdminTh>
-            <AdminTh className="w-12">Action</AdminTh>
+            <AdminTh className="w-[9%]">Code</AdminTh>
+            <AdminTh className="w-[14%]">Package</AdminTh>
+            <AdminTh className="w-[8%]">Price</AdminTh>
+            <AdminTh className="w-[11%]">Phone</AdminTh>
+            <AdminTh className="w-[10%]">Ordered</AdminTh>
+            <AdminTh className="w-[12%]">Agent</AdminTh>
+            <AdminTh className="w-[11%]">Channel</AdminTh>
+            <AdminTh className="w-[10%]">Status</AdminTh>
+            <AdminTh className="w-9">···</AdminTh>
           </AdminTableHead>
           <AdminTableBody>
             {rows.map((row) => {
@@ -382,44 +391,41 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                   <AdminTd>
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-border"
+                      className="h-3.5 w-3.5 rounded border-border"
                       checked={isSelected}
                       onChange={() => toggleRow(row)}
                       aria-label={`Select ${row.orderCode}`}
                     />
                   </AdminTd>
-                  <AdminTd className="font-mono text-xs font-semibold">{row.orderCode}</AdminTd>
-                  <AdminTd className="max-w-[140px] truncate">{row.packageName}</AdminTd>
+                  <AdminTd
+                    className="font-mono font-semibold"
+                    title={row.orderCode}
+                  >
+                    {shortOrderCode(row.orderCode)}
+                  </AdminTd>
+                  <AdminTd title={`${row.packageName} · ${row.dataVolume}`}>
+                    <span className="block truncate">{row.packageName}</span>
+                  </AdminTd>
                   <AdminTd className="num font-medium">{formatGHS(row.price)}</AdminTd>
-                  <AdminTd>{formatPhone(row.beneficiary)}</AdminTd>
-                  <AdminTd className="font-mono text-xs text-muted">{row.orderReference}</AdminTd>
-                  <AdminTd>{row.dataVolume}</AdminTd>
-                  <AdminTd className="whitespace-nowrap text-xs text-muted">
-                    {format(new Date(row.orderedAt), "yyyy-MM-dd HH:mm")}
+                  <AdminTd className="whitespace-nowrap">{formatPhone(row.beneficiary)}</AdminTd>
+                  <AdminTd className="whitespace-nowrap text-muted">
+                    {format(new Date(row.orderedAt), "M/d HH:mm")}
+                  </AdminTd>
+                  <AdminTd title={row.agentSlug ? `${row.agentName} (@${row.agentSlug})` : row.agentName}>
+                    {shortAgentLabel(row.agentName, row.agentSlug)}
+                  </AdminTd>
+                  <AdminTd className="capitalize" title={channelLabel(row)}>
+                    {channelLabel(row)}
                   </AdminTd>
                   <AdminTd>
-                    <span className="block text-sm">{row.agentName}</span>
-                    {row.agentSlug ? (
-                      <span className="text-xs text-muted">@{row.agentSlug}</span>
-                    ) : null}
-                  </AdminTd>
-                  <AdminTd className="capitalize text-xs">{row.orderType}</AdminTd>
-                  <AdminTd className="capitalize text-xs">{row.paymentMethod}</AdminTd>
-                  <AdminTd>
-                    <Badge variant={STATUS_VARIANT[row.orderStatus] ?? "default"}>
+                    <Badge
+                      variant={STATUS_VARIANT[row.orderStatus] ?? "default"}
+                      className="max-w-full truncate text-[10px]"
+                    >
                       {row.orderStatus}
                     </Badge>
                   </AdminTd>
-                  <AdminTd className="text-xs capitalize">{row.paymentStatus}</AdminTd>
-                  <AdminTd className="num text-xs">
-                    {row.commission != null ? formatGHS(row.commission) : "—"}
-                  </AdminTd>
-                  <AdminTd className="max-w-[100px] truncate text-xs">{row.apiStatus ?? "—"}</AdminTd>
-                  <AdminTd className="text-xs">{row.apiSource ?? "—"}</AdminTd>
-                  <AdminTd className="max-w-[90px] truncate font-mono text-xs">
-                    {row.apiReference ?? "—"}
-                  </AdminTd>
-                  <AdminTd className="relative">
+                  <AdminTd className="relative !overflow-visible">
                     <button
                       type="button"
                       className="rounded-lg p-1 hover:bg-slate-100"
@@ -429,7 +435,34 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                     {actionOpen === key && (
-                      <div className="absolute right-0 top-full z-20 min-w-[180px] rounded-lg border border-border bg-white py-1 shadow-lg">
+                      <div
+                        className="absolute right-0 top-full z-20 w-72 rounded-lg border border-slate-200 py-1 shadow-lg"
+                        style={{ backgroundColor: "#ffffff", color: "#334155" }}
+                      >
+                        <div className="space-y-1 border-b border-slate-200 px-3 py-2 text-[11px]">
+                          <p>
+                            <span className="font-semibold text-slate-800">Code:</span>{" "}
+                            <span className="font-mono">{row.orderCode}</span>
+                          </p>
+                          <p>
+                            <span className="font-semibold text-slate-800">Ref:</span>{" "}
+                            <span className="font-mono">{row.orderReference}</span>
+                          </p>
+                          <p>
+                            <span className="font-semibold text-slate-800">Data:</span> {row.dataVolume}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-slate-800">Pay:</span>{" "}
+                            {row.paymentStatus}
+                            {row.commission != null ? ` · ${formatGHS(row.commission)} fee` : ""}
+                          </p>
+                          {(row.apiStatus || row.apiSource || row.apiReference) && (
+                            <p>
+                              <span className="font-semibold text-slate-800">API:</span>{" "}
+                              {[row.apiStatus, row.apiSource, row.apiReference].filter(Boolean).join(" · ")}
+                            </p>
+                          )}
+                        </div>
                         {(row.kind === "wholesale_item"
                           ? WHOLESALE_BULK_STATUS
                           : CUSTOMER_BULK_STATUS
