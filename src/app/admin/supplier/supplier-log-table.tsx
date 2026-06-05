@@ -101,7 +101,7 @@ export function SupplierLogTable({ logs }: { logs: SupplierLogRow[] }) {
                         {log.eventType}
                       </span>
                       {log.reference && (
-                        <span className="text-xs font-bold text-foreground">{log.reference}</span>
+                        <span className="admin-log-ref text-xs font-bold">{log.reference}</span>
                       )}
                       {log.supplierReference && (
                         <span className="text-[11px] text-muted">→ {log.supplierReference}</span>

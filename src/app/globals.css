@@ -2510,20 +2510,42 @@ body {
   border-radius: 0.625rem;
   background: #ffffff;
 }
+.admin-data-table-fluid {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 .admin-data-table-fluid table {
   table-layout: fixed;
   width: 100%;
+  max-width: 100%;
 }
 .admin-data-table-fluid .admin-table-th,
 .admin-data-table-fluid .admin-table-td {
   padding: 0.3125rem 0.4375rem;
   font-size: 0.75rem;
+  max-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .admin-data-table-fluid .admin-table-th {
   font-size: 0.5625rem;
   letter-spacing: 0.06em;
+}
+.admin-data-table-fluid .admin-table-th:first-child,
+.admin-data-table-fluid .admin-table-td:first-child,
+.admin-data-table-fluid .admin-table-th:last-child,
+.admin-data-table-fluid .admin-table-td:last-child {
+  max-width: none;
+  width: 2rem;
+}
+.admin-page-content {
+  min-width: 0;
+  overflow-x: hidden;
+}
+.admin-section.section-card {
+  min-width: 0;
+  overflow-x: hidden;
 }
 .admin-table-head-row {
   border-bottom: 1px solid #e5e7eb;
@@ -3441,6 +3463,12 @@ body {
 }
 .admin-vault-theme .admin-log-row-trigger:hover {
   background: rgba(255, 255, 255, 0.08) !important;
+}
+.admin-vault-theme .admin-log-ref {
+  color: #fff !important;
+}
+.admin-vault-theme .admin-log-row-trigger:hover .admin-log-ref {
+  color: #f4d160 !important;
 }
 .admin-vault-theme .admin-log-row-detail {
   background: rgba(255, 255, 255, 0.04);

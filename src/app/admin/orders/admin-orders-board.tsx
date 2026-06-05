@@ -84,11 +84,6 @@ function shortOrderCode(code: string) {
   return code.length > 10 ? `…${code.slice(-8)}` : code;
 }
 
-function shortAgentLabel(name: string, slug: string) {
-  if (slug) return `@${slug}`;
-  return name.length > 16 ? `${name.slice(0, 14)}…` : name;
-}
-
 function channelLabel(row: AdminOrderBoardRow) {
   const type = row.orderType === "wholesale" ? "WS" : row.orderType === "bulk" ? "Bulk" : "Store";
   const pay = row.paymentMethod === "wallet" ? "Wallet" : row.paymentMethod;
@@ -372,15 +367,12 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                 aria-label="Mark all"
               />
             </AdminTh>
-            <AdminTh className="w-[9%]">Code</AdminTh>
-            <AdminTh className="w-[14%]">Package</AdminTh>
-            <AdminTh className="w-[8%]">Price</AdminTh>
-            <AdminTh className="w-[11%]">Phone</AdminTh>
-            <AdminTh className="w-[10%]">Ordered</AdminTh>
-            <AdminTh className="w-[12%]">Agent</AdminTh>
-            <AdminTh className="w-[11%]">Channel</AdminTh>
-            <AdminTh className="w-[10%]">Status</AdminTh>
-            <AdminTh className="w-9">···</AdminTh>
+            <AdminTh>Phone</AdminTh>
+            <AdminTh>Package</AdminTh>
+            <AdminTh>Price</AdminTh>
+            <AdminTh>Code</AdminTh>
+            <AdminTh>Status</AdminTh>
+            <AdminTh className="w-8">···</AdminTh>
           </AdminTableHead>
           <AdminTableBody>
             {rows.map((row) => {
@@ -397,25 +389,18 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                       aria-label={`Select ${row.orderCode}`}
                     />
                   </AdminTd>
-                  <AdminTd
-                    className="font-mono font-semibold"
-                    title={row.orderCode}
-                  >
-                    {shortOrderCode(row.orderCode)}
+                  <AdminTd className="num" title={formatPhone(row.beneficiary)}>
+                    {formatPhone(row.beneficiary)}
                   </AdminTd>
                   <AdminTd title={`${row.packageName} · ${row.dataVolume}`}>
                     <span className="block truncate">{row.packageName}</span>
                   </AdminTd>
                   <AdminTd className="num font-medium">{formatGHS(row.price)}</AdminTd>
-                  <AdminTd className="whitespace-nowrap">{formatPhone(row.beneficiary)}</AdminTd>
-                  <AdminTd className="whitespace-nowrap text-muted">
-                    {format(new Date(row.orderedAt), "M/d HH:mm")}
-                  </AdminTd>
-                  <AdminTd title={row.agentSlug ? `${row.agentName} (@${row.agentSlug})` : row.agentName}>
-                    {shortAgentLabel(row.agentName, row.agentSlug)}
-                  </AdminTd>
-                  <AdminTd className="capitalize" title={channelLabel(row)}>
-                    {channelLabel(row)}
+                  <AdminTd
+                    className="font-mono font-semibold"
+                    title={row.orderCode}
+                  >
+                    {shortOrderCode(row.orderCode)}
                   </AdminTd>
                   <AdminTd>
                     <Badge
@@ -440,6 +425,18 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                         style={{ backgroundColor: "#ffffff", color: "#334155" }}
                       >
                         <div className="space-y-1 border-b border-slate-200 px-3 py-2 text-[11px]">
+                          <p>
+                            <span className="font-semibold text-slate-800">Ordered:</span>{" "}
+                            {format(new Date(row.orderedAt), "yyyy-MM-dd HH:mm")}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-slate-800">Agent:</span>{" "}
+                            {row.agentSlug ? `${row.agentName} (@${row.agentSlug})` : row.agentName}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-slate-800">Channel:</span>{" "}
+                            {channelLabel(row)}
+                          </p>
                           <p>
                             <span className="font-semibold text-slate-800">Code:</span>{" "}
                             <span className="font-mono">{row.orderCode}</span>

@@ -13,10 +13,16 @@ export function AdminDataTable({
   className?: string;
 }) {
   return (
-    <div className={cn("admin-data-table", fluid && "admin-data-table-fluid", className)}>
-      <div className={cn(!fluid && "overflow-x-auto")}>
+    <div
+      className={cn(
+        "admin-data-table min-w-0 max-w-full",
+        fluid && "admin-data-table-fluid",
+        className,
+      )}
+    >
+      <div className={cn(fluid ? "max-w-full overflow-x-hidden" : "overflow-x-auto")}>
         <table
-          className="w-full text-sm"
+          className="w-full max-w-full text-sm"
           style={fluid ? undefined : { minWidth }}
         >
           {children}
