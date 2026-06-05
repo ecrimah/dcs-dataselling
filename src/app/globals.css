@@ -3464,6 +3464,21 @@ body {
 .admin-vault-theme .admin-log-row-trigger:hover {
   background: rgba(255, 255, 255, 0.08) !important;
 }
+.admin-vault-theme .admin-ping-result.is-ok {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #6ee7b7 !important;
+}
+.admin-vault-theme .admin-ping-result.is-error {
+  border-color: rgba(248, 113, 113, 0.35) !important;
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: #fca5a5 !important;
+}
+.admin-vault-theme .admin-ping-result-pre {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92) !important;
+}
 .admin-vault-theme .admin-log-ref {
   color: #fff !important;
 }

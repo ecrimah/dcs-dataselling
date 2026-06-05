@@ -20,12 +20,22 @@ export async function POST(request: Request) {
     }
     const result = await pingSuccessBizHub();
     if (!result.ok || result.data.success === false) {
+      const err = result.ok ? (result.data.error ?? "Ping failed") : result.error;
+      const hint =
+        err.toLowerCase().includes("invalid") || err.toLowerCase().includes("inactive")
+          ? " Check the key in your Success Biz Hub developer dashboard — it must be active and copied exactly into SUCCESSBIZHUB_API_KEY (local + Vercel)."
+          : "";
       return NextResponse.json(
-        { ok: false, error: result.ok ? (result.data.error ?? "Ping failed") : result.error },
+        { ok: false, error: `${err}${hint}` },
         { status: 502 },
       );
     }
-    return NextResponse.json({ ok: true, supplier: "successbizhub", balance: result.data });
+    return NextResponse.json({
+      ok: true,
+      supplier: "successbizhub",
+      label: "Wallet balance",
+      data: result.data,
+    });
   }
 
   const client = getSupplierById(supplierId);
@@ -34,7 +44,12 @@ export async function POST(request: Request) {
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.error ?? "Ping failed" }, { status: 502 });
     }
-    return NextResponse.json({ ok: true, supplier: supplierId, raw: result.raw });
+    return NextResponse.json({
+      ok: true,
+      supplier: supplierId,
+      label: supplierId === "skanka5" ? "Networks" : "Response",
+      data: result.raw,
+    });
   }
 
   if (!isSkanka5Configured()) {
@@ -47,5 +62,10 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
-  return NextResponse.json({ ok: true, supplier: "skanka5", networks: result.data });
+  return NextResponse.json({
+    ok: true,
+    supplier: "skanka5",
+    label: "Networks",
+    data: result.data,
+  });
 }

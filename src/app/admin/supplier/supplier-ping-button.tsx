@@ -17,7 +17,7 @@ export function SupplierPingButton({
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<
     | { kind: "idle" }
-    | { kind: "ok"; networks: unknown }
+    | { kind: "ok"; label: string; data: unknown }
     | { kind: "error"; error: string }
   >({ kind: "idle" });
 
@@ -28,7 +28,7 @@ export function SupplierPingButton({
         method: "POST",
       });
       const data = (await res.json()) as
-        | { ok: true; networks: unknown }
+        | { ok: true; label?: string; data: unknown; networks?: unknown; balance?: unknown; raw?: unknown }
         | { ok: false; error: string };
       if (!res.ok || !("ok" in data) || !data.ok) {
         setStatus({
@@ -37,7 +37,14 @@ export function SupplierPingButton({
         });
         return;
       }
-      setStatus({ kind: "ok", networks: data.networks });
+      const payload = data.data ?? data.networks ?? data.balance ?? data.raw ?? null;
+      setStatus({
+        kind: "ok",
+        label:
+          data.label ??
+          (supplier === "successbizhub" ? "Wallet balance" : "Networks"),
+        data: payload,
+      });
       startTransition(() => router.refresh());
     } catch (err) {
       setStatus({
@@ -46,6 +53,11 @@ export function SupplierPingButton({
       });
     }
   }
+
+  const successTitle =
+    supplier === "successbizhub"
+      ? "Connected. Wallet response:"
+      : "Connected. Networks returned:";
 
   return (
     <div className="space-y-3">
@@ -60,19 +72,29 @@ export function SupplierPingButton({
       </button>
 
       {status.kind === "ok" && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
-          <p className="font-semibold">Connected. Networks returned:</p>
-          <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-white p-2 font-mono text-[11px] text-foreground">
-            {JSON.stringify(status.networks, null, 2)}
+        <div className="admin-ping-result is-ok rounded-xl border p-3 text-xs">
+          <p className="font-semibold">{successTitle}</p>
+          <pre className="admin-ping-result-pre mt-2 max-h-48 overflow-auto rounded-lg p-2 font-mono text-[11px]">
+            {formatPingPayload(status.data)}
           </pre>
         </div>
       )}
       {status.kind === "error" && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900">
+        <div className="admin-ping-result is-error rounded-xl border p-3 text-xs">
           <p className="font-semibold">Ping failed</p>
-          <p className="mt-1">{status.error}</p>
+          <p className="mt-1 whitespace-pre-wrap">{status.error}</p>
         </div>
       )}
     </div>
   );
+}
+
+function formatPingPayload(data: unknown): string {
+  if (data == null) return "(empty response)";
+  if (typeof data === "string") return data;
+  try {
+    return JSON.stringify(data, null, 2);
+  } catch {
+    return String(data);
+  }
 }
