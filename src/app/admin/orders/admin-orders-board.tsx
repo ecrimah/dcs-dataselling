@@ -78,18 +78,6 @@ function rowKey(row: AdminOrderBoardRow) {
   return `${row.kind}:${row.id}`;
 }
 
-function shortOrderCode(code: string) {
-  const tail = code.split("-").pop();
-  if (tail && tail.length <= 10) return tail;
-  return code.length > 10 ? `…${code.slice(-8)}` : code;
-}
-
-function channelLabel(row: AdminOrderBoardRow) {
-  const type = row.orderType === "wholesale" ? "WS" : row.orderType === "bulk" ? "Bulk" : "Store";
-  const pay = row.paymentMethod === "wallet" ? "Wallet" : row.paymentMethod;
-  return `${type} · ${pay}`;
-}
-
 interface Props {
   rows: AdminOrderBoardRow[];
   initialStatus: string;
@@ -356,23 +344,34 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
           description="Try another status or clear filters to see recent agent and storefront orders."
         />
       ) : (
-        <AdminDataTable fluid>
+        <AdminDataTable minWidth="1400px">
           <AdminTableHead>
-            <AdminTh className="w-8">
+            <AdminTh className="w-10">
               <input
                 type="checkbox"
-                className="h-3.5 w-3.5 rounded border-border"
+                className="h-4 w-4 rounded border-border"
                 checked={allSelected}
                 onChange={toggleAll}
                 aria-label="Mark all"
               />
             </AdminTh>
-            <AdminTh>Phone</AdminTh>
+            <AdminTh>Order code</AdminTh>
             <AdminTh>Package</AdminTh>
             <AdminTh>Price</AdminTh>
-            <AdminTh>Code</AdminTh>
+            <AdminTh>Beneficiary</AdminTh>
+            <AdminTh>Reference</AdminTh>
+            <AdminTh>Data</AdminTh>
+            <AdminTh>Ordered</AdminTh>
+            <AdminTh>Agent</AdminTh>
+            <AdminTh>Type</AdminTh>
+            <AdminTh>Payment</AdminTh>
             <AdminTh>Status</AdminTh>
-            <AdminTh className="w-8">···</AdminTh>
+            <AdminTh>Pay status</AdminTh>
+            <AdminTh>Commission</AdminTh>
+            <AdminTh>API status</AdminTh>
+            <AdminTh>API source</AdminTh>
+            <AdminTh>API ref</AdminTh>
+            <AdminTh className="w-12">Action</AdminTh>
           </AdminTableHead>
           <AdminTableBody>
             {rows.map((row) => {
@@ -383,34 +382,44 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                   <AdminTd>
                     <input
                       type="checkbox"
-                      className="h-3.5 w-3.5 rounded border-border"
+                      className="h-4 w-4 rounded border-border"
                       checked={isSelected}
                       onChange={() => toggleRow(row)}
                       aria-label={`Select ${row.orderCode}`}
                     />
                   </AdminTd>
-                  <AdminTd className="num" title={formatPhone(row.beneficiary)}>
-                    {formatPhone(row.beneficiary)}
-                  </AdminTd>
-                  <AdminTd title={`${row.packageName} · ${row.dataVolume}`}>
-                    <span className="block truncate">{row.packageName}</span>
-                  </AdminTd>
+                  <AdminTd className="font-mono text-xs font-semibold">{row.orderCode}</AdminTd>
+                  <AdminTd className="max-w-[140px] truncate">{row.packageName}</AdminTd>
                   <AdminTd className="num font-medium">{formatGHS(row.price)}</AdminTd>
-                  <AdminTd
-                    className="font-mono font-semibold"
-                    title={row.orderCode}
-                  >
-                    {shortOrderCode(row.orderCode)}
+                  <AdminTd>{formatPhone(row.beneficiary)}</AdminTd>
+                  <AdminTd className="font-mono text-xs text-muted">{row.orderReference}</AdminTd>
+                  <AdminTd>{row.dataVolume}</AdminTd>
+                  <AdminTd className="whitespace-nowrap text-xs text-muted">
+                    {format(new Date(row.orderedAt), "yyyy-MM-dd HH:mm")}
                   </AdminTd>
                   <AdminTd>
-                    <Badge
-                      variant={STATUS_VARIANT[row.orderStatus] ?? "default"}
-                      className="max-w-full truncate text-[10px]"
-                    >
+                    <span className="block text-sm">{row.agentName}</span>
+                    {row.agentSlug ? (
+                      <span className="text-xs text-muted">@{row.agentSlug}</span>
+                    ) : null}
+                  </AdminTd>
+                  <AdminTd className="capitalize text-xs">{row.orderType}</AdminTd>
+                  <AdminTd className="capitalize text-xs">{row.paymentMethod}</AdminTd>
+                  <AdminTd>
+                    <Badge variant={STATUS_VARIANT[row.orderStatus] ?? "default"}>
                       {row.orderStatus}
                     </Badge>
                   </AdminTd>
-                  <AdminTd className="relative !overflow-visible">
+                  <AdminTd className="text-xs capitalize">{row.paymentStatus}</AdminTd>
+                  <AdminTd className="num text-xs">
+                    {row.commission != null ? formatGHS(row.commission) : "—"}
+                  </AdminTd>
+                  <AdminTd className="max-w-[100px] truncate text-xs">{row.apiStatus ?? "—"}</AdminTd>
+                  <AdminTd className="text-xs">{row.apiSource ?? "—"}</AdminTd>
+                  <AdminTd className="max-w-[90px] truncate font-mono text-xs">
+                    {row.apiReference ?? "—"}
+                  </AdminTd>
+                  <AdminTd className="relative">
                     <button
                       type="button"
                       className="rounded-lg p-1 hover:bg-slate-100"
@@ -421,45 +430,9 @@ export function AdminOrdersBoard({ rows, initialStatus, initialKind, initialQ }:
                     </button>
                     {actionOpen === key && (
                       <div
-                        className="absolute right-0 top-full z-20 w-72 rounded-lg border border-slate-200 py-1 shadow-lg"
+                        className="absolute right-0 top-full z-20 min-w-[180px] rounded-lg border border-slate-200 py-1 shadow-lg"
                         style={{ backgroundColor: "#ffffff", color: "#334155" }}
                       >
-                        <div className="space-y-1 border-b border-slate-200 px-3 py-2 text-[11px]">
-                          <p>
-                            <span className="font-semibold text-slate-800">Ordered:</span>{" "}
-                            {format(new Date(row.orderedAt), "yyyy-MM-dd HH:mm")}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Agent:</span>{" "}
-                            {row.agentSlug ? `${row.agentName} (@${row.agentSlug})` : row.agentName}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Channel:</span>{" "}
-                            {channelLabel(row)}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Code:</span>{" "}
-                            <span className="font-mono">{row.orderCode}</span>
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Ref:</span>{" "}
-                            <span className="font-mono">{row.orderReference}</span>
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Data:</span> {row.dataVolume}
-                          </p>
-                          <p>
-                            <span className="font-semibold text-slate-800">Pay:</span>{" "}
-                            {row.paymentStatus}
-                            {row.commission != null ? ` · ${formatGHS(row.commission)} fee` : ""}
-                          </p>
-                          {(row.apiStatus || row.apiSource || row.apiReference) && (
-                            <p>
-                              <span className="font-semibold text-slate-800">API:</span>{" "}
-                              {[row.apiStatus, row.apiSource, row.apiReference].filter(Boolean).join(" · ")}
-                            </p>
-                          )}
-                        </div>
                         {(row.kind === "wholesale_item"
                           ? WHOLESALE_BULK_STATUS
                           : CUSTOMER_BULK_STATUS
