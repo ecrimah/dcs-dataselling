@@ -78,8 +78,9 @@ export function SupplierRoutingControls({
           Admin routing control
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Assign any network to Skanka5, Success Biz Hub, or manual fulfilment — no redeploy needed.
-          Unset rows follow <code>SUPPLIER_FOR_*</code> env defaults.
+          Every network has the same three choices: <strong>Manual</strong>, <strong>Skanka5</strong>, or{" "}
+          <strong>Success Biz Hub</strong>. No redeploy needed. If you have not picked one here, the{" "}
+          <code>SUPPLIER_FOR_*</code> env default applies.
         </p>
       </div>
 

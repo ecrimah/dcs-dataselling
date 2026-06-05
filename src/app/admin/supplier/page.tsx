@@ -64,8 +64,13 @@ export default async function SupplierConsolePage() {
     { name: "SUCCESSBIZHUB_OFFER_SLUG_AT", present: Boolean(process.env.SUCCESSBIZHUB_OFFER_SLUG_AT), required: false },
   ];
 
-  const automatedNetworks = matrix.filter((m) => !m.manual).length;
   const manualNetworks = matrix.filter((m) => m.manual).length;
+
+  const SUPPLIER_SHORT: Record<string, string> = {
+    skanka5: "Skanka5",
+    successbizhub: "Success Biz Hub",
+    manual: "Manual",
+  };
 
   const envChecks: Array<{ name: string; present: boolean; required: boolean }> = [
     { name: "SKANKA5_API_KEY", present: Boolean(process.env.SKANKA5_API_KEY), required: true },
@@ -86,14 +91,24 @@ export default async function SupplierConsolePage() {
     <AdminPageRoot>
       <AdminPageIntro
         badge="Data fulfilment"
-        description="Per-network routing for automated supplier dispatch. Every submit, poll, and webhook is recorded."
-        meta={`${automatedNetworks}/${matrix.length} automated · ${summary.awaitingManual} awaiting manual`}
+        description="All 3 networks can use Skanka5, Success Biz Hub, or manual fulfilment — switch any time in routing control below."
+        meta={`${summary.awaitingManual} order${summary.awaitingManual === 1 ? "" : "s"} awaiting manual fulfilment`}
         actions={
           <div className="flex flex-wrap gap-1.5">
-            <AdminStatusBadge ok={automatedNetworks > 0} okText={`Automated · ${automatedNetworks}/${matrix.length}`} failText="No automation" />
-            {manualNetworks > 0 && (
-              <span className="admin-status-badge is-warn">Manual · {manualNetworks}</span>
-            )}
+            {matrix.map((row) => (
+              <span
+                key={row.network}
+                className={
+                  row.manual
+                    ? "admin-status-badge is-warn"
+                    : row.configured
+                      ? "admin-status-badge is-ok"
+                      : "admin-status-badge is-warn"
+                }
+              >
+                {NETWORK_LABEL[row.network]} · {SUPPLIER_SHORT[row.supplierId] ?? row.supplierId}
+              </span>
+            ))}
           </div>
         }
       />
@@ -138,9 +153,13 @@ export default async function SupplierConsolePage() {
           sbhConfigured={sbhConfigured}
         />
         {manualNetworks > 0 && (
-          <AdminAlert tone="warning" title={`${manualNetworks} network${manualNetworks === 1 ? "" : "s"} on manual fulfilment`}>
-            Paid orders for those networks stay in <code>queued</code> with{" "}
-            <code>supplier_status = awaiting_manual</code> until automated routing is turned back on.
+          <AdminAlert
+            tone="info"
+            title={`${manualNetworks} network${manualNetworks === 1 ? " is" : "s are"} on manual right now`}
+          >
+            That is the current mode, not a permanent limit — use <strong>Admin routing control</strong> above
+            to switch any network to <strong>Skanka5</strong> or <strong>Success Biz Hub</strong> for automated
+            dispatch. Manual mode keeps orders in <code>queued</code> until you fulfil them by hand.
           </AdminAlert>
         )}
       </AdminSection>
