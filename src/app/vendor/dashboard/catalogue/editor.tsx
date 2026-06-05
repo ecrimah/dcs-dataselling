@@ -104,13 +104,30 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
                       </div>
                       {listing ? (
                         <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-                          <MarkupControl
-                            value={listing.markupAmount}
-                            min={wb.minMarkup}
-                            max={wb.maxMarkup ?? wb.wholesalePrice * 2}
-                            onChange={(v) => updateMarkup(listing, v)}
-                          />
+                          <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+                            <SalePriceControl
+                              basePrice={wb.customerPrice}
+                              salePrice={listing.finalPrice}
+                              minMarkup={wb.minMarkup}
+                              maxMarkup={wb.maxMarkup ?? wb.wholesalePrice * 2}
+                              onSalePriceChange={(sale) => {
+                                const max = wb.maxMarkup ?? wb.wholesalePrice * 2;
+                                const markup = Math.min(
+                                  max,
+                                  Math.max(wb.minMarkup, sale - wb.customerPrice),
+                                );
+                                updateMarkup(listing, +markup.toFixed(2));
+                              }}
+                            />
+                            <MarkupControl
+                              value={listing.markupAmount}
+                              min={wb.minMarkup}
+                              max={wb.maxMarkup ?? wb.wholesalePrice * 2}
+                              onChange={(v) => updateMarkup(listing, v)}
+                            />
+                          </div>
                           <div className="text-right text-sm">
+                            <p className="text-[10px] text-muted">Base {formatGHS(wb.customerPrice)}</p>
                             <p className="font-bold">{formatGHS(listing.finalPrice)}</p>
                             <p className="text-[10px] text-success">
                               You earn{" "}
@@ -172,6 +189,44 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
         </div>
       )}
     </div>
+  );
+}
+
+function SalePriceControl({
+  basePrice,
+  salePrice,
+  minMarkup,
+  maxMarkup,
+  onSalePriceChange,
+}: {
+  basePrice: number;
+  salePrice: number;
+  minMarkup: number;
+  maxMarkup: number;
+  onSalePriceChange: (sale: number) => void;
+}) {
+  const minSale = +(basePrice + minMarkup).toFixed(2);
+  const maxSale = +(basePrice + maxMarkup).toFixed(2);
+
+  return (
+    <label className="flex flex-col items-end gap-0.5 text-right">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+        Your price
+      </span>
+      <input
+        type="number"
+        min={minSale}
+        max={maxSale}
+        step={0.5}
+        value={salePrice}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          if (!Number.isFinite(next)) return;
+          onSalePriceChange(Math.min(maxSale, Math.max(minSale, next)));
+        }}
+        className="h-9 w-24 rounded-lg border border-border bg-white px-2 text-right text-sm font-bold tabular-nums"
+      />
+    </label>
   );
 }
 

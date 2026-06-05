@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Eye, Share2, Store } from "lucide-react";
+import { Eye, Share2, Store, Tags } from "lucide-react";
 import Link from "next/link";
 import {
   AdminPageIntro,
@@ -51,6 +51,16 @@ export default async function StorefrontPage() {
           </div>
         </div>
       </div>
+
+      <AdminSection
+        title="Your selling prices"
+        description="Set markup on each bundle — that becomes the price customers see on your store."
+        icon={Tags}
+      >
+        <Button size="sm" asChild>
+          <Link href="/vendor/dashboard/catalogue">Set my prices</Link>
+        </Button>
+      </AdminSection>
 
       <AdminSection title="Share your store" description="Send your link to friends, customers, and groups." icon={Share2}>
         <ShareKit storeUrl={storeUrl} businessName={vendor.businessName} />

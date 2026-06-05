@@ -6,6 +6,7 @@ import {
   fetchVendorRecentOrders,
   fetchVendorTodayStats,
 } from "@/lib/data/vendor-agent";
+import { fetchVendorRecentEarnings } from "@/lib/data/vendor-earnings";
 import { getOrCreateVendorWallet } from "@/lib/payments/wallet";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +31,11 @@ export default async function VendorDashboardPage() {
   }
 
   const profile = await getCurrentProfile();
-  const [wallet, today, recentOrders] = await Promise.all([
+  const [wallet, today, recentOrders, recentEarnings] = await Promise.all([
     getOrCreateVendorWallet(vendor.id),
     fetchVendorTodayStats(vendor.id),
     fetchVendorRecentOrders(vendor.id, 5),
+    fetchVendorRecentEarnings(vendor.id, 8),
   ]);
 
   return (
@@ -43,6 +45,7 @@ export default async function VendorDashboardPage() {
       balance={wallet.balance}
       today={today}
       recentOrders={recentOrders}
+      recentEarnings={recentEarnings}
     />
   );
 }

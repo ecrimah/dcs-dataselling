@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function TransactionsRedirect() {
-  redirect("/vendor/dashboard/wallet");
+  redirect("/vendor/dashboard/earnings");
 }

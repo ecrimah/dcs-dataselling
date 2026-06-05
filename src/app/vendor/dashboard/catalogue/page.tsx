@@ -25,10 +25,14 @@ export default async function CataloguePage() {
   return (
     <AdminPageRoot>
       <AdminPageIntro
-        badge="Resale pricing"
+        badge="My prices"
         description={
           <>
-            Choose products to sell and set markup. Buy stock first under{" "}
+            Set your own sale price on each bundle — customers pay base + your markup on your{" "}
+            <Link href="/vendor/dashboard/storefront" className="font-semibold text-amber-800 hover:underline">
+              storefront
+            </Link>
+            . Buy stock under{" "}
             <Link href="/vendor/dashboard/wholesale" className="font-semibold text-amber-800 hover:underline">
               Buy Data
             </Link>

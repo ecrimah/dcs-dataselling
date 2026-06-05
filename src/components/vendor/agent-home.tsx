@@ -22,6 +22,8 @@ import type {
   VendorRecentOrder,
   VendorTodayStats,
 } from "@/lib/data/vendor-agent";
+import type { VendorEarningRow } from "@/lib/data/vendor-earnings";
+import { RecentEarningsTable } from "@/components/vendor/recent-earnings-table";
 import { BULK_SAMPLE_CSV } from "@/lib/wholesale/bulk-sample";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { CircleProgress } from "@/components/ui/circle-progress";
@@ -34,6 +36,7 @@ interface Props {
   balance: number;
   today: VendorTodayStats;
   recentOrders: VendorRecentOrder[];
+  recentEarnings: VendorEarningRow[];
 }
 
 function downloadSample() {
@@ -52,6 +55,7 @@ export function AgentHome({
   balance,
   today,
   recentOrders,
+  recentEarnings,
 }: Props) {
   const firstName = vendorName.split(" ")[0];
 
@@ -290,6 +294,8 @@ export function AgentHome({
           </button>
         </div>
       </section>
+
+      <RecentEarningsTable rows={recentEarnings} compact showViewAll />
 
       {/* ===================== RECENT ACTIVITY / PORTFOLIO ===================== */}
       <section>
