@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ClipboardPaste,
   Download,
@@ -19,6 +20,10 @@ import {
 } from "@/lib/wholesale/bulk-parse";
 
 type BulkInputMode = "paste" | "upload";
+
+/** Shown as placeholder only — never pre-filled as real order text. */
+const BULK_PASTE_FORMAT_EXAMPLE =
+  "0241234567 10\n0551234567 20\n0201234567 100";
 
 interface PreviewState {
   validCount: number;
@@ -43,12 +48,11 @@ interface Props {
 }
 
 export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props) {
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [inputMode, setInputMode] = useState<BulkInputMode>("paste");
   const [networkKey, setNetworkKey] = useState<BulkNetworkKey | "">("");
-  const [pasteText, setPasteText] = useState(
-    "0241234567 10\n0551234567 20\n0201234567 5",
-  );
+  const [pasteText, setPasteText] = useState("");
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [loading, setLoading] = useState(false);
   const [ordersPayload, setOrdersPayload] = useState("");
@@ -153,8 +157,18 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
       if (!res.ok) throw new Error(data.error ?? "Checkout failed");
       if (data.success) {
         onBalanceChange(Number(data.balance ?? balance - preview.totalAmount));
+        setPasteText("");
+        setOrdersPayload("");
         setPreview(null);
-        toast.success(`Bulk order placed · ${data.reference}`);
+        setNetworkKey("");
+
+        const params = new URLSearchParams({
+          checkout: "success",
+          ref: data.reference,
+          total: String(data.total ?? preview.totalAmount),
+          items: String(data.itemCount ?? preview.validCount),
+        });
+        router.push(`/vendor/dashboard?${params.toString()}`);
         return;
       }
       toast.error(data.error ?? "Checkout failed");
@@ -232,8 +246,8 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
             disabled={!networkKey}
             placeholder={
               networkKey
-                ? "0241234567 10\n0551234567 20\n0201234567 100"
-                : "Select network first, then paste orders here"
+                ? BULK_PASTE_FORMAT_EXAMPLE
+                : "Select network first, then paste your orders here"
             }
             className="w-full rounded-lg border border-white/10 bg-navy-950/60 p-3 font-mono text-xs text-white placeholder:text-white/25 focus:border-gold/40 focus:outline-none disabled:opacity-50"
           />
@@ -246,6 +260,9 @@ export function BulkOrdersPanel({ balance, onBalanceChange, onNeedTopup }: Props
             </p>
             <p className="mt-2 font-semibold text-white/40">Also accepted</p>
             <ul className="mt-1 space-y-0.5 text-white/40">
+              <li>
+                Paste from Excel — Number and Volume columns (tab-separated)
+              </li>
               <li>
                 <span className="font-mono text-gold/70">0241234567,10</span> — from CSV template
               </li>

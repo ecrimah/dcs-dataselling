@@ -8,6 +8,7 @@ import {
   createWholesaleOrder,
   markWholesaleOrderPaid,
 } from "@/lib/payments/wholesale-order";
+import { assertRecipientsNotOnCooldown } from "@/lib/orders/recipient-cooldown";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const itemSchema = z.object({
@@ -63,6 +64,13 @@ export async function POST(request: Request) {
         unitPrice: resolveAgentBuyPrice(bundle, ctx.tier),
         quantity: item.quantity ?? 1,
       });
+    }
+
+    const cooldown = await assertRecipientsNotOnCooldown(
+      orderItems.map((i) => i.recipientPhone),
+    );
+    if (!cooldown.ok) {
+      return NextResponse.json({ error: cooldown.message }, { status: 409 });
     }
 
     const total = +orderItems

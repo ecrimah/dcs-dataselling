@@ -13,6 +13,7 @@ import {
   createWholesaleOrder,
   markWholesaleOrderPaid,
 } from "@/lib/payments/wholesale-order";
+import { applyRecipientCooldownErrors } from "@/lib/orders/recipient-cooldown";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const bulkSchema = z.object({
@@ -62,7 +63,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Select a network for bulk orders" }, { status: 400 });
     }
 
-    const parsed = parseBulkOrders(text, catalogue, networkKey);
+    const parsed = await applyRecipientCooldownErrors(
+      parseBulkOrders(text, catalogue, networkKey),
+    );
     const valid = validBulkRows(parsed);
     const invalid = parsed.filter((r) => r.error);
 

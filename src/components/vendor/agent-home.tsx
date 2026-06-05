@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -25,6 +26,7 @@ import { BULK_SAMPLE_CSV } from "@/lib/wholesale/bulk-sample";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { CircleProgress } from "@/components/ui/circle-progress";
 import { AdminPageRoot, AdminStatTile } from "@/components/admin";
+import { CheckoutSuccessBanner } from "@/components/vendor/checkout-success-banner";
 
 interface Props {
   greeting: string;
@@ -59,6 +61,10 @@ export function AgentHome({
 
   return (
     <AdminPageRoot className="space-y-4">
+      <Suspense fallback={null}>
+        <CheckoutSuccessBanner />
+      </Suspense>
+
       {/* Welcome */}
       <section className="welcome-card">
         <div className="flex flex-wrap items-center justify-between gap-3">

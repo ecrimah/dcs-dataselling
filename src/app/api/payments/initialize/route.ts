@@ -3,6 +3,10 @@ import { z } from "zod";
 import { SITE } from "@/lib/constants";
 import { getMomoDirectConfig } from "@/lib/data/platform-config";
 import { generateMomoOrderReference } from "@/lib/payments/momo-direct";
+import {
+  assertRecipientsNotOnCooldown,
+  normalizeRecipientPhone,
+} from "@/lib/orders/recipient-cooldown";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -42,6 +46,16 @@ export async function POST(request: Request) {
       .eq("id", bundle.vendor_id)
       .maybeSingle();
 
+    const phone = normalizeRecipientPhone(body.recipientPhone);
+    if (!phone) {
+      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    }
+
+    const cooldown = await assertRecipientsNotOnCooldown([phone]);
+    if (!cooldown.ok) {
+      return NextResponse.json({ error: cooldown.message }, { status: 409 });
+    }
+
     const vendor = vendorQuery.data as { commission_rate: number } | null;
     const commission = Number(vendor?.commission_rate ?? 8);
     const platformFee = +(Number(bundle.price) * (commission / 100)).toFixed(2);
@@ -68,7 +82,7 @@ export async function POST(request: Request) {
         user_id: user?.id ?? null,
         vendor_id: bundle.vendor_id,
         bundle_id: bundle.id,
-        recipient_phone: body.recipientPhone,
+        recipient_phone: phone,
         amount: bundle.price,
         platform_fee: platformFee,
         vendor_payout: vendorPayout,

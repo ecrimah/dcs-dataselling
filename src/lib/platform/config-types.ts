@@ -21,6 +21,11 @@ export interface MomoDirectConfig {
 export interface PlatformConfig {
   /** One-time fee (GHS) every new agent pays before their store goes live. */
   vendorSetupFeeGhs: number;
+  /**
+   * Block repeat orders to the same beneficiary within this window (minutes).
+   * Admin range: 1–3.
+   */
+  recipientOrderCooldownMinutes: number;
   /** SMS-forwarder-based direct MoMo payment settings. */
   momoDirect: MomoDirectConfig;
 }
@@ -30,6 +35,7 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
     Number.isFinite(VENDOR_STORE_SETUP_FEE_GHS) && VENDOR_STORE_SETUP_FEE_GHS > 0
       ? VENDOR_STORE_SETUP_FEE_GHS
       : 50,
+  recipientOrderCooldownMinutes: 3,
   momoDirect: {
     enabled: false,
     merchantNumbers: { mtn: "", telecel: "", at: "" },
@@ -45,8 +51,20 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
 
   return {
     vendorSetupFeeGhs: clampNum(raw.vendorSetupFeeGhs, base.vendorSetupFeeGhs, 1, 100000),
+    recipientOrderCooldownMinutes: clampInt(
+      raw.recipientOrderCooldownMinutes,
+      base.recipientOrderCooldownMinutes,
+      1,
+      3,
+    ),
     momoDirect: normalizeMomoDirect(raw.momoDirect, base.momoDirect),
   };
+}
+
+function clampInt(value: unknown, fallback: number, min: number, max: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }
 
 function normalizeMomoDirect(

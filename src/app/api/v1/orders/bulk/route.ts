@@ -7,6 +7,11 @@ import {
   createWholesaleOrder,
   markWholesaleOrderPaid,
 } from "@/lib/payments/wholesale-order";
+import {
+  findRecipientCooldownHits,
+  getRecipientOrderCooldownMinutes,
+  recipientCooldownMessage,
+} from "@/lib/orders/recipient-cooldown";
 import { createServiceClient } from "@/lib/supabase/server";
 
 import { corsPreflightResponse, handleApi, normalizeGhanaPhone } from "../../_lib/respond";
@@ -54,6 +59,7 @@ export const POST = handleApi(async ({ ctx, body }) => {
   const bySku = new Map(catalogue.map((b) => [b.sku.toLowerCase(), b]));
 
   interface ResolvedItem {
+    inputIndex: number;
     bundleId: string;
     sku: string;
     name: string;
@@ -86,6 +92,7 @@ export const POST = handleApi(async ({ ctx, body }) => {
     const quantity = it.quantity ?? 1;
     const unitPrice = resolveAgentBuyPrice(bundle, ctx.vendorTier);
     resolved.push({
+      inputIndex: i,
       bundleId: bundle.id,
       sku: bundle.sku,
       name: bundle.name,
@@ -97,6 +104,20 @@ export const POST = handleApi(async ({ ctx, body }) => {
       lineTotal: +(unitPrice * quantity).toFixed(2),
     });
   });
+
+  const cooldownMinutes = await getRecipientOrderCooldownMinutes();
+  const cooldownHits = await findRecipientCooldownHits(resolved.map((r) => r.phone));
+  const allowed = resolved.filter((r) => {
+    const hit = cooldownHits.get(r.phone);
+    if (!hit) return true;
+    errors.push({
+      index: r.inputIndex,
+      error: recipientCooldownMessage(r.phone, cooldownMinutes, hit),
+    });
+    return false;
+  });
+  resolved.length = 0;
+  resolved.push(...allowed);
 
   const total = +resolved.reduce((s, r) => s + r.lineTotal, 0).toFixed(2);
   const wallet = await getOrCreateVendorWallet(ctx.vendorId);

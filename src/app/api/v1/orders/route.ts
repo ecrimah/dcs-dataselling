@@ -7,6 +7,7 @@ import {
   createWholesaleOrder,
   markWholesaleOrderPaid,
 } from "@/lib/payments/wholesale-order";
+import { assertRecipientsNotOnCooldown } from "@/lib/orders/recipient-cooldown";
 import { createServiceClient } from "@/lib/supabase/server";
 
 import { corsPreflightResponse, handleApi, normalizeGhanaPhone } from "../_lib/respond";
@@ -100,6 +101,18 @@ export const POST = handleApi(async ({ ctx, body }) => {
         responseSummary: { reference: e.reference, idempotent: true },
       };
     }
+  }
+
+  const cooldown = await assertRecipientsNotOnCooldown([phone]);
+  if (!cooldown.ok) {
+    return {
+      status: 409,
+      json: {
+        error: cooldown.message,
+        code: "recipient_cooldown",
+        phone: cooldown.phone,
+      },
+    };
   }
 
   const unitPrice = resolveAgentBuyPrice(bundle, ctx.vendorTier);

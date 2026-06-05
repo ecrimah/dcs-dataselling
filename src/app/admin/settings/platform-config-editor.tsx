@@ -91,6 +91,25 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
             className="admin-form-field-input"
           />
         </Field>
+        <Field
+          label="Recipient order cooldown (minutes)"
+          hint="Block the same phone number from new orders while a recent one is still processing (1–3 min)."
+        >
+          <input
+            type="number"
+            min={1}
+            max={3}
+            step={1}
+            value={config.recipientOrderCooldownMinutes}
+            onChange={(e) =>
+              setConfig((c) => ({
+                ...c,
+                recipientOrderCooldownMinutes: Number(e.target.value),
+              }))
+            }
+            className="admin-form-field-input"
+          />
+        </Field>
       </div>
 
       <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
