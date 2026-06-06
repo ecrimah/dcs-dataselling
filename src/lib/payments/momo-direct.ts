@@ -239,6 +239,7 @@ export async function findSmsByTransactionId(
   amount: number | null;
   network: NetworkId | null;
   matched_order_id: string | null;
+  matched_wallet_topup_id: string | null;
 } | null> {
   if (!hasSupabaseConfig()) return null;
   const service = createServiceClient();
@@ -246,7 +247,7 @@ export async function findSmsByTransactionId(
   const txnUpper = transactionId.trim().toUpperCase();
   const { data } = await service
     .from("momo_sms")
-    .select("id, amount, network, matched_order_id")
+    .select("id, amount, network, matched_order_id, matched_wallet_topup_id")
     .eq("transaction_id", txnUpper)
     .maybeSingle();
 
@@ -256,6 +257,7 @@ export async function findSmsByTransactionId(
       amount: number | null;
       network: NetworkId | null;
       matched_order_id: string | null;
+      matched_wallet_topup_id: string | null;
     } | null) ?? null
   );
 }

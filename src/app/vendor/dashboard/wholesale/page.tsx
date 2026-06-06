@@ -6,6 +6,8 @@ import type { NetworkId } from "@/lib/constants";
 import { fetchVendorWishlistIds } from "@/lib/data/wishlist";
 import { fetchWholesaleCatalogueForTier } from "@/lib/data/wholesale";
 import { tierBuyPriceLabel } from "@/lib/wholesale/tier-pricing";
+import { getMomoDirectConfig } from "@/lib/data/platform-config";
+import { primaryMerchantNumber } from "@/lib/payments/wallet-momo-claim";
 import { getOrCreateVendorWallet } from "@/lib/payments/wallet";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +32,11 @@ export default async function WholesaleBuyPage({
   }
 
   const sp = await searchParams;
-  const [wholesale, wallet, wishlistIds] = await Promise.all([
+  const [wholesale, wallet, wishlistIds, momo] = await Promise.all([
     fetchWholesaleCatalogueForTier(vendor.tier ?? "starter"),
     getOrCreateVendorWallet(vendor.id),
     fetchVendorWishlistIds(vendor.id),
+    getMomoDirectConfig(),
   ]);
   const buyPriceLabel = tierBuyPriceLabel(vendor.tier ?? "starter");
 
@@ -56,6 +59,12 @@ export default async function WholesaleBuyPage({
       openTopupOnMount={sp.topup === "1" && !sp.ref}
       openCartOnMount={sp.cart === "1"}
       wishlistIds={wishlistIds}
+      momoClaimIt={{
+        enabled: momo.enabled,
+        merchantNumber: primaryMerchantNumber(momo.merchantNumbers),
+        merchantName: momo.merchantName || "DCS Elite",
+        merchantNumbers: momo.merchantNumbers,
+      }}
     />
   );
 }

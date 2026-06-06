@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
 import { Tag } from "lucide-react";
 import { AdminPageIntro, AdminPageRoot, AdminSection } from "@/components/admin";
+import { MomoClaimItPanel } from "@/components/vendor/momo-claimit-panel";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
+import { getMomoDirectConfig } from "@/lib/data/platform-config";
+import { primaryMerchantNumber } from "@/lib/payments/wallet-momo-claim";
 import { ClaimItForm } from "./claim-form";
 
 export const dynamic = "force-dynamic";
@@ -12,13 +15,33 @@ export default async function ClaimItPage() {
   if (!vendor) redirect("/auth/login");
   if (!vendor.setupFeePaidAt) return <SetupFeeGate />;
 
+  const momo = await getMomoDirectConfig();
+
   return (
     <AdminPageRoot>
       <AdminPageIntro
         badge="ClaimIt"
-        description="Enter a promo or reward code from DCS to credit your wallet instantly."
+        description="Top up your wallet via Mobile Money — generate a payment code or claim manually with your transaction ID."
       />
-      <AdminSection title="Redeem code" description="One-time codes credit your wallet on success." icon={Tag}>
+      <AdminSection
+        title="Mobile Money ClaimIt"
+        description="Send MoMo to the merchant number with your payment code, or paste your transaction ID if auto-match did not run."
+      >
+        <MomoClaimItPanel
+          config={{
+            enabled: momo.enabled,
+            merchantNumber: primaryMerchantNumber(momo.merchantNumbers),
+            merchantName: momo.merchantName || "DCS Elite",
+            merchantNumbers: momo.merchantNumbers,
+          }}
+          showCancel={false}
+        />
+      </AdminSection>
+      <AdminSection
+        title="Promo codes"
+        description="Redeem reward codes from DCS for bonus wallet credit."
+        icon={Tag}
+      >
         <ClaimItForm />
       </AdminSection>
     </AdminPageRoot>

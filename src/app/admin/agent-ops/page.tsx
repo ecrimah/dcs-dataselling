@@ -137,7 +137,7 @@ export default async function AdminAgentOpsPage() {
       <AdminSection
         id="claimit"
         title="ClaimIt promo codes"
-        description="Wallet credits agents redeem at the claim page."
+        description="Bonus reward codes agents redeem on the ClaimIt page (separate from MoMo wallet top-up)."
         icon={Tag}
       >
         {promos.length === 0 ? (

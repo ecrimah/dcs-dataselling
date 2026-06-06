@@ -35,7 +35,7 @@ export function ClaimItForm() {
   return (
     <form onSubmit={submit} className="space-y-3">
       <div className="admin-form-field">
-        <label>Promo code</label>
+        <label>Reward code</label>
         <input
           type="text"
           placeholder="DCS-WELCOME-50"

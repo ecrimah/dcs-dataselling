@@ -108,3 +108,55 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  if (!hasSupabaseConfig()) {
+    return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  }
+
+  const auth = await assertAdminApi();
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  const { id } = await params;
+  const service = createServiceClient();
+
+  const { data: existing } = await service
+    .from("wholesale_bundles")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!existing) {
+    return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
+  }
+
+  const { count: orderItemCount } = await service
+    .from("wholesale_order_items")
+    .select("id", { count: "exact", head: true })
+    .eq("wholesale_bundle_id", id);
+
+  if (orderItemCount && orderItemCount > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "This bundle has wholesale orders on record. Deactivate it instead of deleting.",
+      },
+      { status: 409 },
+    );
+  }
+
+  await service.from("vendor_listings").delete().eq("wholesale_bundle_id", id);
+
+  const { error } = await service.from("wholesale_bundles").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

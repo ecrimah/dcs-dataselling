@@ -7,6 +7,11 @@ import {
   recordMomoSms,
 } from "@/lib/payments/momo-direct";
 import { finalizeMomoDirectOrder } from "@/lib/payments/momo-direct-fulfilment";
+import {
+  autoMatchWalletTopupForSms,
+  finalizeMomoWalletTopup,
+} from "@/lib/payments/wallet-momo-claim";
+import { smsWalletTopup } from "@/lib/notifications/sms";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +102,26 @@ export async function POST(request: Request) {
     finalized = await finalizeMomoDirectOrder(matchedOrderId, parsed.transactionId);
   }
 
+  let matchedWalletTopupId: string | null = null;
+  let walletTopupFinalized = false;
+  if (!matchedOrderId) {
+    matchedWalletTopupId = await autoMatchWalletTopupForSms(smsId);
+    if (matchedWalletTopupId && parsed.transactionId) {
+      const completion = await finalizeMomoWalletTopup(
+        matchedWalletTopupId,
+        parsed.transactionId,
+      );
+      walletTopupFinalized = completion != null;
+      if (completion?.notifyPhone) {
+        void smsWalletTopup({
+          phone: completion.notifyPhone,
+          amount: completion.amount,
+          reference: completion.reference,
+        });
+      }
+    }
+  }
+
   return NextResponse.json({
     received: true,
     sms_id: smsId,
@@ -107,5 +132,7 @@ export async function POST(request: Request) {
     },
     matched_order_id: matchedOrderId,
     finalized,
+    matched_wallet_topup_id: matchedWalletTopupId,
+    wallet_topup_finalized: walletTopupFinalized,
   });
 }

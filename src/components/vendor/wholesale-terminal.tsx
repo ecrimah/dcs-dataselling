@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { BulkOrdersPanel } from "@/components/vendor/bulk-orders-panel";
+import {
+  MomoClaimItPanel,
+  type MomoClaimItConfig,
+} from "@/components/vendor/momo-claimit-panel";
 import { toast } from "sonner";
 import type { NetworkId } from "@/lib/constants";
 import { formatDataAmount, formatGHS } from "@/lib/format";
@@ -35,9 +39,8 @@ interface Props {
   openTopupOnMount?: boolean;
   openCartOnMount?: boolean;
   wishlistIds?: string[];
+  momoClaimIt?: MomoClaimItConfig;
 }
-
-const TOPUP_PRESETS = [50, 100, 200, 500];
 
 function phoneValid(raw: string) {
   return /^0\d{9}$/.test(raw.replace(/\D/g, "").slice(0, 10));
@@ -65,6 +68,7 @@ export function WholesaleTerminal({
   openTopupOnMount = false,
   openCartOnMount = false,
   wishlistIds = [],
+  momoClaimIt,
 }: Props) {
   const { cart, addLine, removeLine, clearCart } = useVendorCart();
   const [balance, setBalance] = useState(initialBalance);
@@ -74,7 +78,6 @@ export function WholesaleTerminal({
   const [phones, setPhones] = useState<Record<string, string>>({});
   const [cartOpen, setCartOpen] = useState(openCartOnMount);
   const [topupOpen, setTopupOpen] = useState(openTopupOnMount);
-  const [topupAmount, setTopupAmount] = useState("100");
   const [loading, setLoading] = useState(false);
 
   const refreshBalance = useCallback(async () => {
@@ -139,33 +142,6 @@ export function WholesaleTerminal({
 
   function removeFromCart(key: string) {
     removeLine(key);
-  }
-
-  async function startTopup() {
-    const amount = Number(topupAmount);
-    if (!amount || amount < 5) {
-      toast.error("Minimum top-up is ₵5");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/vendor/wallet/topup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Top-up failed");
-      if (data.authorizationUrl) {
-        window.location.href = data.authorizationUrl;
-        return;
-      }
-      toast.error("Payment not available");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Top-up failed");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function checkoutCart() {
@@ -470,47 +446,30 @@ export function WholesaleTerminal({
             aria-label="Close top-up"
             onClick={() => setTopupOpen(false)}
           />
-          <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-navy-950 p-5 text-white shadow-2xl">
+          <div className="relative max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/10 bg-navy-950 p-5 text-white shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold">Top up wallet</h3>
+              <h3 className="font-bold">Mobile Money ClaimIt</h3>
               <button type="button" onClick={() => setTopupOpen(false)} className="rounded p-1 hover:bg-white/10">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="mt-1 text-xs text-white/45">Pay with MoMo or card via Paystack</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {TOPUP_PRESETS.map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => setTopupAmount(String(amt))}
-                  className={cn(
-                    "rounded-lg px-3 py-2 text-sm font-bold transition-colors",
-                    topupAmount === String(amt)
-                      ? "bg-gold text-navy-950"
-                      : "bg-white/8 text-white/70 hover:bg-white/12",
-                  )}
-                >
-                  {formatGHS(amt)}
-                </button>
-              ))}
+            <div className="mt-4">
+              <MomoClaimItPanel
+                config={
+                  momoClaimIt ?? {
+                    enabled: false,
+                    merchantNumber: "",
+                    merchantName: "",
+                    merchantNumbers: { mtn: "", telecel: "", at: "" },
+                  }
+                }
+                onSuccess={() => {
+                  void refreshBalance();
+                  setTopupOpen(false);
+                }}
+                onCancel={() => setTopupOpen(false)}
+              />
             </div>
-            <label className="mt-4 block text-xs font-semibold text-white/60">Custom amount (GHS)</label>
-            <input
-              type="number"
-              min={5}
-              max={50000}
-              value={topupAmount}
-              onChange={(e) => setTopupAmount(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-white/10 bg-navy-900 px-3 py-2.5 text-sm font-semibold focus:border-gold/40 focus:outline-none"
-            />
-            <Button
-              className="mt-4 w-full bg-gold text-navy-950"
-              disabled={loading}
-              onClick={startTopup}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue to payment"}
-            </Button>
           </div>
         </div>
       )}

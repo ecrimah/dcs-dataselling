@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Plus, Save } from "lucide-react";
+import { Package, Plus, Save, Trash2 } from "lucide-react";
 import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { toast } from "sonner";
 import {
@@ -50,6 +50,7 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
   const router = useRouter();
   const [rows] = useState(initial);
   const [pending, setPending] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newBundle, setNewBundle] = useState({
     network: "mtn" as "mtn" | "telecel" | "at",
@@ -84,6 +85,24 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
       toast.error(e instanceof Error ? e.message : "Failed");
     } finally {
       setPending(null);
+    }
+  }
+
+  async function deleteRow(row: AdminWholesaleRow) {
+    const label = `${row.name} (${formatDataAmount(row.dataMb)})`;
+    if (!window.confirm(`Delete "${label}"? This cannot be undone.`)) return;
+
+    setDeletingId(row.id);
+    try {
+      const res = await fetch(`/api/admin/wholesale/${row.id}`, { method: "DELETE" });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      toast.success("Bundle deleted");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -245,8 +264,8 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
             <AdminTh>Super Agent</AdminTh>
             <AdminTh>Pro Agent</AdminTh>
             <AdminTh>Status</AdminTh>
-            <AdminTh>Save</AdminTh>
             <AdminTh />
+            <AdminTh>Actions</AdminTh>
           </AdminTableHead>
           <AdminTableBody>
             {rows.map((row) => (
@@ -255,6 +274,8 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
                 row={row}
                 saving={pending === row.id}
                 onSave={saveRow}
+                onDelete={deleteRow}
+                deleting={deletingId === row.id}
                 wishlistSaved={wishlistIds.includes(row.id)}
               />
             ))}
@@ -328,12 +349,16 @@ function PriceInput({
 function WholesaleRowEditor({
   row,
   saving,
+  deleting = false,
   onSave,
+  onDelete,
   wishlistSaved = false,
 }: {
   row: AdminWholesaleRow;
   saving: boolean;
+  deleting?: boolean;
   onSave: (row: AdminWholesaleRow, draft: Partial<AdminWholesaleRow> & { prices?: WholesalePriceMatrix }) => void;
+  onDelete: (row: AdminWholesaleRow) => void;
   wishlistSaved?: boolean;
 }) {
   const [prices, setPrices] = useState(() => pricesFromRow(row));
@@ -428,22 +453,35 @@ function WholesaleRowEditor({
         />
       </td>
       <td className="admin-table-td">
-        <Button
-          size="sm"
-          disabled={!dirty || saving}
-          onClick={() =>
-            onSave(row, {
-              prices,
-              minMarkup,
-              active,
-              popular,
-              productLine: row.network === "at" ? productLine : "standard",
-            })
-          }
-        >
-          <Save className="h-3.5 w-3.5" />
-          {saving ? "…" : "Save"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Button
+            size="sm"
+            disabled={!dirty || saving || deleting}
+            onClick={() =>
+              onSave(row, {
+                prices,
+                minMarkup,
+                active,
+                popular,
+                productLine: row.network === "at" ? productLine : "standard",
+              })
+            }
+          >
+            <Save className="h-3.5 w-3.5" />
+            {saving ? "…" : "Save"}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={saving || deleting}
+            onClick={() => onDelete(row)}
+            aria-label={`Delete ${row.name}`}
+            className="border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            {deleting ? "…" : "Delete"}
+          </Button>
+        </div>
       </td>
     </tr>
   );
