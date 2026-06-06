@@ -3789,3 +3789,118 @@ body {
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Vendor catalogue editor — My Prices */
+.catalogue-editor .catalogue-network-card {
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(160deg, rgba(13, 38, 76, 0.95) 0%, rgba(8, 23, 49, 0.95) 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.catalogue-editor .catalogue-network-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.catalogue-editor .catalogue-network-mtn .catalogue-network-header {
+  border-left: 3px solid #fbbf24;
+}
+.catalogue-editor .catalogue-network-telecel .catalogue-network-header {
+  border-left: 3px solid #fb7185;
+}
+.catalogue-editor .catalogue-network-at .catalogue-network-header {
+  border-left: 3px solid #38bdf8;
+}
+.catalogue-editor .catalogue-network-title {
+  color: rgba(255, 255, 255, 0.92);
+}
+.catalogue-editor .catalogue-count-pill {
+  border-radius: 9999px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(212, 175, 55, 0.1);
+  color: #f4d160;
+  padding: 0.2rem 0.55rem;
+}
+.catalogue-editor .catalogue-bundle-list > li + li {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+.catalogue-editor .catalogue-bundle-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+.catalogue-editor .catalogue-volume {
+  color: #fff;
+}
+.catalogue-editor .catalogue-meta {
+  color: rgba(255, 255, 255, 0.55);
+}
+.catalogue-editor .catalogue-popular-pill {
+  border-radius: 9999px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fcd34d;
+  padding: 0.1rem 0.45rem;
+}
+.catalogue-editor .catalogue-in-store-pill {
+  border-radius: 9999px;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  padding: 0.1rem 0.45rem;
+}
+.catalogue-editor .catalogue-add-btn {
+  border: none;
+  background: linear-gradient(135deg, #d4af37 0%, #e8c547 100%);
+  color: #061528;
+  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.25);
+}
+.catalogue-editor .catalogue-add-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.catalogue-editor .catalogue-add-btn:disabled {
+  opacity: 0.65;
+}
+.catalogue-editor .catalogue-price-panel {
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(6, 21, 40, 0.85);
+}
+.catalogue-editor .catalogue-price-label {
+  color: rgba(255, 255, 255, 0.5);
+}
+.catalogue-editor .catalogue-step-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+}
+.catalogue-editor .catalogue-step-btn:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.1);
+  color: #f4d160;
+}
+.catalogue-editor .catalogue-price-input {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #061528;
+  color: #fff;
+}
+.catalogue-editor .catalogue-price-input:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+}
+.catalogue-editor .catalogue-markup-hint {
+  color: rgba(255, 255, 255, 0.48);
+}
+.catalogue-editor .catalogue-earn {
+  color: #6ee7b7;
+}
+.catalogue-editor .catalogue-visibility-btn.is-visible {
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+}
+.catalogue-editor .catalogue-visibility-btn.is-hidden {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.55);
+}
+.catalogue-editor .catalogue-tip {
+  color: #fcd34d;
+}
+

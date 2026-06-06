@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 import { Plus, Minus, Eye, EyeOff, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import type { NetworkId } from "@/lib/constants";
 import { NETWORKS } from "@/lib/constants";
 import { formatGHS, formatDataAmount } from "@/lib/format";
 import { NetworkBadge } from "@/components/marketplace/network-badge";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { WholesaleBundle, VendorListing } from "@/types";
@@ -17,6 +17,12 @@ interface Props {
   listings: VendorListing[];
   commissionRate: number;
 }
+
+const NETWORK_ACCENT: Record<NetworkId, string> = {
+  mtn: "catalogue-network-mtn",
+  telecel: "catalogue-network-telecel",
+  at: "catalogue-network-at",
+};
 
 export function CatalogueEditor({ wholesale, listings: initial, commissionRate }: Props) {
   const [listings, setListings] = useState(initial);
@@ -67,109 +73,103 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
   }
 
   async function toggleActive(listing: VendorListing) {
+    const next = !listing.active;
     setListings((ls) =>
-      ls.map((l) => (l.id === listing.id ? { ...l, active: !l.active } : l)),
+      ls.map((l) => (l.id === listing.id ? { ...l, active: next } : l)),
     );
     await fetch(`/api/vendor/listings/${listing.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: !listing.active }),
+      body: JSON.stringify({ active: next }),
     });
+    toast.message(next ? "Bundle visible on storefront" : "Bundle hidden from storefront");
   }
 
   return (
-    <div className="space-y-6">
+    <div className="catalogue-editor space-y-5">
       {NETWORKS.map((network) => {
         const items = wholesale.filter((w) => w.network === network.id);
         if (items.length === 0) return null;
+        const listedCount = items.filter((w) => listingByWholesale.has(w.id)).length;
         return (
-          <section key={network.id} className="card-elevated overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-border bg-slate-50 px-5 py-4">
-              <NetworkBadge network={network.id} />
-              <h3 className="font-semibold">{network.name} bundles</h3>
-              <span className="ml-auto text-xs text-muted">{items.length} available</span>
+          <section
+            key={network.id}
+            className={cn("catalogue-network-card overflow-hidden", NETWORK_ACCENT[network.id])}
+          >
+            <div className="catalogue-network-header flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-5">
+              <NetworkBadge network={network.id} size="sm" />
+              <h3 className="catalogue-network-title text-sm font-bold">{network.name} bundles</h3>
+              <span className="catalogue-count-pill ml-auto text-[11px] font-bold">
+                {listedCount}/{items.length} in store
+              </span>
             </div>
-            <ul className="divide-y divide-border">
+            <ul className="catalogue-bundle-list divide-y">
               {items.map((wb) => {
                 const listing = listingByWholesale.get(wb.id);
+                const maxMarkup = wb.maxMarkup ?? wb.wholesalePrice * 2;
                 return (
-                  <li key={wb.id} className="px-5 py-4">
-                    <div className="flex items-center gap-4">
+                  <li key={wb.id} className="catalogue-bundle-row px-4 py-4 sm:px-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{formatDataAmount(wb.dataMb)}</p>
-                        <p className="text-xs text-muted">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="catalogue-volume text-lg font-bold tracking-tight">
+                            {formatDataAmount(wb.dataMb)}
+                          </p>
+                          {wb.popular && (
+                            <span className="catalogue-popular-pill text-[10px] font-bold uppercase tracking-wide">
+                              Popular
+                            </span>
+                          )}
+                          {listing && (
+                            <span className="catalogue-in-store-pill text-[10px] font-bold uppercase tracking-wide">
+                              In store
+                            </span>
+                          )}
+                        </div>
+                        <p className="catalogue-meta mt-1 text-xs">
                           Valid {wb.validityDays} days · Base {formatGHS(wb.customerPrice)}
-                          {wb.popular && " · 🔥 Popular"}
                         </p>
                       </div>
+
                       {listing ? (
-                        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-                          <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
-                            <SalePriceControl
-                              basePrice={wb.customerPrice}
-                              salePrice={listing.finalPrice}
-                              minMarkup={wb.minMarkup}
-                              maxMarkup={wb.maxMarkup ?? wb.wholesalePrice * 2}
-                              onSalePriceChange={(sale) => {
-                                const max = wb.maxMarkup ?? wb.wholesalePrice * 2;
-                                const markup = Math.min(
-                                  max,
-                                  Math.max(wb.minMarkup, sale - wb.customerPrice),
-                                );
-                                updateMarkup(listing, +markup.toFixed(2));
-                              }}
-                            />
-                            <MarkupControl
-                              value={listing.markupAmount}
-                              min={wb.minMarkup}
-                              max={wb.maxMarkup ?? wb.wholesalePrice * 2}
-                              onChange={(v) => updateMarkup(listing, v)}
-                            />
-                          </div>
-                          <div className="text-right text-sm">
-                            <p className="text-[10px] text-muted">Base {formatGHS(wb.customerPrice)}</p>
-                            <p className="font-bold">{formatGHS(listing.finalPrice)}</p>
-                            <p className="text-[10px] text-success">
-                              You earn{" "}
-                              {formatGHS(
-                                listing.markupAmount * (1 - commissionRate / 100),
-                              )}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => toggleActive(listing)}
-                            className={cn(
-                              "rounded-lg p-2 transition-colors",
-                              listing.active
-                                ? "bg-emerald-500/10 text-emerald-600"
-                                : "bg-slate-100 text-muted",
-                            )}
-                            title={listing.active ? "Visible" : "Hidden"}
-                          >
-                            {listing.active ? (
-                              <Eye className="h-4 w-4" />
-                            ) : (
-                              <EyeOff className="h-4 w-4" />
-                            )}
-                          </button>
+                        <div className="w-full shrink-0 sm:w-auto sm:min-w-[220px]">
+                          <SellPriceEditor
+                            basePrice={wb.customerPrice}
+                            salePrice={listing.finalPrice}
+                            markup={listing.markupAmount}
+                            minMarkup={wb.minMarkup}
+                            maxMarkup={maxMarkup}
+                            earnAmount={listing.markupAmount * (1 - commissionRate / 100)}
+                            active={listing.active}
+                            onSalePriceChange={(sale) => {
+                              const markup = Math.min(
+                                maxMarkup,
+                                Math.max(wb.minMarkup, sale - wb.customerPrice),
+                              );
+                              updateMarkup(listing, +markup.toFixed(2));
+                            }}
+                            onToggleActive={() => toggleActive(listing)}
+                          />
                         </div>
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => activate(wb)}
-                          disabled={pending[wb.id]}
-                        >
-                          {pending[wb.id] ? "Adding..." : "Add to store"}
-                        </Button>
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+                          <button
+                            type="button"
+                            onClick={() => activate(wb)}
+                            disabled={pending[wb.id]}
+                            className="catalogue-add-btn inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold sm:w-auto"
+                          >
+                            <Plus className="h-4 w-4" />
+                            {pending[wb.id] ? "Adding…" : "Add to store"}
+                          </button>
+                        </div>
                       )}
                     </div>
+
                     {listing && wb.suggestedRetail && listing.finalPrice < wb.suggestedRetail && (
-                      <p className="mt-2 flex items-center gap-1 text-[11px] text-amber-600">
-                        <TrendingUp className="h-3 w-3" />
-                        Tip: suggested retail is {formatGHS(wb.suggestedRetail)} — you&apos;re leaving
-                        money on the table.
+                      <p className="catalogue-tip mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed">
+                        <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        Suggested retail is {formatGHS(wb.suggestedRetail)} — room to earn more.
                       </p>
                     )}
                   </li>
@@ -181,10 +181,10 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
       })}
 
       {listings.length === 0 && (
-        <div className="card-elevated p-8 text-center">
+        <div className="catalogue-network-card p-8 text-center">
           <Badge>Tip</Badge>
-          <p className="mt-3 text-sm text-muted">
-            Add bundles above to start selling. Most vendors start with 3-5 popular ones.
+          <p className="catalogue-meta mt-3 text-sm">
+            Add bundles above to start selling. Most agents start with 3–5 popular ones.
           </p>
         </div>
       )}
@@ -192,76 +192,91 @@ export function CatalogueEditor({ wholesale, listings: initial, commissionRate }
   );
 }
 
-function SalePriceControl({
+function SellPriceEditor({
   basePrice,
   salePrice,
+  markup,
   minMarkup,
   maxMarkup,
+  earnAmount,
+  active,
   onSalePriceChange,
+  onToggleActive,
 }: {
   basePrice: number;
   salePrice: number;
+  markup: number;
   minMarkup: number;
   maxMarkup: number;
+  earnAmount: number;
+  active: boolean;
   onSalePriceChange: (sale: number) => void;
+  onToggleActive: () => void;
 }) {
   const minSale = +(basePrice + minMarkup).toFixed(2);
   const maxSale = +(basePrice + maxMarkup).toFixed(2);
 
-  return (
-    <label className="flex flex-col items-end gap-0.5 text-right">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-        Your price
-      </span>
-      <input
-        type="number"
-        min={minSale}
-        max={maxSale}
-        step={0.5}
-        value={salePrice}
-        onChange={(e) => {
-          const next = Number(e.target.value);
-          if (!Number.isFinite(next)) return;
-          onSalePriceChange(Math.min(maxSale, Math.max(minSale, next)));
-        }}
-        className="h-9 w-24 rounded-lg border border-border bg-white px-2 text-right text-sm font-bold tabular-nums"
-      />
-    </label>
-  );
-}
+  function step(delta: number) {
+    const nextMarkup = Math.min(maxMarkup, Math.max(minMarkup, +(markup + delta).toFixed(2)));
+    onSalePriceChange(+(basePrice + nextMarkup).toFixed(2));
+  }
 
-function MarkupControl({
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number) => void;
-}) {
   return (
-    <div className="flex items-center gap-1 rounded-xl border border-border bg-white p-1">
-      <button
-        type="button"
-        className="rounded-lg p-1.5 hover:bg-slate-100"
-        onClick={() => onChange(Math.max(min, +(value - 0.5).toFixed(2)))}
-        aria-label="Decrease markup"
-      >
-        <Minus className="h-3.5 w-3.5" />
-      </button>
-      <span className="min-w-[3.5rem] text-center text-xs font-semibold tabular-nums">
-        +₵{value.toFixed(2)}
-      </span>
-      <button
-        type="button"
-        className="rounded-lg p-1.5 hover:bg-slate-100"
-        onClick={() => onChange(Math.min(max, +(value + 0.5).toFixed(2)))}
-        aria-label="Increase markup"
-      >
-        <Plus className="h-3.5 w-3.5" />
-      </button>
+    <div className="catalogue-price-panel rounded-xl p-3">
+      <p className="catalogue-price-label mb-2 text-[10px] font-bold uppercase tracking-wide">
+        Sell at
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          className="catalogue-step-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+          onClick={() => step(-0.5)}
+          aria-label="Decrease price"
+        >
+          <Minus className="h-3.5 w-3.5" />
+        </button>
+        <input
+          type="number"
+          min={minSale}
+          max={maxSale}
+          step={0.5}
+          value={salePrice}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            if (!Number.isFinite(next)) return;
+            onSalePriceChange(Math.min(maxSale, Math.max(minSale, next)));
+          }}
+          className="catalogue-price-input num h-9 min-w-0 flex-1 rounded-lg px-2 text-center text-sm font-bold"
+        />
+        <button
+          type="button"
+          className="catalogue-step-btn flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+          onClick={() => step(0.5)}
+          aria-label="Increase price"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <p className="catalogue-markup-hint mt-2 text-[11px]">
+        +{formatGHS(markup)} markup on {formatGHS(basePrice)} base
+      </p>
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/10 pt-3">
+        <p className="catalogue-earn text-xs font-bold">
+          You earn {formatGHS(earnAmount)}
+        </p>
+        <button
+          type="button"
+          onClick={onToggleActive}
+          className={cn(
+            "catalogue-visibility-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold",
+            active ? "is-visible" : "is-hidden",
+          )}
+          title={active ? "Visible on storefront" : "Hidden from storefront"}
+        >
+          {active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          {active ? "Visible" : "Hidden"}
+        </button>
+      </div>
     </div>
   );
 }
