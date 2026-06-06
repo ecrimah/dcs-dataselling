@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Package, Plus, Save, Trash2 } from "lucide-react";
+import { AlertTriangle, Package, Plus, Save, Trash2 } from "lucide-react";
 import { WishlistToggle } from "@/components/wishlist/wishlist-toggle";
 import { toast } from "sonner";
 import {
@@ -13,13 +13,13 @@ import {
   AdminTableHead,
   AdminTh,
 } from "@/components/admin";
-import { NETWORKS } from "@/lib/constants";
+import { NETWORKS, type NetworkId } from "@/lib/constants";
 import { formatDataAmount } from "@/lib/format";
 import type { WholesalePriceMatrix } from "@/lib/wholesale/tier-pricing";
 import { NetworkBadge } from "@/components/marketplace/network-badge";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { AdminWholesaleRow } from "@/lib/data/wholesale";
+import { cn } from "@/lib/utils";
 
 interface Props {
   bundles: AdminWholesaleRow[];
@@ -46,12 +46,39 @@ function pricesFromRow(row: AdminWholesaleRow): WholesalePriceMatrix {
   };
 }
 
+type NetworkFilter = "all" | NetworkId;
+
+function tierLadderWarning(prices: WholesalePriceMatrix): string | null {
+  if (prices.costPrice > prices.agentProPrice) {
+    return "Cost must be ≤ Pro Agent price.";
+  }
+  if (prices.agentProPrice > prices.xpressAgentPrice) {
+    return "Pro must be ≤ Super Agent price.";
+  }
+  if (prices.xpressAgentPrice > prices.agentPrice) {
+    return "Super must be ≤ Agent price.";
+  }
+  return null;
+}
+
 export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
   const router = useRouter();
   const [rows] = useState(initial);
   const [pending, setPending] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [networkFilter, setNetworkFilter] = useState<NetworkFilter>("all");
+
+  const filteredRows = useMemo(() => {
+    if (networkFilter === "all") return rows;
+    return rows.filter((row) => row.network === networkFilter);
+  }, [rows, networkFilter]);
+
+  const networkCounts = useMemo(() => {
+    const counts: Record<NetworkId, number> = { mtn: 0, telecel: 0, at: 0 };
+    for (const row of rows) counts[row.network]++;
+    return counts;
+  }, [rows]);
   const [newBundle, setNewBundle] = useState({
     network: "mtn" as "mtn" | "telecel" | "at",
     name: "",
@@ -146,7 +173,7 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
       }
     >
       {showAdd && (
-        <div className="admin-list-item mb-3 space-y-3">
+        <div className="pricing-matrix admin-list-item mb-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs font-medium text-muted">
               Network
@@ -241,7 +268,11 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
               </label>
             )}
             <div className="flex items-end">
-              <Button className="w-full" onClick={addBundle} disabled={pending === "new"}>
+              <Button
+                className="pricing-matrix-save-btn w-full"
+                onClick={addBundle}
+                disabled={pending === "new"}
+              >
                 {pending === "new" ? "Saving…" : "Create bundle"}
               </Button>
             </div>
@@ -256,31 +287,70 @@ export function WholesaleAdmin({ bundles: initial, wishlistIds = [] }: Props) {
           description="Add your first bundle to let agents purchase data at tier-specific prices."
         />
       ) : (
-        <AdminDataTable minWidth="900px">
-          <AdminTableHead>
-            <AdminTh>Volume</AdminTh>
-            <AdminTh>Cost price</AdminTh>
-            <AdminTh>Agent</AdminTh>
-            <AdminTh>Super Agent</AdminTh>
-            <AdminTh>Pro Agent</AdminTh>
-            <AdminTh>Status</AdminTh>
-            <AdminTh />
-            <AdminTh>Actions</AdminTh>
-          </AdminTableHead>
-          <AdminTableBody>
-            {rows.map((row) => (
-              <WholesaleRowEditor
-                key={row.id}
-                row={row}
-                saving={pending === row.id}
-                onSave={saveRow}
-                onDelete={deleteRow}
-                deleting={deletingId === row.id}
-                wishlistSaved={wishlistIds.includes(row.id)}
-              />
+        <div className="pricing-matrix space-y-3">
+          <div className="pricing-matrix-filters" role="tablist" aria-label="Filter by network">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={networkFilter === "all"}
+              className={cn("pricing-matrix-filter-tab", networkFilter === "all" && "is-active")}
+              onClick={() => setNetworkFilter("all")}
+            >
+              All
+              <span className="pricing-matrix-filter-count">{rows.length}</span>
+            </button>
+            {NETWORKS.map((network) => (
+              <button
+                key={network.id}
+                type="button"
+                role="tab"
+                aria-selected={networkFilter === network.id}
+                className={cn(
+                  "pricing-matrix-filter-tab",
+                  `pricing-matrix-filter-${network.id}`,
+                  networkFilter === network.id && "is-active",
+                )}
+                onClick={() => setNetworkFilter(network.id)}
+              >
+                {network.name}
+                <span className="pricing-matrix-filter-count">{networkCounts[network.id]}</span>
+              </button>
             ))}
-          </AdminTableBody>
-        </AdminDataTable>
+          </div>
+
+          {filteredRows.length === 0 ? (
+            <AdminEmptyState
+              icon={Package}
+              title="No bundles for this network"
+              description="Switch to another network tab or add a new bundle."
+            />
+          ) : (
+            <AdminDataTable minWidth="860px">
+              <AdminTableHead>
+                <AdminTh>Volume</AdminTh>
+                <AdminTh>Cost</AdminTh>
+                <AdminTh>Agent</AdminTh>
+                <AdminTh>Super</AdminTh>
+                <AdminTh>Pro</AdminTh>
+                <AdminTh>Status</AdminTh>
+                <AdminTh className="pricing-matrix-actions-th">Actions</AdminTh>
+              </AdminTableHead>
+              <AdminTableBody>
+                {filteredRows.map((row) => (
+                  <WholesaleRowEditor
+                    key={row.id}
+                    row={row}
+                    saving={pending === row.id}
+                    onSave={saveRow}
+                    onDelete={deleteRow}
+                    deleting={deletingId === row.id}
+                    wishlistSaved={wishlistIds.includes(row.id)}
+                  />
+                ))}
+              </AdminTableBody>
+            </AdminDataTable>
+          )}
+        </div>
       )}
     </AdminSection>
   );
@@ -303,22 +373,23 @@ function PriceMatrixInputs({
   ];
 
   return (
-    <div className={compact ? "flex flex-wrap gap-1" : "grid gap-2 sm:grid-cols-2 lg:grid-cols-4"}>
+    <div className={compact ? "flex flex-wrap gap-1.5" : "grid gap-2 sm:grid-cols-2 lg:grid-cols-4"}>
       {fields.map(({ key, label }) => (
-        <label key={key} className="text-[10px] font-medium text-muted">
+        <label key={key} className="pricing-matrix-field-label">
           {!compact && label}
-          <input
-            type="number"
-            step="0.01"
-            title={label}
-            className={
-              compact
-                ? "num w-14 rounded-md border border-border px-1 py-0.5 text-xs"
-                : "mt-0.5 flex h-8 w-full rounded-md border border-border px-2 text-sm"
-            }
-            value={prices[key]}
-            onChange={(e) => onChange({ ...prices, [key]: Number(e.target.value) })}
-          />
+          <div className={compact ? "pricing-matrix-price-wrap pricing-matrix-price-wrap--compact" : "pricing-matrix-price-wrap"}>
+            <span className="pricing-matrix-currency" aria-hidden>
+              ₵
+            </span>
+            <input
+              type="number"
+              step="0.01"
+              title={label}
+              className="pricing-matrix-price-input num"
+              value={prices[key]}
+              onChange={(e) => onChange({ ...prices, [key]: Number(e.target.value) })}
+            />
+          </div>
         </label>
       ))}
     </div>
@@ -329,20 +400,27 @@ function PriceInput({
   value,
   onChange,
   title,
+  invalid,
 }: {
   value: number;
   onChange: (v: number) => void;
   title: string;
+  invalid?: boolean;
 }) {
   return (
-    <input
-      type="number"
-      step="0.01"
-      title={title}
-      className="num w-16 rounded-md border border-border px-1.5 py-1 text-xs"
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-    />
+    <div className="pricing-matrix-price-wrap pricing-matrix-price-wrap--compact">
+      <span className="pricing-matrix-currency" aria-hidden>
+        ₵
+      </span>
+      <input
+        type="number"
+        step="0.01"
+        title={title}
+        className={cn("pricing-matrix-price-input num", invalid && "is-invalid")}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
   );
 }
 
@@ -377,19 +455,24 @@ function WholesaleRowEditor({
     popular !== row.popular ||
     (row.network === "at" && productLine !== (row.productLine ?? "standard"));
 
+  const ladderWarning = tierLadderWarning(prices);
+  const costInvalid = prices.costPrice > prices.agentProPrice;
+  const proInvalid = prices.agentProPrice > prices.xpressAgentPrice;
+  const superInvalid = prices.xpressAgentPrice > prices.agentPrice;
+
   return (
-    <tr className="admin-table-tr">
+    <tr className={cn("admin-table-tr", dirty && "pricing-matrix-row-dirty")}>
       <td className="admin-table-td">
         <div className="flex items-center gap-2">
           <NetworkBadge network={row.network} size="xs" />
-          <div>
-            <p className="font-semibold">{formatDataAmount(row.dataMb)}</p>
-            <p className="text-xs text-muted">
+          <div className="min-w-0">
+            <p className="pricing-matrix-volume">{formatDataAmount(row.dataMb)}</p>
+            <p className="pricing-matrix-meta">
               {row.name} · {row.validityDays}d · <span className="font-mono">{row.sku}</span>
             </p>
             {row.network === "at" && (
               <select
-                className="mt-1 rounded border border-border px-1 py-0.5 text-[10px]"
+                className="pricing-matrix-product-line mt-1"
                 value={productLine}
                 onChange={(e) =>
                   setProductLine(e.target.value as "standard" | "ishare" | "bigtime")
@@ -400,6 +483,12 @@ function WholesaleRowEditor({
                 <option value="bigtime">BigTime</option>
               </select>
             )}
+            {ladderWarning && (
+              <p className="pricing-matrix-warning mt-1" title={ladderWarning}>
+                <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden />
+                <span>{ladderWarning}</span>
+              </p>
+            )}
           </div>
         </div>
       </td>
@@ -407,6 +496,7 @@ function WholesaleRowEditor({
         <PriceInput
           title="Cost price"
           value={prices.costPrice}
+          invalid={costInvalid}
           onChange={(v) => setPrices((p) => ({ ...p, costPrice: v }))}
         />
       </td>
@@ -414,6 +504,7 @@ function WholesaleRowEditor({
         <PriceInput
           title="Agent price"
           value={prices.agentPrice}
+          invalid={superInvalid}
           onChange={(v) => setPrices((p) => ({ ...p, agentPrice: v }))}
         />
       </td>
@@ -421,6 +512,7 @@ function WholesaleRowEditor({
         <PriceInput
           title="Super Agent price"
           value={prices.xpressAgentPrice}
+          invalid={superInvalid || proInvalid}
           onChange={(v) => setPrices((p) => ({ ...p, xpressAgentPrice: v }))}
         />
       </td>
@@ -428,34 +520,43 @@ function WholesaleRowEditor({
         <PriceInput
           title="Pro Agent price"
           value={prices.agentProPrice}
+          invalid={proInvalid || costInvalid}
           onChange={(v) => setPrices((p) => ({ ...p, agentProPrice: v }))}
         />
       </td>
       <td className="admin-table-td">
-        <div className="flex flex-col gap-1">
-          <label className="flex items-center gap-1.5 text-xs">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+        <div className="pricing-matrix-status">
+          <label className={cn("pricing-matrix-status-chip", active && "is-on")}>
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+            />
             Active
           </label>
-          <label className="flex items-center gap-1.5 text-xs">
-            <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} />
+          <label className={cn("pricing-matrix-status-chip", popular && "is-on is-popular")}>
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={popular}
+              onChange={(e) => setPopular(e.target.checked)}
+            />
             Popular
           </label>
-          {!active && <Badge variant="neutral">Hidden</Badge>}
         </div>
       </td>
       <td className="admin-table-td">
-        <WishlistToggle
-          bundleId={row.id}
-          apiBase="/api/admin/wishlist"
-          initialSaved={wishlistSaved}
-          className="border-border bg-slate-50 text-slate-500 hover:text-rose-500"
-        />
-      </td>
-      <td className="admin-table-td">
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="pricing-matrix-actions">
+          <WishlistToggle
+            bundleId={row.id}
+            apiBase="/api/admin/wishlist"
+            initialSaved={wishlistSaved}
+            className="pricing-matrix-wishlist"
+          />
           <Button
             size="sm"
+            className="pricing-matrix-save-btn"
             disabled={!dirty || saving || deleting}
             onClick={() =>
               onSave(row, {
@@ -476,7 +577,7 @@ function WholesaleRowEditor({
             disabled={saving || deleting}
             onClick={() => onDelete(row)}
             aria-label={`Delete ${row.name}`}
-            className="border-rose-500/30 text-rose-300 hover:border-rose-400/50 hover:bg-rose-500/10"
+            className="pricing-matrix-delete-btn"
           >
             <Trash2 className="h-3.5 w-3.5" />
             {deleting ? "…" : "Delete"}
