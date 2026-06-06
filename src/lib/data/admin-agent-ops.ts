@@ -62,7 +62,7 @@ export interface AdminAgentOpsSummary {
   pendingWithdrawals: number;
   openComplaints: number;
   pendingMtnAfa: number;
-  activePromoCodes: number;
+  pendingMomoWalletClaims: number;
   activeApiKeys: number;
 }
 
@@ -79,20 +79,24 @@ export async function fetchAdminAgentOpsSummary(): Promise<AdminAgentOpsSummary>
       pendingWithdrawals: 0,
       openComplaints: 0,
       pendingMtnAfa: 0,
-      activePromoCodes: 0,
+      pendingMomoWalletClaims: 0,
       activeApiKeys: 0,
     };
   }
 
   const service = createServiceClient();
-  const [withdrawals, complaints, afa, promos, keys] = await Promise.all([
+  const [withdrawals, complaints, afa, momoClaims, keys] = await Promise.all([
     service.from("reward_withdrawals").select("id", { count: "exact", head: true }).eq("status", "pending"),
     service
       .from("vendor_complaints")
       .select("id", { count: "exact", head: true })
       .in("status", ["open", "in_progress"]),
     service.from("vendor_mtn_afa").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    service.from("promo_codes").select("id", { count: "exact", head: true }).eq("active", true),
+    service
+      .from("wallet_topups")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending")
+      .eq("payment_method", "momo_direct"),
     service.from("vendor_api_keys").select("id", { count: "exact", head: true }).eq("active", true),
   ]);
 
@@ -100,7 +104,7 @@ export async function fetchAdminAgentOpsSummary(): Promise<AdminAgentOpsSummary>
     pendingWithdrawals: withdrawals.count ?? 0,
     openComplaints: complaints.count ?? 0,
     pendingMtnAfa: afa.count ?? 0,
-    activePromoCodes: promos.count ?? 0,
+    pendingMomoWalletClaims: momoClaims.count ?? 0,
     activeApiKeys: keys.count ?? 0,
   };
 }

@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
-import { Tag } from "lucide-react";
 import { AdminPageIntro, AdminPageRoot, AdminSection } from "@/components/admin";
 import { MomoClaimItPanel } from "@/components/vendor/momo-claimit-panel";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
 import { getCurrentVendor } from "@/lib/auth/session";
 import { getMomoDirectConfig } from "@/lib/data/platform-config";
 import { primaryMerchantNumber } from "@/lib/payments/wallet-momo-claim";
-import { ClaimItForm } from "./claim-form";
 
 export const dynamic = "force-dynamic";
 
@@ -36,13 +34,6 @@ export default async function ClaimItPage() {
           }}
           showCancel={false}
         />
-      </AdminSection>
-      <AdminSection
-        title="Promo codes"
-        description="Redeem reward codes from DCS for bonus wallet credit."
-        icon={Tag}
-      >
-        <ClaimItForm />
       </AdminSection>
     </AdminPageRoot>
   );

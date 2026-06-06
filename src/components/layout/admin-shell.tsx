@@ -69,7 +69,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Extra services",
     items: [
-      { href: "/admin/agent-ops#claimit", label: "ClaimIt", icon: Tag, match: (p) => p.startsWith("/admin/agent-ops") },
+      { href: "/admin/momo-payments", label: "ClaimIt", icon: Tag, match: (p) => p.startsWith("/admin/momo-payments") },
       { href: "/admin/agent-ops#developer", label: "Developer", icon: Code, match: (p) => p.startsWith("/admin/agent-ops") },
       { href: "/admin/agent-ops#mtn-afa", label: "MTN AFA", icon: Shield, match: (p) => p.startsWith("/admin/agent-ops") },
       { href: "/admin/vendors", label: "Agent Profiles", icon: User, match: (p) => p.startsWith("/admin/vendors") },

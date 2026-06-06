@@ -300,8 +300,8 @@ export default async function AdminOverviewPage() {
               <OpsRow label="Open complaints" value={agentOps.openComplaints} />
               <OpsRow label="MTN AFA pending" value={agentOps.pendingMtnAfa} />
               <OpsRow
-                label="Active ClaimIt codes"
-                value={agentOps.activePromoCodes}
+                label="Pending MoMo wallet claims"
+                value={agentOps.pendingMomoWalletClaims}
                 tone="muted"
               />
             </ul>
@@ -379,7 +379,7 @@ export default async function AdminOverviewPage() {
         <TrustCard
           icon={<Trophy className="h-5 w-5" />}
           title="Vendor incentives"
-          body="Tier rewards and ClaimIt codes drive volume to top performers."
+          body="Tier rewards and MoMo ClaimIt wallet top-ups drive volume to top performers."
           tone="amber"
         />
       </section>

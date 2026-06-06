@@ -93,8 +93,8 @@ export default async function AdminMomoPaymentsPage() {
   return (
     <AdminPageRoot>
       <AdminPageIntro
-        badge="MoMo direct"
-        description="Mobile-money confirmations forwarded by the SMS-forwarder phone, with auto + manual matching to pending orders."
+        badge="ClaimIt"
+        description="MoMo wallet top-ups and customer checkout payments — SMS confirmations from the forwarder phone, matched automatically or resolved manually."
         meta={
           config.enabled
             ? `Enabled · MTN ${config.merchantNumbers.mtn || "—"} · Telecel ${

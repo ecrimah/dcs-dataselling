@@ -4,7 +4,6 @@ import {
   Gift,
   MessageSquare,
   Shield,
-  Tag,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,7 +27,6 @@ import { formatGHS, formatPhone } from "@/lib/format";
 import {
   fetchAdminAgentRewardBalances,
   fetchAdminMtnAfaApplications,
-  fetchAdminPromoCodes,
   fetchAdminRewardWithdrawals,
   fetchAdminVendorApiKeys,
   fetchAdminVendorComplaints,
@@ -39,8 +37,6 @@ import {
   ApiKeyRevokeButton,
   ComplaintActions,
   MtnAfaActions,
-  PromoCreateForm,
-  PromoToggle,
   WithdrawalActions,
 } from "./agent-ops-actions";
 
@@ -51,8 +47,7 @@ export default async function AdminAgentOpsPage() {
     return <AdminConfigError />;
   }
 
-  const [promos, withdrawals, complaints, mtnAfa, apiKeys, rewardBalances] = await Promise.all([
-    fetchAdminPromoCodes(),
+  const [withdrawals, complaints, mtnAfa, apiKeys, rewardBalances] = await Promise.all([
     fetchAdminRewardWithdrawals(),
     fetchAdminVendorComplaints(),
     fetchAdminMtnAfaApplications(),
@@ -70,7 +65,7 @@ export default async function AdminAgentOpsPage() {
     <AdminPageRoot className="space-y-4">
       <AdminPageIntro
         badge="Agent operations"
-        description="Rewards, ClaimIt, complaints, MTN AFA, and developer keys — sidebar links jump to each section."
+        description="Rewards, complaints, MTN AFA, and developer keys — sidebar links jump to each section."
         meta={`${pendingWithdrawals.length} payouts · ${openComplaints.length} complaints · ${pendingAfa.length} AFA pending`}
       />
 
@@ -92,13 +87,6 @@ export default async function AdminAgentOpsPage() {
           tone="sky"
           label="MTN AFA queue"
           value={String(pendingAfa.length)}
-        />
-        <AdminStatTile
-          icon={<Tag className="h-4 w-4" />}
-          tone="emerald"
-          label="Active promo codes"
-          value={String(promos.filter((p) => p.active).length)}
-          valueAccent="emerald"
         />
       </AdminStatGrid>
 
@@ -132,49 +120,6 @@ export default async function AdminAgentOpsPage() {
             </AdminTableBody>
           </AdminDataTable>
         )}
-      </AdminSection>
-
-      <AdminSection
-        id="claimit"
-        title="ClaimIt promo codes"
-        description="Bonus reward codes agents redeem on the ClaimIt page (separate from MoMo wallet top-up)."
-        icon={Tag}
-      >
-        {promos.length === 0 ? (
-          <AdminEmptyState
-            icon={Tag}
-            title="No promo codes yet"
-            description="Create a code below to credit agent wallets."
-          />
-        ) : (
-          <AdminList className="mb-3">
-            {promos.map((p) => (
-              <AdminListItem key={p.id}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="admin-promo-code">{p.code}</p>
-                    <p className="mt-1 text-sm text-foreground">
-                      {formatGHS(Number(p.amount))} · {p.redemption_count}
-                      {p.max_redemptions != null ? ` / ${p.max_redemptions}` : ""} redemptions
-                    </p>
-                    <p className="text-xs text-muted">
-                      {p.expires_at
-                        ? `Expires ${formatDistanceToNow(new Date(p.expires_at), { addSuffix: true })}`
-                        : "No expiry"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={p.active ? "success" : "neutral"}>
-                      {p.active ? "Active" : "Inactive"}
-                    </Badge>
-                    <PromoToggle promoId={p.id} active={p.active} />
-                  </div>
-                </div>
-              </AdminListItem>
-            ))}
-          </AdminList>
-        )}
-        <PromoCreateForm />
       </AdminSection>
 
       <AdminSection
