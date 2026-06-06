@@ -455,7 +455,6 @@ export function WholesaleTerminal({
             </div>
             <div className="mt-4">
               <MomoClaimItPanel
-                variant="dark"
                 config={
                   momoClaimIt ?? {
                     enabled: false,

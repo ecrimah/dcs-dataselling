@@ -3712,3 +3712,80 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* MoMo ClaimIt — self-contained contrast (immune to vault slate/amber remaps) */
+.claimit-panel .claimit-body {
+  color: rgba(255, 255, 255, 0.82);
+}
+.claimit-panel .claimit-strong {
+  color: #fff;
+  font-weight: 700;
+}
+.claimit-panel .claimit-accent {
+  color: #f4d160;
+}
+.claimit-panel .claimit-muted {
+  color: rgba(255, 255, 255, 0.62);
+}
+.claimit-panel .claimit-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+.claimit-panel .claimit-instant-box {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(6, 21, 40, 0.92);
+}
+.claimit-panel .claimit-preset {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+}
+.claimit-panel .claimit-preset:hover {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: rgba(212, 175, 55, 0.1);
+}
+.claimit-panel .claimit-preset.is-active {
+  border-color: #d4af37;
+  background: #d4af37;
+  color: #061528;
+}
+.claimit-panel .claimit-input {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #061528;
+  color: #fff;
+}
+.claimit-panel .claimit-input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+.claimit-panel .claimit-input:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
+}
+.claimit-panel .claimit-code-box {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(4, 14, 30, 0.95);
+}
+.claimit-panel .claimit-copy-btn {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.12);
+  color: #f4d160;
+}
+.claimit-panel .claimit-divider {
+  background: rgba(255, 255, 255, 0.14);
+}
+.claimit-panel .claimit-primary-btn {
+  background: #d4af37 !important;
+  color: #061528 !important;
+  font-weight: 700;
+}
+.claimit-panel .claimit-primary-btn:hover:not(:disabled) {
+  background: #e0bc45 !important;
+}
+.claimit-panel .claimit-secondary-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+.claimit-panel .claimit-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+

@@ -28,7 +28,6 @@ export default async function VendorWalletPage() {
         title="MoMo ClaimIt"
         description="Top up your wallet — generate a payment code or claim with your transaction ID."
         icon={Smartphone}
-        className="border-amber-200/80 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50"
       >
         <MomoClaimItPanel
           config={{

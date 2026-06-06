@@ -26,7 +26,6 @@ export default async function ClaimItPage() {
         title="Mobile Money ClaimIt"
         description="Use the merchant number below. Add your payment code as the MoMo reference for automatic wallet credit."
         icon={Smartphone}
-        className="border-amber-200/80 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50"
       >
         <MomoClaimItPanel
           config={{
