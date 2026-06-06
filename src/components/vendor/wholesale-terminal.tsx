@@ -212,7 +212,7 @@ export function WholesaleTerminal({
               onClick={() => setTopupOpen(true)}
             >
               <Plus className="h-3.5 w-3.5" />
-              Top Up
+              ClaimIt
             </Button>
             <button
               type="button"
@@ -455,6 +455,7 @@ export function WholesaleTerminal({
             </div>
             <div className="mt-4">
               <MomoClaimItPanel
+                variant="dark"
                 config={
                   momoClaimIt ?? {
                     enabled: false,

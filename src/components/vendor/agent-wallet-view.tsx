@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 interface Props {
   metrics: VendorWalletMetrics;
   ledger: WalletLedgerRow[];
+  /** When true, skip outer page wrapper (used inside wallet page with ClaimIt above). */
+  embedded?: boolean;
 }
 
 const ENTRY_LABEL: Record<string, string> = {
@@ -29,7 +31,7 @@ const ENTRY_LABEL: Record<string, string> = {
   adjustment: "Adjustment",
 };
 
-export function AgentWalletView({ metrics, ledger }: Props) {
+export function AgentWalletView({ metrics, ledger, embedded = false }: Props) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
 
@@ -41,19 +43,21 @@ export function AgentWalletView({ metrics, ledger }: Props) {
     });
   }, [ledger, search, typeFilter]);
 
-  return (
-    <AdminPageRoot>
-      <AdminPageIntro
-        badge="Wallet & ledger"
-        description="Top-ups, wholesale debits, and sales — your full transaction history."
-        meta={`${ledger.length} transactions · ${formatGHS(metrics.balance)} available`}
-        actions={
-          <a href="/api/vendor/wallet/export" className="susu-btn-ghost text-xs">
-            <Download className="h-3.5 w-3.5" />
-            Export CSV
-          </a>
-        }
-      />
+  const content = (
+    <>
+      {!embedded ? (
+        <AdminPageIntro
+          badge="Wallet & ledger"
+          description="Top-ups, wholesale debits, and sales — your full transaction history."
+          meta={`${ledger.length} transactions · ${formatGHS(metrics.balance)} available`}
+          actions={
+            <a href="/api/vendor/wallet/export" className="susu-btn-ghost text-xs">
+              <Download className="h-3.5 w-3.5" />
+              Export CSV
+            </a>
+          }
+        />
+      ) : null}
 
       <AdminStatGrid className="lg:grid-cols-3">
         <AdminStatTile
@@ -158,11 +162,14 @@ export function AgentWalletView({ metrics, ledger }: Props) {
 
         <p className="mt-3 text-center text-[11px] text-muted">
           Need more balance?{" "}
-          <Link href="/vendor/dashboard/wholesale?topup=1" className="font-semibold text-amber-800 hover:underline">
-            Top up via Buy Data
+          <Link href="/vendor/dashboard/claim" className="font-semibold text-amber-800 hover:underline">
+            Open ClaimIt to top up
           </Link>
         </p>
       </AdminSection>
-    </AdminPageRoot>
+    </>
   );
+
+  if (embedded) return content;
+  return <AdminPageRoot>{content}</AdminPageRoot>;
 }

@@ -22,6 +22,7 @@ import {
   Shield,
   User,
   Menu,
+  Smartphone,
   ChevronLeft,
   type LucideIcon,
 } from "lucide-react";
@@ -79,6 +80,12 @@ const NAV_SECTIONS: NavSection[] = [
           p.startsWith("/vendor/dashboard/wallet") ||
           p.startsWith("/vendor/dashboard/transactions"),
       },
+      {
+        href: "/vendor/dashboard/claim",
+        label: "ClaimIt",
+        icon: Smartphone,
+        match: (p) => p.startsWith("/vendor/dashboard/claim"),
+      },
       { href: "/vendor/dashboard/wholesale", label: "Buy Data", icon: ShoppingCart, match: (p) => p.startsWith("/vendor/dashboard/wholesale") },
       { href: "/vendor/dashboard/wishlist", label: "Wishlist", icon: Heart, match: (p) => p.startsWith("/vendor/dashboard/wishlist") },
       { href: "/vendor/dashboard/catalogue", label: "My Prices", icon: Tags, match: (p) => p.startsWith("/vendor/dashboard/catalogue") },
@@ -114,6 +121,7 @@ interface AgentShellProps {
 
 function pageTitleFromPath(pathname: string): string {
   if (pathname === "/vendor/dashboard") return "Dashboard";
+  if (pathname.startsWith("/vendor/dashboard/claim")) return "ClaimIt";
   const segs = pathname.split("/").filter(Boolean);
   const last = segs[segs.length - 1] ?? "";
   if (!last) return "Dashboard";

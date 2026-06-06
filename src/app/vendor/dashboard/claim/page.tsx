@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Smartphone } from "lucide-react";
 import { AdminPageIntro, AdminPageRoot, AdminSection } from "@/components/admin";
 import { MomoClaimItPanel } from "@/components/vendor/momo-claimit-panel";
 import { SetupFeeGate } from "@/components/vendor/setup-fee-gate";
@@ -19,11 +20,13 @@ export default async function ClaimItPage() {
     <AdminPageRoot>
       <AdminPageIntro
         badge="ClaimIt"
-        description="Top up your wallet via Mobile Money — generate a payment code or claim manually with your transaction ID."
+        description="Send Mobile Money to credit your wallet — generate a payment code for instant top-up, or paste your transaction ID to claim manually."
       />
       <AdminSection
         title="Mobile Money ClaimIt"
-        description="Send MoMo to the merchant number with your payment code, or paste your transaction ID if auto-match did not run."
+        description="Use the merchant number below. Add your payment code as the MoMo reference for automatic wallet credit."
+        icon={Smartphone}
+        className="border-amber-200/80 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50"
       >
         <MomoClaimItPanel
           config={{
