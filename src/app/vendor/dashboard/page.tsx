@@ -22,6 +22,9 @@ export default async function VendorDashboardPage() {
   const vendor = await getCurrentVendor();
   if (!vendor) redirect("/auth/login");
 
+  // API-only accounts have no storefront dashboard; send them to the API console.
+  if (vendor.apiOnly) redirect("/vendor/dashboard/developer");
+
   if (!vendor.setupFeePaidAt) {
     return (
       <div className="p-4">

@@ -24,7 +24,7 @@ export async function getVendorApiContext(): Promise<VendorApiContext | NextResp
   const service = createServiceClient();
   const { data: vendor } = await service
     .from("vendors")
-    .select("id, setup_fee_paid_at, status, tier")
+    .select("id, setup_fee_paid_at, status, tier, api_only")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -33,13 +33,16 @@ export async function getVendorApiContext(): Promise<VendorApiContext | NextResp
     setup_fee_paid_at: string | null;
     status: string;
     tier: VendorTier | null;
+    api_only: boolean | null;
   } | null;
 
   if (!v) {
     return NextResponse.json({ error: "No vendor account" }, { status: 404 });
   }
 
-  if (!v.setup_fee_paid_at) {
+  // API-only accounts skip the store setup fee. They can manage keys while
+  // pending; the keys themselves stay inactive until an admin approves them.
+  if (!v.api_only && !v.setup_fee_paid_at) {
     return NextResponse.json({ error: "Complete store setup fee first" }, { status: 403 });
   }
 

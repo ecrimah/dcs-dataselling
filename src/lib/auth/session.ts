@@ -54,7 +54,7 @@ export async function getCurrentVendor() {
   const { data } = await supabase
     .from("vendors")
     .select(
-      "id, slug, business_name, tagline, status, kyc_status, tier, theme_color, emoji, banner_url, whatsapp_number, momo_number, referral_code, verified, rating, total_orders, fulfilment_minutes, commission_rate, featured, setup_fee_paid_at, created_at",
+      "id, slug, business_name, tagline, status, kyc_status, tier, theme_color, emoji, banner_url, whatsapp_number, momo_number, referral_code, verified, rating, total_orders, fulfilment_minutes, commission_rate, featured, setup_fee_paid_at, api_only, created_at",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -81,6 +81,7 @@ export async function getCurrentVendor() {
     commission_rate: number;
     featured: boolean;
     setup_fee_paid_at: string | null;
+    api_only: boolean | null;
     created_at: string;
   };
   const row = data as Row;
@@ -106,6 +107,7 @@ export async function getCurrentVendor() {
     commissionRate: Number(row.commission_rate),
     featured: row.featured,
     setupFeePaidAt: row.setup_fee_paid_at,
+    apiOnly: row.api_only ?? false,
     createdAt: row.created_at,
   };
 }

@@ -1,53 +1,46 @@
-# DCS ELITE — Developer API Guide
+# DCS ELITE API
 
-Integrate DCS ELITE into your own app, bot, website, or reseller workflow. This
-REST API lets you list bundles, place single and bulk data orders, check order
-status, read your wallet balance, and receive real-time webhooks — all backed by
-your vendor wallet.
+This is the reference for the DCS ELITE data API. With it you can pull the
+bundle list, place single or bulk orders, check order status, read your wallet
+balance, and get webhook callbacks when orders complete. Orders are paid from
+your vendor wallet, so keep it topped up.
 
-- **Base URL:** `https://dcselite.com/api/v1`
-- **Format:** JSON over HTTPS
-- **Auth:** `Authorization: Bearer <your_api_key>`
-- **Currency:** GHS (Ghanaian Cedi)
+Base URL: `https://dcselite.com/api/v1`
 
-> Every path below is relative to the base URL. For example, `GET /ping` means
-> `GET https://dcselite.com/api/v1/ping`.
+All paths below are relative to that. So `GET /ping` means
+`GET https://dcselite.com/api/v1/ping`. Everything is JSON over HTTPS, and
+prices are in GHS.
 
----
+## Getting a key
 
-## 1. Get your API key
+If you just want to connect your own app or website and don't need a storefront,
+sign up for API access at `https://dcselite.com/api-access`. You won't be charged
+the store setup fee. An admin approves the account, and after that your keys work.
 
-1. Log in to your vendor dashboard at `https://dcselite.com/auth/login`.
-2. Go to **Dashboard → Developer**.
-3. Click **Create key**, give it a label, and copy the full key.
+Already have a full store? Log in to your dashboard, open the Developer page
+(Dashboard > Developer), and create a key. Either way you'll get something like
+`dcs_live_xxxxxxxxxxxxxxxxxxxxxxxx`.
 
-Your key looks like `dcs_live_xxxxxxxxxxxxxxxxxxxxxxxx`.
+The full key is only shown once when you create it, so copy it straight away and
+keep it on your server (an env var is fine). If you lose it, just revoke it and
+make a new one. Don't put it in front-end code or commit it anywhere public.
 
-> **Important:** The full key is shown **once**, at creation time. Store it
-> somewhere safe (e.g. your server's environment variables). If you lose it,
-> revoke it and create a new one. Never put your key in client-side/browser code
-> or commit it to a public repo.
+Your store setup fee needs to be paid before the key will work.
 
-Your store **setup fee must be paid** before the API will accept your key.
+## Authentication
 
----
-
-## 2. Authentication
-
-Send your key as a Bearer token on **every** request:
+Pass the key as a Bearer token on every request:
 
 ```
 Authorization: Bearer dcs_live_xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-Quick test:
+Quick check that it works:
 
 ```bash
 curl https://dcselite.com/api/v1/ping \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
-
-Expected response:
 
 ```json
 {
@@ -57,32 +50,22 @@ Expected response:
 }
 ```
 
-If you get `401`, the key is missing, malformed, revoked, or expired.
+A 401 back means the key is missing, malformed, revoked, or expired.
 
----
+## Endpoints at a glance
 
-## 3. Endpoints
-
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-| GET  | `/ping` | Verify your key and reach the API |
+| Method | Path | What it does |
+| ------ | ---- | ------------ |
+| GET  | `/ping` | Check the key and that the API is up |
 | GET  | `/account` | Vendor info, wallet balance, webhook status |
-| GET  | `/networks` | Supported telco networks |
-| GET  | `/bundles` | All active bundles you can sell, with your prices |
-| POST | `/orders` | Place a single order |
-| POST | `/orders/bulk` | Place up to 500 orders at once (supports price preview) |
-| GET  | `/orders/{reference}` | Get one order + its line items by reference |
-| GET  | `/orders?limit=&status=` | List recent orders, newest first |
+| GET  | `/networks` | Supported networks |
+| GET  | `/bundles` | Bundles you can sell, with your prices |
+| POST | `/orders` | Place one order |
+| POST | `/orders/bulk` | Place up to 500 at once (preview supported) |
+| GET  | `/orders/{reference}` | One order plus its line items |
+| GET  | `/orders` | Recent orders, newest first |
 
----
-
-### 3.1 GET `/ping` — Health check
-
-Confirms your key is valid and the API is reachable. See the example above.
-
----
-
-### 3.2 GET `/account` — Account & wallet
+### GET /account
 
 ```bash
 curl https://dcselite.com/api/v1/account \
@@ -104,12 +87,9 @@ curl https://dcselite.com/api/v1/account \
 }
 ```
 
-> Orders are paid from your **wallet balance**. Top up your wallet from the
-> vendor dashboard before placing orders.
+Orders draw from `wallet.balance`, so top up from the dashboard before ordering.
 
----
-
-### 3.3 GET `/networks` — Supported networks
+### GET /networks
 
 ```json
 {
@@ -121,11 +101,9 @@ curl https://dcselite.com/api/v1/account \
 }
 ```
 
----
+### GET /bundles
 
-### 3.4 GET `/bundles` — List bundles
-
-Returns every active SKU you can sell, with your wholesale price and a suggested
+Returns the active SKUs you can sell, with your wholesale price and a suggested
 retail price.
 
 ```bash
@@ -153,17 +131,15 @@ curl https://dcselite.com/api/v1/bundles \
 }
 ```
 
-Use either the `sku` or the `id` of a bundle when placing orders.
+When you order, you can reference a bundle by its `sku` or its `id`.
 
----
+### POST /orders
 
-### 3.5 POST `/orders` — Place a single order
+Charges your wallet and queues delivery. You get back a 202, which means it's
+been accepted but not delivered yet. Track it with a webhook or by polling the
+order endpoint.
 
-Charges your wallet and queues delivery to the recipient. Returns **`202
-Accepted`** — delivery happens asynchronously; track it via webhook or by polling
-the order endpoint.
-
-**Request body**
+Body:
 
 ```json
 {
@@ -176,13 +152,13 @@ the order endpoint.
 
 | Field | Required | Notes |
 | ----- | -------- | ----- |
-| `sku` | one of `sku`/`bundle_id` | Bundle SKU, e.g. `MTN-1GB` |
-| `bundle_id` | one of `sku`/`bundle_id` | Bundle UUID (alternative to `sku`) |
-| `recipient_phone` | yes | Ghana number; `024…`, `+233…`, or `233…` all accepted |
-| `quantity` | no | Default `1`, max `100` |
-| `reference` | no | Your unique ID. Makes the call **idempotent** — retrying with the same reference returns the original order instead of charging again |
+| `sku` | one of sku/bundle_id | Bundle SKU, e.g. `MTN-1GB` |
+| `bundle_id` | one of sku/bundle_id | Bundle UUID instead of the SKU |
+| `recipient_phone` | yes | Ghana number; `024...`, `+233...`, and `233...` all work |
+| `quantity` | no | Defaults to 1, max 100 |
+| `reference` | no | Your own ID. Send one and the call becomes idempotent, so a retry with the same reference returns the original order instead of charging twice |
 
-**Example**
+Example:
 
 ```bash
 curl -X POST https://dcselite.com/api/v1/orders \
@@ -196,7 +172,7 @@ curl -X POST https://dcselite.com/api/v1/orders \
   }'
 ```
 
-**Response (`202`)**
+Response (202):
 
 ```json
 {
@@ -214,17 +190,16 @@ curl -X POST https://dcselite.com/api/v1/orders \
 }
 ```
 
----
+### POST /orders/bulk
 
-### 3.6 POST `/orders/bulk` — Place a bulk order
+Up to 500 line items in one call. Your wallet is debited once for the whole
+amount, and each line is fulfilled on its own, so one bad line won't hold up the
+rest. Also returns a 202.
 
-Submit up to **500** line items in one call. Your wallet is debited once for the
-full amount, and each line is fulfilled independently (a single bad line does not
-block the rest). Returns **`202 Accepted`**.
+Set `dry_run: true` if you just want a price/validation preview without being
+charged.
 
-Pass `dry_run: true` to get a **price preview** without charging.
-
-**Request body**
+Body:
 
 ```json
 {
@@ -237,7 +212,7 @@ Pass `dry_run: true` to get a **price preview** without charging.
 }
 ```
 
-**Response (`202`)**
+Response (202):
 
 ```json
 {
@@ -254,13 +229,11 @@ Pass `dry_run: true` to get a **price preview** without charging.
 }
 ```
 
-When `dry_run` is `true`, the response instead reports `valid_count`,
-`invalid_count`, `total`, `wallet_balance`, `sufficient_funds`, and the resolved
-`lines`/`errors` so you can validate before charging.
+With `dry_run: true` you instead get `valid_count`, `invalid_count`, `total`,
+`wallet_balance`, `sufficient_funds`, and the resolved `lines` and `errors`, so
+you can sanity-check before charging.
 
----
-
-### 3.7 GET `/orders/{reference}` — Get one order
+### GET /orders/{reference}
 
 ```bash
 curl https://dcselite.com/api/v1/orders/my-order-001 \
@@ -292,14 +265,10 @@ curl https://dcselite.com/api/v1/orders/my-order-001 \
 }
 ```
 
----
+### GET /orders
 
-### 3.8 GET `/orders` — List recent orders
-
-Query params:
-
-- `limit` — 1–100 (default 25)
-- `status` — optional filter, e.g. `queued`, `fulfilled`, `failed`
+Query params: `limit` (1 to 100, default 25) and an optional `status` filter
+like `queued`, `fulfilled`, or `failed`.
 
 ```bash
 curl "https://dcselite.com/api/v1/orders?limit=25&status=fulfilled" \
@@ -324,39 +293,26 @@ curl "https://dcselite.com/api/v1/orders?limit=25&status=fulfilled" \
 }
 ```
 
----
+## Order statuses
 
-## 4. Order status lifecycle
+- `queued`: paid and waiting to go out to the network
+- `processing`: handed off to the supplier
+- `fulfilled`: data delivered
+- `failed`: delivery failed; the wallet is refunded for failed lines
 
-| Status | Meaning |
-| ------ | ------- |
-| `queued` | Accepted and paid; waiting to be sent to the network |
-| `processing` | Sent to the supplier/network |
-| `fulfilled` | Data delivered successfully |
-| `failed` | Delivery failed (your wallet is refunded for failed lines) |
+Since delivery is async, don't expect `fulfilled` in the first 202 response.
+Either poll `GET /orders/{reference}` or use a webhook.
 
-Because orders are processed asynchronously, don't expect `fulfilled` in the
-initial `202` response. Either poll `GET /orders/{reference}` or — better — use
-webhooks (below).
+## Webhooks
 
----
+Rather than polling, you can register a URL and we'll POST order updates to it as
+they happen. Set it up under Developer > Webhooks: enter an HTTPS URL and a
+signing secret, then enable it.
 
-## 5. Webhooks (recommended)
+Events we send: `order.queued`, `order.processing`, `order.fulfilled`,
+`order.failed`.
 
-Instead of polling, register a webhook URL so DCS ELITE pushes order updates to
-your server in real time.
-
-**Setup:** Vendor dashboard → **Developer → Webhooks** → enter your HTTPS URL and
-a signing secret, then enable it.
-
-**Events**
-
-- `order.queued`
-- `order.processing`
-- `order.fulfilled`
-- `order.failed`
-
-**Delivery** — we `POST` JSON to your URL:
+A delivery looks like this:
 
 ```http
 POST /your-webhook-endpoint HTTP/1.1
@@ -375,8 +331,8 @@ X-DCS-Signature: <hmac-sha256-hex>
 }
 ```
 
-**Verify the signature.** `X-DCS-Signature` is an HMAC-SHA256 of the raw request
-body, keyed with your webhook secret. Verify before trusting the payload:
+`X-DCS-Signature` is an HMAC-SHA256 of the raw request body using your webhook
+secret. Verify it before trusting anything:
 
 ```js
 import crypto from "crypto";
@@ -393,46 +349,41 @@ function verify(rawBody, signatureHeader, secret) {
 }
 ```
 
-Respond with a `2xx` quickly (within ~8 seconds). Deliveries and their responses
-are logged in your dashboard for debugging.
+Reply with a 2xx quickly (within about 8 seconds). You can see every delivery
+and its response in the dashboard if you need to debug.
 
----
+## Errors
 
-## 6. Error codes
-
-Errors return a non-2xx HTTP status and a JSON body:
+Errors come back with a non-2xx status and a JSON body:
 
 ```json
 { "error": "Human readable message", "code": "machine_code" }
 ```
 
-| HTTP | `code` | Meaning |
-| ---- | ------ | ------- |
-| 400 | `invalid_body` / `invalid_phone` / `invalid_json` | Request payload or recipient phone failed validation |
-| 401 | `missing_key` / `malformed_key` / `invalid_key` / `revoked` / `expired` | API key problem |
-| 402 | `insufficient_funds` | Wallet balance is below the order total — top up and retry |
-| 403 | `setup_incomplete` | Store setup fee not yet paid |
-| 404 | `bundle_not_found` / `not_found` | SKU/bundle or reference does not exist or is inactive |
-| 409 | `recipient_cooldown` / `debit_failed` | Recipient ordered too recently, or wallet debit failed |
-| 500 | `internal_error` | Unexpected server error — safe to retry with the same `reference` |
-| 503 | `not_configured` | Service temporarily unavailable |
+| HTTP | code | Meaning |
+| ---- | ---- | ------- |
+| 400 | `invalid_body`, `invalid_phone`, `invalid_json` | Payload or recipient phone didn't validate |
+| 401 | `missing_key`, `malformed_key`, `invalid_key`, `revoked`, `expired` | Something's wrong with the key |
+| 402 | `insufficient_funds` | Wallet is below the order total; top up and retry |
+| 403 | `setup_incomplete` | Store setup fee hasn't been paid |
+| 403 | `pending_approval` | API-only account is waiting for admin approval |
+| 404 | `bundle_not_found`, `not_found` | SKU/bundle or reference doesn't exist or is inactive |
+| 409 | `recipient_cooldown`, `debit_failed` | Recipient ordered too recently, or the wallet debit failed |
+| 500 | `internal_error` | Something broke our side; safe to retry with the same reference |
+| 503 | `not_configured` | Temporarily unavailable |
 
----
+## A few things worth doing
 
-## 7. Best practices
+Send a `reference` on every order. It's the safety net against double charges if
+a request times out and you retry.
 
-- **Always send a `reference`** on orders. It guarantees idempotency, so network
-  retries or timeouts never double-charge your wallet.
-- **Use webhooks** rather than tight polling. If you must poll, poll
-  `GET /orders/{reference}` at a sensible interval (e.g. every 10–30s).
-- **Keep your wallet funded.** A `402 insufficient_funds` means top up first.
-- **Keep your key server-side.** Treat it like a password.
-- **Use `dry_run` for bulk** to validate phone numbers and preview cost before
-  charging.
+Lean on webhooks instead of hammering the API. If you do poll, every 10 to 30
+seconds on `GET /orders/{reference}` is plenty.
 
----
+Keep the wallet funded so you don't hit `insufficient_funds`, and run bulk jobs
+with `dry_run` first to catch bad numbers before you pay.
 
-## 8. Quick start (Node.js)
+## Node example
 
 ```js
 const BASE = "https://dcselite.com/api/v1";
@@ -459,7 +410,6 @@ async function placeOrder() {
 placeOrder();
 ```
 
----
-
-**Need help?** Reach out to the DCS ELITE admin. Interactive docs with live
-copy-paste examples are also available at `https://dcselite.com/developers`.
+There's a live version of these docs with copy-paste examples at
+`https://dcselite.com/developers`. If something's not behaving, contact us and
+we'll take a look.

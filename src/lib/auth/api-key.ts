@@ -90,7 +90,7 @@ export async function authenticateApiKey(
     .select(
       `
       id, vendor_id, key_prefix, active, revoked_at, expires_at,
-      vendors ( id, slug, business_name, user_id, setup_fee_paid_at, tier )
+      vendors ( id, slug, business_name, user_id, setup_fee_paid_at, tier, status, api_only )
     `,
     )
     .eq("key_hash", hash)
@@ -113,23 +113,19 @@ export async function authenticateApiKey(
     revoked_at: string | null;
     expires_at: string | null;
     vendors:
-      | {
-          id: string;
-          slug: string;
-          business_name: string;
-          user_id: string;
-          setup_fee_paid_at: string | null;
-          tier: VendorTier | null;
-        }
-      | {
-          id: string;
-          slug: string;
-          business_name: string;
-          user_id: string;
-          setup_fee_paid_at: string | null;
-          tier: VendorTier | null;
-        }[]
+      | VendorJoin
+      | VendorJoin[]
       | null;
+  };
+  type VendorJoin = {
+    id: string;
+    slug: string;
+    business_name: string;
+    user_id: string;
+    setup_fee_paid_at: string | null;
+    tier: VendorTier | null;
+    status: string | null;
+    api_only: boolean | null;
   };
   const row = data as KeyRow;
 
@@ -146,7 +142,18 @@ export async function authenticateApiKey(
     return { ok: false, status: 401, error: "Vendor account not found.", code: "no_vendor" };
   }
 
-  if (!vendor.setup_fee_paid_at) {
+  if (vendor.api_only) {
+    // API-only accounts skip the store setup fee but must be approved by an
+    // admin before their keys are allowed to call the API.
+    if (vendor.status !== "approved") {
+      return {
+        ok: false,
+        status: 403,
+        error: "API access is pending admin approval.",
+        code: "pending_approval",
+      };
+    }
+  } else if (!vendor.setup_fee_paid_at) {
     return {
       ok: false,
       status: 403,

@@ -299,6 +299,11 @@ export default async function AdminVendorsPage() {
                     </AdminTd>
                     <AdminTd>
                       <Badge variant={STATUS_VARIANT[v.status]}>{v.status}</Badge>
+                      {v.api_only && (
+                        <Badge className="ml-1" variant="default">
+                          API only
+                        </Badge>
+                      )}
                       {v.featured && (
                         <Badge className="ml-1" variant="default">
                           featured
@@ -314,7 +319,13 @@ export default async function AdminVendorsPage() {
                     </AdminTd>
                     <AdminTd>
                       <span className="text-xs capitalize text-muted">
-                        {v.status === "approved" ? "Live" : v.kyc_status?.replace(/_/g, " ") ?? "—"}
+                        {v.api_only
+                          ? v.status === "approved"
+                            ? "API active"
+                            : "API pending"
+                          : v.status === "approved"
+                            ? "Live"
+                            : (v.kyc_status?.replace(/_/g, " ") ?? "—")}
                       </span>
                     </AdminTd>
                     <AdminTd className="num">{formatCompact(v.total_orders)}</AdminTd>

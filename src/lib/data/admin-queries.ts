@@ -16,6 +16,7 @@ export interface AdminVendorRow {
   rating: number;
   total_orders: number;
   fulfilment_minutes: number;
+  api_only: boolean;
   created_at: string;
 }
 
@@ -64,7 +65,7 @@ export async function fetchAdminVendors(): Promise<AdminVendorRow[]> {
   const { data, error } = await service
     .from("vendors")
     .select(
-      "id, slug, business_name, status, kyc_status, verified, featured, tier, tier_manual, commission_rate, rating, total_orders, fulfilment_minutes, created_at",
+      "id, slug, business_name, status, kyc_status, verified, featured, tier, tier_manual, commission_rate, rating, total_orders, fulfilment_minutes, api_only, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -77,6 +78,7 @@ export async function fetchAdminVendors(): Promise<AdminVendorRow[]> {
     tier: row.tier ?? "starter",
     tier_manual: row.tier_manual ?? false,
     commission_rate: Number(row.commission_rate ?? 8),
+    api_only: Boolean(row.api_only),
   }));
 }
 

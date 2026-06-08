@@ -34,17 +34,17 @@ export default function DevelopersPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/auth/login"
+              href="/api-access"
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 px-5 py-2.5 text-sm font-bold text-slate-900 shadow-lg"
             >
               <Key className="h-4 w-4" />
-              Get API keys
+              Get API keys (no store)
             </Link>
             <Link
               href="/create-store"
               className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm"
             >
-              Create a store first
+              Or create a full store
             </Link>
           </div>
         </div>
