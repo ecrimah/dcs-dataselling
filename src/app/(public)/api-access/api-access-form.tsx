@@ -13,6 +13,15 @@ interface Props {
   signedInEmail: string | null;
 }
 
+function isValidGhanaPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  return (
+    (digits.length === 10 && digits.startsWith("0")) ||
+    (digits.length === 12 && digits.startsWith("233")) ||
+    digits.length === 9
+  );
+}
+
 export function ApiAccessForm({ signedInEmail }: Props) {
   const router = useRouter();
   const isSignedIn = Boolean(signedInEmail);
@@ -21,6 +30,7 @@ export function ApiAccessForm({ signedInEmail }: Props) {
   const [handle, setHandle] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -30,6 +40,11 @@ export function ApiAccessForm({ signedInEmail }: Props) {
 
     if (appName.trim().length < 3) {
       toast.error("Enter a name of at least 3 characters.");
+      return;
+    }
+
+    if (!isSignedIn && !isValidGhanaPhone(phone)) {
+      toast.error("Enter a valid Ghana phone number — we send alerts there by SMS.");
       return;
     }
 
@@ -43,6 +58,7 @@ export function ApiAccessForm({ signedInEmail }: Props) {
             email: email.trim(),
             password,
             fullName: fullName.trim(),
+            phone: phone.trim(),
           }),
         });
         const regData = await regRes.json();
@@ -132,6 +148,15 @@ export function ApiAccessForm({ signedInEmail }: Props) {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Phone"
+              type="tel"
+              placeholder="0241234567"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              hint="Required — wallet and account alerts are sent here by SMS."
               required
             />
             <Input

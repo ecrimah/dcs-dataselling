@@ -72,12 +72,14 @@ export function StepIdentity({ form, update, isSignedIn, sessionEmail }: Props) 
             autoComplete="email"
           />
           <Input
-            label="Phone (optional)"
+            label="Phone"
             type="tel"
             placeholder="0241234567"
             value={form.accountPhone}
             onChange={(e) => update("accountPhone", e.target.value)}
             autoComplete="tel"
+            hint="Required — we send wallet and order alerts here by SMS."
+            required
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input

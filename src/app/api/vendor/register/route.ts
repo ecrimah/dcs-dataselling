@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 
+/** Normalize a Ghana phone to local 0XXXXXXXXX form, or null if invalid. */
+function normalizeGhanaPhone(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10 && digits.startsWith("0")) return digits;
+  if (digits.length === 12 && digits.startsWith("233")) return `0${digits.slice(3)}`;
+  if (digits.length === 9) return `0${digits}`;
+  return null;
+}
+
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
   fullName: z.string().min(2).max(80),
-  phone: z.string().max(20).optional(),
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .refine((v) => normalizeGhanaPhone(v) !== null, "Enter a valid Ghana phone number"),
 });
 
 export async function POST(request: Request) {
@@ -46,7 +58,7 @@ export async function POST(request: Request) {
       email_confirm: true,
       user_metadata: {
         full_name: body.fullName.trim(),
-        phone: body.phone?.trim() || null,
+        phone: normalizeGhanaPhone(body.phone),
       },
     });
 

@@ -79,6 +79,15 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
+function isValidGhanaPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  return (
+    (digits.length === 10 && digits.startsWith("0")) ||
+    (digits.length === 12 && digits.startsWith("233")) ||
+    digits.length === 9
+  );
+}
+
 export function CreateStoreWizard({
   signedInEmail = null,
   setupFeeGhs,
@@ -248,6 +257,7 @@ export function CreateStoreWizard({
       storeOk &&
       form.fullName.trim().length >= 2 &&
       isValidEmail(form.accountEmail) &&
+      isValidGhanaPhone(form.accountPhone) &&
       form.accountPassword.length >= 8 &&
       form.accountPassword === form.accountPasswordConfirm
     );
@@ -282,7 +292,7 @@ export function CreateStoreWizard({
           email: form.accountEmail.trim(),
           password: form.accountPassword,
           fullName: form.fullName.trim(),
-          phone: form.accountPhone.trim() || undefined,
+          phone: form.accountPhone.trim(),
         }),
       });
       const data = await res.json();
