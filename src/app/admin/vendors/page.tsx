@@ -26,6 +26,7 @@ import { formatTierRolesSummary } from "@/lib/vendor/tier-rules";
 import { getTierConfigFromSettings, VENDOR_TIERS } from "@/lib/vendor/tiers";
 import { Badge } from "@/components/ui/badge";
 import { formatCompact, formatGHS } from "@/lib/format";
+import { GrantApiButton } from "./grant-api-button";
 import { RecalculateTiersButton } from "./recalculate-tiers-button";
 import { TierRolesEditor } from "./tier-roles-editor";
 import { VendorActions } from "./vendor-actions";
@@ -184,7 +185,7 @@ export default async function AdminVendorsPage() {
 
       <AdminSection
         title="New sign-ups — no store yet"
-        description="Accounts that registered but never finished creating a store, so they don't appear in the vendors list below. Anyone marked “Paid · awaiting store” already paid the setup fee — follow up so they can complete onboarding."
+        description="Accounts that registered but never finished creating a store, so they don't appear in the vendors list below. Anyone marked “Paid · awaiting store” already paid the setup fee — follow up so they can complete onboarding. Use “Grant API access” to give a no-store account developer API access; it then appears in the vendors list where you can assign a role."
         icon={UserPlus}
       >
         {registrations.length === 0 ? (
@@ -201,6 +202,7 @@ export default async function AdminVendorsPage() {
               <AdminTh>Registered</AdminTh>
               <AdminTh>Stage</AdminTh>
               <AdminTh>Intended store</AdminTh>
+              <AdminTh>Action</AdminTh>
             </AdminTableHead>
             <AdminTableBody>
               {registrations.map((r: PendingRegistrationRow) => {
@@ -254,6 +256,9 @@ export default async function AdminVendorsPage() {
                       ) : (
                         <span className="text-xs text-muted">Not started</span>
                       )}
+                    </AdminTd>
+                    <AdminTd>
+                      <GrantApiButton userId={r.userId} />
                     </AdminTd>
                   </AdminTr>
                 );
@@ -342,6 +347,7 @@ export default async function AdminVendorsPage() {
                         tier={v.tier ?? "starter"}
                         tierManual={v.tier_manual ?? false}
                         tierLabels={tierSettings.tiers}
+                        apiOnly={v.api_only}
                       />
                     </AdminTd>
                   </AdminTr>

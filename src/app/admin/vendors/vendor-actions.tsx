@@ -18,6 +18,7 @@ interface VendorActionsProps {
   tier: VendorTier;
   tierManual: boolean;
   tierLabels?: Record<VendorTier, AgentTierPricing>;
+  apiOnly?: boolean;
 }
 
 export function VendorActions({
@@ -28,6 +29,7 @@ export function VendorActions({
   tier,
   tierManual,
   tierLabels,
+  apiOnly = false,
 }: VendorActionsProps) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
@@ -56,14 +58,16 @@ export function VendorActions({
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <Link
-        href={`/vendor/${slug}`}
-        target="_blank"
-        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-cyan-700 hover:bg-cyan-50"
-      >
-        <ExternalLink className="h-3 w-3" />
-        Store
-      </Link>
+      {!apiOnly && (
+        <Link
+          href={`/vendor/${slug}`}
+          target="_blank"
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-cyan-700 hover:bg-cyan-50"
+        >
+          <ExternalLink className="h-3 w-3" />
+          Store
+        </Link>
+      )}
       <select
         value={tier}
         disabled={pending !== null}
