@@ -28,6 +28,12 @@ const schema = z.object({
       at: z.enum(["manual", "skanka5", "successbizhub"]).optional(),
     })
     .optional(),
+  contact: z
+    .object({
+      supportWhatsApp: z.string().max(40),
+      whatsappChannelUrl: z.string().max(300),
+    })
+    .optional(),
 });
 
 export async function GET() {

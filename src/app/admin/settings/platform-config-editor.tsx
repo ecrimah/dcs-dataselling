@@ -351,6 +351,56 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
         </div>
       </div>
 
+      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-amber-300">
+          Contact &amp; WhatsApp
+        </p>
+        <p className="mt-0.5 text-xs text-white/55">
+          Powers the floating call, WhatsApp chat, and channel buttons in the vendor dashboard.
+          Leave a field blank to hide its button.
+        </p>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Support WhatsApp / call number"
+            hint="The number vendors call or message. Use full Ghana format, e.g. 0241234567."
+          >
+            <input
+              type="tel"
+              inputMode="tel"
+              placeholder="0241234567"
+              value={config.contact.supportWhatsApp}
+              onChange={(e) =>
+                setConfig((c) => ({
+                  ...c,
+                  contact: { ...c.contact, supportWhatsApp: e.target.value },
+                }))
+              }
+              className="admin-form-field-input"
+            />
+          </Field>
+
+          <Field
+            label="Join WhatsApp channel link"
+            hint="Full link from WhatsApp channel → Share. e.g. https://whatsapp.com/channel/xxxx"
+          >
+            <input
+              type="url"
+              inputMode="url"
+              placeholder="https://whatsapp.com/channel/..."
+              value={config.contact.whatsappChannelUrl}
+              onChange={(e) =>
+                setConfig((c) => ({
+                  ...c,
+                  contact: { ...c.contact, whatsappChannelUrl: e.target.value },
+                }))
+              }
+              className="admin-form-field-input"
+            />
+          </Field>
+        </div>
+      </div>
+
       <button
         type="button"
         onClick={save}

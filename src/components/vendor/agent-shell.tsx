@@ -117,6 +117,8 @@ interface AgentShellProps {
   businessName: string;
   tier: string;
   children: React.ReactNode;
+  supportWhatsApp?: string;
+  whatsappChannelUrl?: string;
 }
 
 function pageTitleFromPath(pathname: string): string {
@@ -287,6 +289,8 @@ export function AgentShell({
   businessName,
   tier,
   children,
+  supportWhatsApp,
+  whatsappChannelUrl,
 }: AgentShellProps) {
   const pathname = usePathname();
   const { count: cartCount } = useVendorCart();
@@ -355,7 +359,10 @@ export function AgentShell({
 
         <main className="relative flex-1 pb-24 lg:pb-6">
           {children}
-          <AgentFabStack />
+          <AgentFabStack
+            supportWhatsApp={supportWhatsApp}
+            whatsappChannelUrl={whatsappChannelUrl}
+          />
         </main>
 
         {/* Mobile bottom nav */}

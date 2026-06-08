@@ -6,6 +6,7 @@ import { VendorSuspendedGate } from "@/components/vendor/vendor-suspended-gate";
 import { getCurrentProfile, getCurrentVendor } from "@/lib/auth/session";
 import { fetchVendorProfilePhone } from "@/lib/data/vendor-profile";
 import { getAgentTierSettings } from "@/lib/data/tier-settings";
+import { getPlatformConfig } from "@/lib/data/platform-config";
 import { getTierLabel } from "@/lib/vendor/tiers";
 
 export default async function VendorDashboardLayout({
@@ -16,10 +17,19 @@ export default async function VendorDashboardLayout({
   const vendor = await getCurrentVendor();
   if (!vendor) redirect("/auth/login");
 
+  const platformConfig = await getPlatformConfig();
+  const { supportWhatsApp, whatsappChannelUrl } = platformConfig.contact;
+
   if (vendor.status === "suspended" || vendor.status === "rejected") {
     return (
       <VendorCartProvider>
-        <AgentShell vendorName={vendor.businessName} businessName={vendor.businessName} tier="">
+        <AgentShell
+          vendorName={vendor.businessName}
+          businessName={vendor.businessName}
+          tier=""
+          supportWhatsApp={supportWhatsApp}
+          whatsappChannelUrl={whatsappChannelUrl}
+        >
           <VendorSuspendedGate />
         </AgentShell>
       </VendorCartProvider>
@@ -38,7 +48,13 @@ export default async function VendorDashboardLayout({
 
   return (
     <VendorCartProvider>
-      <AgentShell vendorName={vendorName} businessName={vendor.businessName} tier={tierLabel}>
+      <AgentShell
+        vendorName={vendorName}
+        businessName={vendor.businessName}
+        tier={tierLabel}
+        supportWhatsApp={supportWhatsApp}
+        whatsappChannelUrl={whatsappChannelUrl}
+      >
         <div className="vendor-page-content mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6">
           {!hasNotifyPhone && <MissingPhoneBanner />}
           {children}

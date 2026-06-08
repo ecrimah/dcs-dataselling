@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MessageCircle, Palette, Phone, Smartphone } from "lucide-react";
-import { SITE } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { MessageCircle, Palette, Phone, Radio, Smartphone } from "lucide-react";
 
-const WA_LINK = `https://wa.me/${SITE.supportWhatsApp.replace(/\D/g, "")}`;
 const THEMES = ["gold", "cyan", "emerald"] as const;
 
-export function AgentFabStack() {
+interface Props {
+  /** Support WhatsApp / call number in international digits (e.g. 233241234567). */
+  supportWhatsApp?: string;
+  /** Full https link to the WhatsApp channel. */
+  whatsappChannelUrl?: string;
+}
+
+export function AgentFabStack({ supportWhatsApp, whatsappChannelUrl }: Props) {
   const [themeIdx, setThemeIdx] = useState(0);
 
   useEffect(() => {
@@ -27,6 +31,9 @@ export function AgentFabStack() {
     document.documentElement.setAttribute("data-agent-accent", THEMES[next]);
   }
 
+  const phoneDigits = (supportWhatsApp ?? "").replace(/\D/g, "");
+  const channelUrl = (whatsappChannelUrl ?? "").trim();
+
   return (
     <div className="pointer-events-none fixed bottom-20 right-3 z-30 flex flex-col gap-2 lg:bottom-6 lg:right-6">
       <Link
@@ -36,13 +43,17 @@ export function AgentFabStack() {
       >
         <Smartphone className="h-5 w-5" />
       </Link>
-      <a
-        href={`tel:${SITE.supportWhatsApp.replace(/\D/g, "")}`}
-        className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg"
-        aria-label="Call support"
-      >
-        <Phone className="h-5 w-5" />
-      </a>
+
+      {phoneDigits && (
+        <a
+          href={`tel:+${phoneDigits}`}
+          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg"
+          aria-label="Call support"
+        >
+          <Phone className="h-5 w-5" />
+        </a>
+      )}
+
       <button
         type="button"
         onClick={cycleTheme}
@@ -51,17 +62,30 @@ export function AgentFabStack() {
       >
         <Palette className="h-5 w-5" />
       </button>
-      <a
-        href={WA_LINK}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn(
-          "pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-violet-500 text-white shadow-lg",
-        )}
-        aria-label="WhatsApp"
-      >
-        <MessageCircle className="h-5 w-5" />
-      </a>
+
+      {phoneDigits && (
+        <a
+          href={`https://wa.me/${phoneDigits}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-violet-500 text-white shadow-lg"
+          aria-label="WhatsApp contact"
+        >
+          <MessageCircle className="h-5 w-5" />
+        </a>
+      )}
+
+      {channelUrl && (
+        <a
+          href={channelUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-green-600 text-white shadow-lg"
+          aria-label="Join WhatsApp channel"
+        >
+          <Radio className="h-5 w-5" />
+        </a>
+      )}
     </div>
   );
 }

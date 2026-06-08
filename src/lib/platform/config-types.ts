@@ -28,6 +28,16 @@ export interface SupplierRoutingConfig {
   at?: NetworkSupplierId;
 }
 
+export interface ContactConfig {
+  /**
+   * Support WhatsApp / call number in international digits (e.g. 233241234567).
+   * Empty string hides the call + WhatsApp chat buttons.
+   */
+  supportWhatsApp: string;
+  /** Full https link to the WhatsApp channel. Empty string hides the channel button. */
+  whatsappChannelUrl: string;
+}
+
 export interface PlatformConfig {
   /** One-time fee (GHS) every new agent pays before their store goes live. */
   vendorSetupFeeGhs: number;
@@ -42,6 +52,8 @@ export interface PlatformConfig {
   momoDirect: MomoDirectConfig;
   /** Per-network supplier overrides (admin-controlled without env redeploy). */
   supplierRouting: SupplierRoutingConfig;
+  /** Support / WhatsApp contact details shown on the dashboard quick buttons. */
+  contact: ContactConfig;
 }
 
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
@@ -58,6 +70,10 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
     smsForwarderSecret: "",
   },
   supplierRouting: {},
+  contact: {
+    supportWhatsApp: "",
+    whatsappChannelUrl: "",
+  },
 };
 
 export function normalizePlatformConfig(input: unknown): PlatformConfig {
@@ -76,7 +92,45 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
     referralRewardGhs: clampNum(raw.referralRewardGhs, base.referralRewardGhs, 1, 10000),
     momoDirect: normalizeMomoDirect(raw.momoDirect, base.momoDirect),
     supplierRouting: normalizeSupplierRouting(raw.supplierRouting, base.supplierRouting),
+    contact: normalizeContact(raw.contact, base.contact),
   };
+}
+
+function normalizeContact(
+  input: Partial<ContactConfig> | undefined,
+  fallback: ContactConfig,
+): ContactConfig {
+  if (!input || typeof input !== "object") return fallback;
+  return {
+    supportWhatsApp: normalizeWhatsAppNumber(input.supportWhatsApp, fallback.supportWhatsApp),
+    whatsappChannelUrl: normalizeChannelUrl(input.whatsappChannelUrl, fallback.whatsappChannelUrl),
+  };
+}
+
+/** Returns the number in international digits (e.g. 233241234567) or "" when blank. */
+function normalizeWhatsAppNumber(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return "";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+  if (digits.startsWith("233")) return digits.slice(0, 12);
+  if (digits.length === 10 && digits.startsWith("0")) return `233${digits.slice(1)}`;
+  if (digits.length === 9) return `233${digits}`;
+  return digits.slice(0, 15);
+}
+
+function normalizeChannelUrl(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return "";
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return fallback;
+    return url.toString().slice(0, 300);
+  } catch {
+    return fallback;
+  }
 }
 
 const VALID_SUPPLIER_IDS = new Set<NetworkSupplierId>(["manual", "skanka5", "successbizhub"]);
