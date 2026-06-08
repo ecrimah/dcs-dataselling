@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import crypto from "crypto";
 import { markSetupPaymentPaid } from "@/lib/payments/setup-fee";
 import { markWalletTopupPaid } from "@/lib/payments/wallet";
@@ -53,12 +53,14 @@ export async function POST(request: Request) {
     if (meta.type === "wallet_topup") {
       const topup = await markWalletTopupPaid(event.data.reference, event.data.reference);
       if (topup && topup.notifyPhone) {
-        void smsWalletTopup({
-          phone: topup.notifyPhone,
-          amount: topup.amount,
-          reference: topup.reference,
-          context: { vendor_id: topup.vendorId },
-        });
+        after(() =>
+          smsWalletTopup({
+            phone: topup.notifyPhone!,
+            amount: topup.amount,
+            reference: topup.reference,
+            context: { vendor_id: topup.vendorId },
+          }),
+        );
       }
       return NextResponse.json({ received: true });
     }
@@ -107,15 +109,21 @@ export async function POST(request: Request) {
 
       await service.from("orders").update({ status: "queued" }).eq("id", o.id);
 
-      void smsOrderPaymentReceived({
-        phone: o.recipient_phone,
-        reference: o.reference,
-        bundleLabel,
-      });
+      // Run notification + supplier dispatch AFTER the response is sent, but via
+      // `after()` so the serverless function stays alive until they finish.
+      // (A bare `void fn()` is killed when the response returns, which left
+      // orders stuck in `queued` and forced admins to retry manually.)
+      after(() =>
+        smsOrderPaymentReceived({
+          phone: o.recipient_phone,
+          reference: o.reference,
+          bundleLabel,
+        }),
+      );
 
-      // Fire-and-forget dispatch to supplier (Skanka5). If it fails, the order
-      // stays `queued` with supplier_error set so admin can retry.
-      void dispatchCustomerOrderToSupplier(o.id);
+      // If dispatch fails, the order stays `queued` with supplier_error set so
+      // admin can still retry from /admin/orders.
+      after(() => dispatchCustomerOrderToSupplier(o.id));
     }
   }
 

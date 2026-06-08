@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { dispatchWholesaleOrderToSupplier } from "@/lib/suppliers/dispatch";
 import { normalizeWholesalePrices } from "@/lib/wholesale/tier-pricing";
@@ -99,9 +100,12 @@ export async function markWholesaleOrderPaid(reference: string, paymentReference
     .update({ status: "queued" })
     .eq("wholesale_order_id", o.id);
 
-  // Hand the order to the supplier (Skanka5). Failures are surfaced via
-  // wholesale_orders.supplier_error and admin can retry from /admin/orders.
-  void dispatchWholesaleOrderToSupplier(o.id);
+  // Hand the order to the supplier (Skanka5) AFTER the response is sent. Using
+  // `after()` (not bare `void`) keeps the serverless function alive until the
+  // supplier call finishes, so auto-dispatch actually runs in production.
+  // Failures are surfaced via wholesale_orders.supplier_error and admin can
+  // retry from /admin/orders.
+  after(() => dispatchWholesaleOrderToSupplier(o.id));
 }
 
 interface WholesaleOrderRow {

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { after } from "next/server";
 import { dispatchCustomerOrderToSupplier } from "@/lib/suppliers/dispatch";
 import { smsOrderPaymentReceived } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
@@ -80,13 +81,18 @@ export async function finalizeMomoDirectOrder(orderId: string, transactionId: st
 
   await service.from("orders").update({ status: "queued" }).eq("id", o.id);
 
-  void smsOrderPaymentReceived({
-    phone: o.recipient_phone,
-    reference: o.reference,
-    bundleLabel,
-  });
+  // Notify + dispatch AFTER the response via `after()` so the serverless
+  // function isn't frozen before the supplier call completes. A bare `void`
+  // here was being killed, leaving MoMo orders stuck in `queued`.
+  after(() =>
+    smsOrderPaymentReceived({
+      phone: o.recipient_phone,
+      reference: o.reference,
+      bundleLabel,
+    }),
+  );
 
-  void dispatchCustomerOrderToSupplier(o.id);
+  after(() => dispatchCustomerOrderToSupplier(o.id));
 
   return true;
 }

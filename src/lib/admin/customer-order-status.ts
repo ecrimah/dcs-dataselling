@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { creditVendorReward } from "@/lib/vendor/extras";
 import { getVendorTierForReward } from "@/lib/data/admin-tier-ops";
@@ -68,13 +69,18 @@ export async function applyCustomerOrderStatus(
     const bundleLabel = bundle
       ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
       : "Data bundle";
-    void smsOrderFulfilled({
-      phone: prev.recipient_phone,
-      reference: prev.reference,
-      bundleLabel,
-    });
+    const recipientPhone = prev.recipient_phone;
+    const reference = prev.reference;
+    const orderId2 = prev.id;
+    after(() =>
+      smsOrderFulfilled({
+        phone: recipientPhone,
+        reference,
+        bundleLabel,
+      }),
+    );
 
-    void tryCreditReferralForCustomerOrder(prev.id);
+    after(() => tryCreditReferralForCustomerOrder(orderId2));
   }
 
   return { ok: true };

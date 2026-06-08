@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
 import { getMomoDirectConfig } from "@/lib/data/platform-config";
 import {
@@ -12,6 +12,7 @@ import {
   finalizeMomoWalletTopup,
 } from "@/lib/payments/wallet-momo-claim";
 import { smsWalletTopup } from "@/lib/notifications/sms";
+import { isSmsForwarderAuthorized } from "@/lib/payments/sms-forwarder-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,11 @@ export const dynamic = "force-dynamic";
  *   - application/json body: { sender, body, receivedAt? }
  *   - x-www-form-urlencoded:  sender=…&body=…&receivedAt=…
  *
- * Authentication:
- *   - `Authorization: Bearer <smsForwarderSecret>` header
+ * Authentication (any one of these):
+ *   - `Authorization: Bearer <smsForwarderSecret>`
+ *   - `Authorization: <smsForwarderSecret>` (raw secret, no Bearer prefix)
+ *   - `X-SMS-Forwarder-Secret: <smsForwarderSecret>` or `X-Api-Key: <smsForwarderSecret>`
+ *   - Query param `?secret=<smsForwarderSecret>` (for apps that cannot set headers)
  *   - Secret is configured at /admin/settings (platform_config.momoDirect.smsForwarderSecret)
  *
  * The endpoint always returns 200 once authenticated so the SMS forwarder
@@ -41,9 +45,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const header = request.headers.get("authorization") ?? "";
-  const expected = `Bearer ${config.smsForwarderSecret}`;
-  if (header !== expected) {
+  if (!isSmsForwarderAuthorized(request, config.smsForwarderSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -113,11 +115,14 @@ export async function POST(request: Request) {
       );
       walletTopupFinalized = completion != null;
       if (completion?.notifyPhone) {
-        void smsWalletTopup({
-          phone: completion.notifyPhone,
-          amount: completion.amount,
-          reference: completion.reference,
-        });
+        const notify = completion.notifyPhone;
+        after(() =>
+          smsWalletTopup({
+            phone: notify,
+            amount: completion.amount,
+            reference: completion.reference,
+          }),
+        );
       }
     }
   }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { smsOrderFulfilled } from "@/lib/notifications/sms";
 import { formatDataAmount } from "@/lib/format";
@@ -119,13 +119,16 @@ export async function POST(request: Request) {
         }
       }
       const bundle = Array.isArray(r.bundles) ? r.bundles[0] : r.bundles;
-      void smsOrderFulfilled({
-        phone: r.recipient_phone,
-        reference: r.reference,
-        bundleLabel: bundle
-          ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
-          : "data",
-      });
+      const bundleLabel = bundle
+        ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
+        : "data";
+      after(() =>
+        smsOrderFulfilled({
+          phone: r.recipient_phone,
+          reference: r.reference,
+          bundleLabel,
+        }),
+      );
     }
   }
 

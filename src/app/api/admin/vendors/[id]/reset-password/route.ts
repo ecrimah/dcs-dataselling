@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { smsPasswordReset } from "@/lib/notifications/sms";
 import { getVendorNotifyPhone } from "@/lib/payments/wallet";
@@ -43,7 +43,7 @@ export async function POST(
 
   const phone = await getVendorNotifyPhone(id);
   if (phone) {
-    void smsPasswordReset({ phone, tempPassword: password, context: { vendorId: id } });
+    after(() => smsPasswordReset({ phone, tempPassword: password, context: { vendorId: id } }));
   }
 
   return NextResponse.json({

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { applyCustomerOrderStatus } from "@/lib/admin/customer-order-status";
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       const orderId = (row as { wholesale_order_id?: string } | null)?.wholesale_order_id;
       if (orderId) parentOrderIds.add(orderId);
       if (status.data === "fulfilled") {
-        void tryCreditReferralForWholesaleItem(id);
+        after(() => tryCreditReferralForWholesaleItem(id));
       }
     }
 

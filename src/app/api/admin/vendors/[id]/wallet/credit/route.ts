@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { smsWalletAdminCredit } from "@/lib/notifications/sms";
@@ -44,13 +44,15 @@ export async function POST(
 
   const phone = await getVendorNotifyPhone(vendorId);
   if (phone) {
-    void smsWalletAdminCredit({
-      phone,
-      amount: body.amount,
-      reference,
-      balanceAfter: wallet.balance,
-      context: { vendorId, adminId: auth.userId },
-    });
+    after(() =>
+      smsWalletAdminCredit({
+        phone,
+        amount: body.amount,
+        reference,
+        balanceAfter: wallet.balance,
+        context: { vendorId, adminId: auth.userId },
+      }),
+    );
   }
 
   return NextResponse.json({

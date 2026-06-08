@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, RefreshCw, Save } from "lucide-react";
+import { Copy, Eye, EyeOff, Loader2, RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
+import { SITE } from "@/lib/constants";
 import type { PlatformConfig } from "@/lib/platform/config-types";
 
 interface Props {
@@ -69,6 +70,20 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
   }
 
   const momo = config.momoDirect;
+  const webhookBase = `${SITE.url.replace(/\/$/, "")}/api/webhooks/momo-sms`;
+  const webhookWithSecret = momo.smsForwarderSecret
+    ? `${webhookBase}?secret=${encodeURIComponent(momo.smsForwarderSecret)}`
+    : webhookBase;
+  const jsonBody = `{"from":"{sender-number}","body":"{msg}","timestamp":"{device-time-iso}"}`;
+
+  async function copyText(text: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied`);
+    } catch {
+      toast.error("Could not copy — select and copy manually");
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -267,16 +282,73 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
           </Field>
         </div>
 
-        <p className="mt-3 rounded-md border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
-          <strong>Forwarder setup:</strong> point the Android &quot;SMS Forwarder&quot; app at{" "}
-          <code className="rounded bg-black/30 px-1 py-0.5 font-mono">
-            POST /api/webhooks/momo-sms
-          </code>{" "}
-          with header{" "}
-          <code className="rounded bg-black/30 px-1 py-0.5 font-mono">Authorization: Bearer &lt;secret above&gt;</code>{" "}
-          and JSON body{" "}
-          <code className="rounded bg-black/30 px-1 py-0.5 font-mono">{`{ "sender": "MobileMoney", "body": "<sms text>" }`}</code>.
-        </p>
+        <div className="mt-4 space-y-3 rounded-lg border border-amber-400/20 bg-amber-500/10 p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-amber-200">
+            SMS forwarder phone setup
+          </p>
+          <p className="text-[11px] leading-relaxed text-amber-100/90">
+            A <strong>401 Unauthorized</strong> error means the phone reached DCS but the secret did not
+            match. After generating or changing the secret, click <strong>Save platform settings</strong>{" "}
+            below, then update the phone app with the new value.
+          </p>
+
+          <SetupRow
+            label="Method"
+            value="POST"
+            onCopy={() => copyText("POST", "HTTP method")}
+          />
+          <SetupRow
+            label="Webhook URL (with secret in URL — easiest)"
+            value={webhookWithSecret}
+            onCopy={() => copyText(webhookWithSecret, "Webhook URL")}
+            mono
+          />
+          <SetupRow
+            label="Webhook URL (headers only — alternative)"
+            value={webhookBase}
+            onCopy={() => copyText(webhookBase, "Webhook URL")}
+            mono
+          />
+          <SetupRow
+            label="Custom header — name"
+            value="Authorization"
+            onCopy={() => copyText("Authorization", "Header name")}
+          />
+          <SetupRow
+            label="Custom header — value"
+            value={
+              momo.smsForwarderSecret
+                ? `Bearer ${momo.smsForwarderSecret}`
+                : "Generate a secret above, save, then copy"
+            }
+            onCopy={() =>
+              momo.smsForwarderSecret
+                ? copyText(`Bearer ${momo.smsForwarderSecret}`, "Header value")
+                : undefined
+            }
+            mono
+          />
+          <SetupRow
+            label="JSON body template"
+            value={jsonBody}
+            onCopy={() => copyText(jsonBody, "JSON body")}
+            mono
+          />
+
+          <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-amber-100/80">
+            <li>
+              Filter sender to <strong>MobileMoney</strong> (or <strong>*</strong> for all MoMo SMS).
+            </li>
+            <li>
+              If your app has no custom headers, use the <strong>URL with secret</strong> line only.
+            </li>
+            <li>
+              If it supports headers, use the base URL +{" "}
+              <code className="rounded bg-black/30 px-1 font-mono">Authorization: Bearer …</code>
+            </li>
+            <li>Use the app&apos;s <strong>Send test</strong> button after saving — you should get 200, not 401.</li>
+          </ul>
+        </div>
       </div>
 
       <button
@@ -288,6 +360,41 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Save platform settings
       </button>
+    </div>
+  );
+}
+
+function SetupRow({
+  label,
+  value,
+  onCopy,
+  mono,
+}: {
+  label: string;
+  value: string;
+  onCopy?: () => void;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-md border border-black/20 bg-black/20 p-2">
+      <p className="text-[10px] font-semibold text-amber-200/90">{label}</p>
+      <div className="mt-1 flex items-start gap-2">
+        <p
+          className={`min-w-0 flex-1 break-all text-[11px] text-white/90 ${mono ? "font-mono" : ""}`}
+        >
+          {value}
+        </p>
+        {onCopy && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="inline-flex shrink-0 items-center gap-1 rounded border border-white/15 bg-white/5 px-2 py-1 text-[10px] text-white/70 hover:bg-white/10"
+          >
+            <Copy className="h-3 w-3" />
+            Copy
+          </button>
+        )}
+      </div>
     </div>
   );
 }

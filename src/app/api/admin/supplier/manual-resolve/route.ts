@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 
 import { assertAdminApi } from "@/lib/auth/admin-api";
@@ -91,13 +91,15 @@ export async function POST(request: Request) {
     const bundleLabel = bundle
       ? `${formatDataAmount(bundle.data_mb)} ${bundle.name}`
       : "data";
-    void smsOrderFulfilled({
-      phone: o.recipient_phone,
-      reference: o.reference,
-      bundleLabel,
-    });
+    after(() =>
+      smsOrderFulfilled({
+        phone: o.recipient_phone,
+        reference: o.reference,
+        bundleLabel,
+      }),
+    );
 
-    void tryCreditReferralForCustomerOrder(o.id);
+    after(() => tryCreditReferralForCustomerOrder(o.id));
 
     await service.from("supplier_logs").insert({
       supplier: "manual",

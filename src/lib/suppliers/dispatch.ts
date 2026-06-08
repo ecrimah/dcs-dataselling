@@ -1,5 +1,6 @@
 import "server-only";
 
+import { after } from "next/server";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { deliverVendorWebhook } from "@/lib/notifications/vendor-webhook";
 import {
@@ -399,8 +400,8 @@ export async function resolveSupplierItemsProcessed(args: {
     }
 
     if (isFulfilled) {
-      for (const id of customerIds) void tryCreditReferralForCustomerOrder(id);
-      for (const id of wholesaleItemIds) void tryCreditReferralForWholesaleItem(id);
+      for (const id of customerIds) after(() => tryCreditReferralForCustomerOrder(id));
+      for (const id of wholesaleItemIds) after(() => tryCreditReferralForWholesaleItem(id));
     }
   }
 
@@ -510,8 +511,8 @@ export async function resolveSupplierDeliveryByReference(args: {
   }
 
   if (isFulfilled) {
-    for (const id of customerIds) void tryCreditReferralForCustomerOrder(id);
-    for (const id of wholesaleItemIds) void tryCreditReferralForWholesaleItem(id);
+    for (const id of customerIds) after(() => tryCreditReferralForCustomerOrder(id));
+    for (const id of wholesaleItemIds) after(() => tryCreditReferralForWholesaleItem(id));
   }
 
   return {

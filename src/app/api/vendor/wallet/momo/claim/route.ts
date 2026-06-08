@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { getVendorApiContext, isVendorApiError } from "@/lib/auth/vendor-api";
 import { getMomoDirectConfig } from "@/lib/data/platform-config";
@@ -51,11 +51,9 @@ export async function POST(request: Request) {
     if (result.status === "paid" && result.amount != null && result.reference) {
       const phone = await getVendorNotifyPhone(ctx.vendorId);
       if (phone) {
-        void smsWalletTopup({
-          phone,
-          amount: result.amount,
-          reference: result.reference,
-        });
+        const amount = result.amount;
+        const reference = result.reference;
+        after(() => smsWalletTopup({ phone, amount, reference }));
       }
     }
 
