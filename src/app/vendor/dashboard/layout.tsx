@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { AgentShell } from "@/components/vendor/agent-shell";
+import { MissingPhoneBanner } from "@/components/vendor/missing-phone-banner";
 import { VendorCartProvider } from "@/components/vendor/vendor-cart-context";
 import { VendorSuspendedGate } from "@/components/vendor/vendor-suspended-gate";
 import { getCurrentProfile, getCurrentVendor } from "@/lib/auth/session";
+import { fetchVendorProfilePhone } from "@/lib/data/vendor-profile";
 import { getAgentTierSettings } from "@/lib/data/tier-settings";
 import { getTierLabel } from "@/lib/vendor/tiers";
 
@@ -29,10 +31,16 @@ export default async function VendorDashboardLayout({
   const vendorName = profile?.fullName ?? vendor.businessName;
   const tierLabel = getTierLabel(vendor.tier, tierSettings);
 
+  const profilePhone = profile ? await fetchVendorProfilePhone(profile.id) : null;
+  const hasNotifyPhone = Boolean(
+    profilePhone?.trim() || vendor.momoNumber?.trim() || vendor.whatsappNumber?.trim(),
+  );
+
   return (
     <VendorCartProvider>
       <AgentShell vendorName={vendorName} businessName={vendor.businessName} tier={tierLabel}>
         <div className="vendor-page-content mx-auto max-w-6xl px-3 py-3 sm:px-5 sm:py-4 lg:px-6">
+          {!hasNotifyPhone && <MissingPhoneBanner />}
           {children}
         </div>
       </AgentShell>

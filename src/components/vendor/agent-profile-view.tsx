@@ -25,6 +25,15 @@ import { createClient } from "@/lib/supabase/client";
 import { formatGHS, formatPhone } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+function isValidGhanaPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "");
+  return (
+    (digits.length === 10 && digits.startsWith("0")) ||
+    (digits.length === 12 && digits.startsWith("233")) ||
+    digits.length === 9
+  );
+}
+
 export interface AgentProfileViewProps {
   fullName: string;
   firstName: string;
@@ -71,6 +80,10 @@ export function AgentProfileView(props: AgentProfileViewProps) {
     .toUpperCase();
 
   async function saveProfile() {
+    if (!isValidGhanaPhone(editForm.phone)) {
+      toast.error("A valid phone number is required so we can send you SMS alerts.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch("/api/vendor/profile", {
@@ -298,6 +311,8 @@ export function AgentProfileView(props: AgentProfileViewProps) {
             value={editForm.phone}
             onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
             placeholder="0241234567"
+            hint="Required — wallet and order alerts are sent here by SMS."
+            required
           />
           <Input
             label="WhatsApp"
