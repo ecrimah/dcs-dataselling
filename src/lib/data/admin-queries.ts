@@ -80,6 +80,137 @@ export async function fetchAdminVendors(): Promise<AdminVendorRow[]> {
   }));
 }
 
+/**
+ * Stage of a registered account that does not yet have a vendor store.
+ *  - paid_awaiting_store: paid the setup fee but never submitted the store (most urgent)
+ *  - setup_started:       started the store wizard / setup payment but never paid
+ *  - account_only:        created an account, never started the store wizard
+ */
+export type RegistrationStage =
+  | "paid_awaiting_store"
+  | "setup_started"
+  | "account_only";
+
+export interface PendingRegistrationRow {
+  userId: string;
+  email: string;
+  fullName: string | null;
+  phone: string | null;
+  role: string | null;
+  registeredAt: string;
+  stage: RegistrationStage;
+  intendedBusinessName: string | null;
+  intendedSlug: string | null;
+  setupPaymentStatus: string | null;
+  setupReference: string | null;
+  setupPaidAt: string | null;
+}
+
+const STAGE_PRIORITY: Record<RegistrationStage, number> = {
+  paid_awaiting_store: 0,
+  setup_started: 1,
+  account_only: 2,
+};
+
+/**
+ * Accounts that have registered but do NOT yet have a vendor store row.
+ * These are invisible on the main vendors list (which only reads `vendors`),
+ * yet the admin needs to see them — especially anyone who already paid the
+ * setup fee but never finished submitting their store.
+ */
+export async function fetchPendingRegistrations(
+  limit = 100,
+): Promise<PendingRegistrationRow[]> {
+  if (!hasSupabaseConfig()) return [];
+  const service = createServiceClient();
+
+  const [profilesRes, vendorsRes, setupRes] = await Promise.all([
+    service
+      .from("profiles")
+      .select("id, email, full_name, phone, role, created_at")
+      .neq("role", "admin")
+      .order("created_at", { ascending: false }),
+    service.from("vendors").select("user_id"),
+    service
+      .from("vendor_setup_payments")
+      .select("user_id, business_name, slug, status, reference, created_at, paid_at")
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (profilesRes.error) {
+    console.error("[fetchPendingRegistrations]", profilesRes.error);
+    return [];
+  }
+
+  const vendorUserIds = new Set(
+    ((vendorsRes.data ?? []) as { user_id: string }[]).map((r) => r.user_id),
+  );
+
+  // Latest setup payment per user (rows already sorted newest-first).
+  const latestSetup = new Map<
+    string,
+    {
+      business_name: string | null;
+      slug: string | null;
+      status: string | null;
+      reference: string | null;
+      paid_at: string | null;
+    }
+  >();
+  for (const row of (setupRes.data ?? []) as {
+    user_id: string;
+    business_name: string | null;
+    slug: string | null;
+    status: string | null;
+    reference: string | null;
+    paid_at: string | null;
+  }[]) {
+    if (!latestSetup.has(row.user_id)) latestSetup.set(row.user_id, row);
+  }
+
+  const profiles = (profilesRes.data ?? []) as {
+    id: string;
+    email: string;
+    full_name: string | null;
+    phone: string | null;
+    role: string | null;
+    created_at: string;
+  }[];
+
+  const rows: PendingRegistrationRow[] = profiles
+    .filter((p) => !vendorUserIds.has(p.id))
+    .map((p) => {
+      const setup = latestSetup.get(p.id);
+      const stage: RegistrationStage = !setup
+        ? "account_only"
+        : setup.status === "paid"
+          ? "paid_awaiting_store"
+          : "setup_started";
+      return {
+        userId: p.id,
+        email: p.email,
+        fullName: p.full_name,
+        phone: p.phone,
+        role: p.role,
+        registeredAt: p.created_at,
+        stage,
+        intendedBusinessName: setup?.business_name ?? null,
+        intendedSlug: setup?.slug ?? null,
+        setupPaymentStatus: setup?.status ?? null,
+        setupReference: setup?.reference ?? null,
+        setupPaidAt: setup?.paid_at ?? null,
+      };
+    });
+
+  rows.sort((a, b) => {
+    const byStage = STAGE_PRIORITY[a.stage] - STAGE_PRIORITY[b.stage];
+    if (byStage !== 0) return byStage;
+    return b.registeredAt.localeCompare(a.registeredAt);
+  });
+
+  return rows.slice(0, limit);
+}
+
 export async function fetchAdminOverview(): Promise<AdminOverviewMetrics | null> {
   if (!hasSupabaseConfig()) return null;
 

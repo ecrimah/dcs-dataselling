@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, ShieldAlert, Store } from "lucide-react";
+import { CheckCircle2, Clock, ShieldAlert, Store, UserPlus } from "lucide-react";
 import {
   AdminConfigError,
   AdminDataTable,
@@ -14,7 +14,12 @@ import {
   AdminTh,
   AdminTr,
 } from "@/components/admin";
-import { fetchAdminVendors } from "@/lib/data/admin-queries";
+import {
+  fetchAdminVendors,
+  fetchPendingRegistrations,
+  type PendingRegistrationRow,
+  type RegistrationStage,
+} from "@/lib/data/admin-queries";
 import { getAgentTierSettings } from "@/lib/data/tier-settings";
 import { hasSupabaseConfig } from "@/lib/supabase/server";
 import { formatTierRolesSummary } from "@/lib/vendor/tier-rules";
@@ -45,14 +50,46 @@ const TIER_VARIANT: Record<VendorTier, "neutral" | "default" | "success"> = {
   pro: "success",
 };
 
+const STAGE_META: Record<
+  RegistrationStage,
+  { label: string; variant: "warning" | "default" | "neutral"; hint: string }
+> = {
+  paid_awaiting_store: {
+    label: "Paid · awaiting store",
+    variant: "warning",
+    hint: "Paid the setup fee but never submitted their store. Reach out so they can finish.",
+  },
+  setup_started: {
+    label: "Setup started",
+    variant: "default",
+    hint: "Began the store wizard but has not paid the setup fee yet.",
+  },
+  account_only: {
+    label: "Account only",
+    variant: "neutral",
+    hint: "Created an account but has not started the store wizard.",
+  },
+};
+
+function formatRegisteredAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default async function AdminVendorsPage() {
   if (!hasSupabaseConfig()) {
     return <AdminConfigError />;
   }
 
-  const [vendors, tierSettings] = await Promise.all([
+  const [vendors, tierSettings, registrations] = await Promise.all([
     fetchAdminVendors(),
     getAgentTierSettings(),
+    fetchPendingRegistrations(),
   ]);
 
   const pending = vendors.filter((v) => v.status === "pending");
@@ -62,13 +99,16 @@ export default async function AdminVendorsPage() {
   );
   const proCount = vendors.filter((v) => v.tier === "pro").length;
   const superCount = vendors.filter((v) => v.tier === "verified").length;
+  const paidAwaiting = registrations.filter(
+    (r) => r.stage === "paid_awaiting_store",
+  ).length;
 
   return (
     <AdminPageRoot>
       <AdminPageIntro
         badge="Vendor governance"
         description="Approve agents, assign roles, and manage platform access."
-        meta={`${vendors.length} vendors · ${pending.length} pending approval`}
+        meta={`${vendors.length} vendors · ${pending.length} pending approval · ${registrations.length} sign-ups without a store`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <RecalculateTiersButton />
@@ -76,7 +116,13 @@ export default async function AdminVendorsPage() {
         }
       />
 
-      <AdminStatGrid className="lg:grid-cols-5">
+      <AdminStatGrid className="lg:grid-cols-6">
+        <AdminStatTile
+          icon={<UserPlus className="h-4 w-4" />}
+          tone={paidAwaiting > 0 ? "amber" : "sky"}
+          label="New sign-ups"
+          value={String(registrations.length)}
+        />
         <AdminStatTile
           icon={<CheckCircle2 className="h-4 w-4" />}
           tone="emerald"
@@ -134,6 +180,87 @@ export default async function AdminVendorsPage() {
             );
           })}
         </div>
+      </AdminSection>
+
+      <AdminSection
+        title="New sign-ups — no store yet"
+        description="Accounts that registered but never finished creating a store, so they don't appear in the vendors list below. Anyone marked “Paid · awaiting store” already paid the setup fee — follow up so they can complete onboarding."
+        icon={UserPlus}
+      >
+        {registrations.length === 0 ? (
+          <AdminEmptyState
+            icon={UserPlus}
+            title="No pending sign-ups"
+            description="Everyone who registered has completed a store. New registrations without a store will appear here."
+          />
+        ) : (
+          <AdminDataTable minWidth="820px">
+            <AdminTableHead>
+              <AdminTh>Account</AdminTh>
+              <AdminTh>Contact</AdminTh>
+              <AdminTh>Registered</AdminTh>
+              <AdminTh>Stage</AdminTh>
+              <AdminTh>Intended store</AdminTh>
+            </AdminTableHead>
+            <AdminTableBody>
+              {registrations.map((r: PendingRegistrationRow) => {
+                const stage = STAGE_META[r.stage];
+                return (
+                  <AdminTr key={r.userId}>
+                    <AdminTd>
+                      <p className="font-medium text-foreground">
+                        {r.fullName?.trim() || r.email.split("@")[0]}
+                      </p>
+                      <a
+                        href={`mailto:${r.email}`}
+                        className="text-xs text-muted underline-offset-2 hover:underline"
+                      >
+                        {r.email}
+                      </a>
+                    </AdminTd>
+                    <AdminTd>
+                      {r.phone ? (
+                        <a
+                          href={`tel:${r.phone}`}
+                          className="text-xs text-foreground underline-offset-2 hover:underline"
+                        >
+                          {r.phone}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
+                    </AdminTd>
+                    <AdminTd>
+                      <span className="text-xs text-muted">
+                        {formatRegisteredAt(r.registeredAt)}
+                      </span>
+                    </AdminTd>
+                    <AdminTd>
+                      <Badge variant={stage.variant}>{stage.label}</Badge>
+                      <p className="mt-0.5 max-w-[260px] text-[10px] leading-tight text-muted">
+                        {stage.hint}
+                      </p>
+                    </AdminTd>
+                    <AdminTd>
+                      {r.intendedBusinessName ? (
+                        <>
+                          <p className="text-xs font-medium text-foreground">
+                            {r.intendedBusinessName}
+                          </p>
+                          {r.intendedSlug && (
+                            <p className="text-[10px] text-muted">/{r.intendedSlug}</p>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted">Not started</span>
+                      )}
+                    </AdminTd>
+                  </AdminTr>
+                );
+              })}
+            </AdminTableBody>
+          </AdminDataTable>
+        )}
       </AdminSection>
 
       <AdminSection title="All vendors" description="Live stores, roles, and onboarding status." icon={Store}>
