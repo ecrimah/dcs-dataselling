@@ -4,6 +4,10 @@ import { after } from "next/server";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import { deliverVendorWebhook } from "@/lib/notifications/vendor-webhook";
 import {
+  notifyVendorWholesaleFulfilled,
+  notifyWholesaleItemDelivered,
+} from "@/lib/notifications/wholesale-sms";
+import {
   tryCreditReferralForCustomerOrder,
   tryCreditReferralForWholesaleItem,
 } from "@/lib/referrals/vendor-referral";
@@ -390,6 +394,7 @@ export async function resolveSupplierItemsProcessed(args: {
           .update({ status: "fulfilled", fulfilled_at: now })
           .eq("id", parentId);
         await fireVendorWebhookForWholesaleOrder(parentId, "order.fulfilled");
+        after(() => notifyVendorWholesaleFulfilled(parentId));
       } else if (anyFailed && rows.every((r) => ["fulfilled", "failed"].includes(r.status))) {
         await service
           .from("wholesale_orders")
@@ -401,7 +406,10 @@ export async function resolveSupplierItemsProcessed(args: {
 
     if (isFulfilled) {
       for (const id of customerIds) after(() => tryCreditReferralForCustomerOrder(id));
-      for (const id of wholesaleItemIds) after(() => tryCreditReferralForWholesaleItem(id));
+      for (const id of wholesaleItemIds) {
+        after(() => tryCreditReferralForWholesaleItem(id));
+        after(() => notifyWholesaleItemDelivered(id));
+      }
     }
   }
 
@@ -481,6 +489,7 @@ export async function resolveSupplierDeliveryByReference(args: {
           .update({ status: "fulfilled", fulfilled_at: now })
           .eq("id", parentId);
         await fireVendorWebhookForWholesaleOrder(parentId, "order.fulfilled");
+        after(() => notifyVendorWholesaleFulfilled(parentId));
       } else if (anyFailed && rows.every((r) => ["fulfilled", "failed"].includes(r.status))) {
         await service
           .from("wholesale_orders")
@@ -506,13 +515,17 @@ export async function resolveSupplierDeliveryByReference(args: {
           o.id,
           isFulfilled ? "order.fulfilled" : "order.failed",
         );
+        if (isFulfilled) after(() => notifyVendorWholesaleFulfilled(o.id));
       }
     }
   }
 
   if (isFulfilled) {
     for (const id of customerIds) after(() => tryCreditReferralForCustomerOrder(id));
-    for (const id of wholesaleItemIds) after(() => tryCreditReferralForWholesaleItem(id));
+    for (const id of wholesaleItemIds) {
+      after(() => tryCreditReferralForWholesaleItem(id));
+      after(() => notifyWholesaleItemDelivered(id));
+    }
   }
 
   return {

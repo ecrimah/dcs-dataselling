@@ -30,6 +30,36 @@ export async function smsOrderFulfilled(params: {
   return sendArkeselSms([params.phone], message, ctx);
 }
 
+export async function smsWholesaleDelivered(params: {
+  phone: string;
+  bundleLabel: string;
+  reference: string;
+  context?: Record<string, unknown>;
+}): Promise<SmsResult> {
+  const message = `${SITE.name}: Your ${params.bundleLabel} bundle has been delivered. Enjoy! Ref ${params.reference}.`;
+  const ctx: SmsLogContext = {
+    template: "wholesale_delivered",
+    context: { reference: params.reference, ...params.context },
+  };
+  return sendArkeselSms([params.phone], message, ctx);
+}
+
+export async function smsWholesaleVendorFulfilled(params: {
+  phone: string;
+  reference: string;
+  itemCount: number;
+  totalAmount: number;
+  context?: Record<string, unknown>;
+}): Promise<SmsResult> {
+  const lines = `${params.itemCount} line${params.itemCount === 1 ? "" : "s"}`;
+  const message = `${SITE.name}: Order ${params.reference} delivered — ${lines}, GHS ${params.totalAmount.toFixed(2)}. Recipients have been topped up.`;
+  const ctx: SmsLogContext = {
+    template: "wholesale_vendor_fulfilled",
+    context: { reference: params.reference, itemCount: params.itemCount, ...params.context },
+  };
+  return sendArkeselSms([params.phone], message, ctx);
+}
+
 export async function smsWalletTopup(params: {
   phone: string;
   amount: number;

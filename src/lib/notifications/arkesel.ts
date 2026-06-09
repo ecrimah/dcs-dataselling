@@ -111,6 +111,8 @@ export async function sendArkeselSms(
 
   const trimmed = message.slice(0, 160);
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
     const res = await fetch(ARKESEL_SEND_URL, {
       method: "POST",
@@ -123,6 +125,7 @@ export async function sendArkeselSms(
         message: trimmed,
         recipients: normalized.map((n) => n.normalized),
       }),
+      signal: controller.signal,
     });
 
     const data = (await res.json().catch(() => ({}))) as {
@@ -166,7 +169,12 @@ export async function sendArkeselSms(
 
     return { ok: true, data };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message =
+      err instanceof Error && err.name === "AbortError"
+        ? "Arkesel request timed out"
+        : err instanceof Error
+          ? err.message
+          : String(err);
     console.error("[arkesel] network error", err);
     await Promise.all(
       normalized.map((n) =>
@@ -182,5 +190,7 @@ export async function sendArkeselSms(
       ),
     );
     return { ok: false, error: message };
+  } finally {
+    clearTimeout(timeout);
   }
 }

@@ -3,6 +3,10 @@ import { z } from "zod";
 import { assertAdminApi } from "@/lib/auth/admin-api";
 import { applyCustomerOrderStatus } from "@/lib/admin/customer-order-status";
 import { syncWholesaleOrderFromItems } from "@/lib/admin/wholesale-order-sync";
+import {
+  notifyVendorWholesaleFulfilled,
+  notifyWholesaleItemDelivered,
+} from "@/lib/notifications/wholesale-sms";
 import { tryCreditReferralForWholesaleItem } from "@/lib/referrals/vendor-referral";
 import type { OrderStatus } from "@/lib/constants";
 import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -82,11 +86,13 @@ export async function POST(request: Request) {
       if (orderId) parentOrderIds.add(orderId);
       if (status.data === "fulfilled") {
         after(() => tryCreditReferralForWholesaleItem(id));
+        after(() => notifyWholesaleItemDelivered(id));
       }
     }
 
     for (const orderId of parentOrderIds) {
       await syncWholesaleOrderFromItems(service, orderId);
+      after(() => notifyVendorWholesaleFulfilled(orderId));
     }
   } else {
     const status = z.enum(customerStatuses).safeParse(body.status);
