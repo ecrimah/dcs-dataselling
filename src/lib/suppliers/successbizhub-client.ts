@@ -15,7 +15,7 @@ import type {
 
 export const successBizHubClient: SupplierClient = {
   id: "successbizhub",
-  label: "Success Biz Hub",
+  label: "DataCoreGH",
   isConfigured: () => isSuccessBizHubConfigured(),
 
   async submitSingle(params: SupplierSubmitSingleParams): Promise<SupplierSubmitResult> {

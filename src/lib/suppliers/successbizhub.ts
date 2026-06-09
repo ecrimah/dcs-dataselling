@@ -4,13 +4,16 @@ import { createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
 import type { SupplierNetworkSlug } from "./types";
 
 /**
- * Success Biz Hub — alternate wholesale data supplier.
- * Docs: https://documenter.getpostman.com/view/36783125/2sBXcLfxJU
- * Auth: x-api-key header
+ * DataCoreGH wholesale data supplier (kept under the legacy "successbizhub"
+ * id/env prefix so existing routing + logs keep working).
+ *   host: https://datacoregh.com/api/v1
+ *   auth: x-api-key header
+ *   order: POST /order/{network}  body { type, volume, phone, offerSlug }
+ *   networks (URL path): mtn | telecel | at      offerSlugs: mtn | telecel | ishare
  */
 
 const BASE_URL =
-  process.env.SUCCESSBIZHUB_BASE_URL ?? "https://www.successbizhub.com/api/v1";
+  process.env.SUCCESSBIZHUB_BASE_URL ?? "https://datacoregh.com/api/v1";
 
 export type SuccessBizHubResult<T> =
   | { ok: true; status: number; data: T }
@@ -70,12 +73,18 @@ export function successBizHubNetworkPath(network: SupplierNetworkSlug): string {
 }
 
 export function getSuccessBizHubOfferSlug(network: SupplierNetworkSlug): string | null {
-  const map: Record<SupplierNetworkSlug, string | undefined> = {
+  // Defaults verified live from GET /offers on datacoregh.com.
+  const defaults: Record<SupplierNetworkSlug, string> = {
+    mtn: "mtn",
+    telecel: "telecel",
+    at: "ishare",
+  };
+  const fromEnv: Record<SupplierNetworkSlug, string | undefined> = {
     mtn: process.env.SUCCESSBIZHUB_OFFER_SLUG_MTN,
     telecel: process.env.SUCCESSBIZHUB_OFFER_SLUG_TELECEL,
     at: process.env.SUCCESSBIZHUB_OFFER_SLUG_AT,
   };
-  const slug = map[network]?.trim();
+  const slug = fromEnv[network]?.trim() || defaults[network];
   return slug || null;
 }
 
@@ -217,7 +226,8 @@ export async function submitSingleOrder(
 
   const body: Record<string, unknown> = {
     type: "single",
-    volume: volumeGbFromMb(params.volumeMb),
+    // DataCoreGH expects the GB value as a number (see GET /offers volumes).
+    volume: Number(volumeGbFromMb(params.volumeMb)),
     phone,
     offerSlug,
     metadata: { idempotencyKey: params.reference },
