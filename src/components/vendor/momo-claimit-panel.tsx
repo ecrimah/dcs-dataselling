@@ -25,12 +25,6 @@ interface Props {
   showCancel?: boolean;
 }
 
-function maskMerchantNumber(num: string) {
-  const digits = num.replace(/\D/g, "");
-  if (digits.length < 6) return num;
-  return `0${digits.slice(-9, -5)}XXXX${digits.slice(-3)}`;
-}
-
 export function MomoClaimItPanel({
   config,
   onSuccess,
@@ -140,7 +134,7 @@ export function MomoClaimItPanel({
           onClick={() => void copyText(config.merchantNumber, "Merchant number")}
           className="claimit-accent font-bold underline-offset-2 hover:underline"
         >
-          {maskMerchantNumber(config.merchantNumber)}
+          {config.merchantNumber}
         </button>{" "}
         registered under <strong className="claimit-strong">{config.merchantName}</strong>.
       </p>
