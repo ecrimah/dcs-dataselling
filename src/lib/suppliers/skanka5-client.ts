@@ -42,16 +42,55 @@ export const skanka5Client: SupplierClient = {
   },
 
   async submitBulk(params: SupplierSubmitBulkParams): Promise<SupplierSubmitResult> {
-    // Skanka5 docs: use POST /orders for a single flat body; /orders/bulk for arrays.
-    if (params.recipients.length === 1) {
-      const only = params.recipients[0]!;
-      return this.submitSingle({
-        network: params.network,
-        msisdn: only.msisdn,
-        volumeMb: only.volumeMb,
-        reference: params.reference,
-        scope: params.scope,
-      });
+    // Skanka5 contract (Developer Portal → Quick Reference):
+    //   - Single line: POST /orders        { network_id, msisdn, volume_mb }
+    //   - Bulk:        POST /orders/bulk    requires a MINIMUM of 5 recipients
+    // So anything from 1–4 recipients must be submitted as individual single
+    // orders, otherwise /orders/bulk rejects them with "validation.min.array".
+    if (params.recipients.length === 0) {
+      return { ok: false, error: "No recipients", httpStatus: 0 };
+    }
+
+    if (params.recipients.length < 5) {
+      const orders: SupplierSubmitResult["orders"] = [];
+      let aggregateReference: string | undefined;
+      let anyAccepted = false;
+      let firstError: string | undefined;
+
+      for (let i = 0; i < params.recipients.length; i++) {
+        const r = params.recipients[i]!;
+        const single = await submitSingleOrder({
+          network: params.network,
+          msisdn: r.msisdn,
+          volumeMb: r.volumeMb,
+          // Unique idempotency key per line so retries don't collide.
+          reference: `${params.reference}-${i + 1}`,
+          scope: params.scope,
+        });
+        if (!single.ok) {
+          firstError ??= single.error;
+          orders.push({ msisdn: r.msisdn, status: "failed" });
+          continue;
+        }
+        anyAccepted = true;
+        aggregateReference ??= single.data.reference;
+        const first = single.data.orders?.[0];
+        orders.push({
+          order_code: first?.order_code,
+          msisdn: r.msisdn,
+          status: first?.status ?? single.data.status,
+        });
+      }
+
+      if (!anyAccepted) {
+        return { ok: false, error: firstError ?? "All lines rejected", httpStatus: 0 };
+      }
+      return {
+        ok: true,
+        reference: aggregateReference ?? params.reference,
+        status: "pending",
+        orders,
+      };
     }
 
     const r = await submitBulkOrder({
