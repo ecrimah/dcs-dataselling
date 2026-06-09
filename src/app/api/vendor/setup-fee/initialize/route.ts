@@ -32,6 +32,13 @@ export async function POST(request: Request) {
     const service = createServiceClient();
     const amount = await getVendorStoreSetupFeeGhs();
 
+    if (amount <= 0) {
+      return NextResponse.json(
+        { error: "No setup fee is required — you can create your store for free." },
+        { status: 400 },
+      );
+    }
+
     const { data: slugTaken } = await service
       .from("vendors")
       .select("id")

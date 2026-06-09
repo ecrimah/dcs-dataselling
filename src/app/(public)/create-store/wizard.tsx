@@ -124,6 +124,10 @@ export function CreateStoreWizard({
   const update = <K extends keyof StoreFormState>(k: K, v: StoreFormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
+  // When the admin turns the setup fee off (effective fee 0), the payment step
+  // becomes a no-op and store creation is free.
+  const feeRequired = setupFeeGhs > 0;
+
   // Re-hydrate non-secret wizard fields on mount so a Paystack redirect
   // (which kills in-memory React state) doesn't break the setup-fee verify
   // step. Also restores paid setup when the user returns via ?resume=1.
@@ -272,9 +276,9 @@ export function CreateStoreWizard({
       case 2:
         return form.momoNumber.trim().length >= 10;
       case SETUP_FEE_STEP:
-        return form.setupFeePaid && form.setupFeeReference.length > 0;
+        return !feeRequired || (form.setupFeePaid && form.setupFeeReference.length > 0);
       case REVIEW_STEP:
-        return form.agreedToTerms && form.setupFeePaid;
+        return form.agreedToTerms && (!feeRequired || form.setupFeePaid);
       default:
         return false;
     }

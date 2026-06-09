@@ -17,6 +17,28 @@ export function StepSetupFee({ form, update, setupFeeGhs }: Props) {
   const [paying, setPaying] = useState(false);
   const fee = setupFeeGhs;
 
+  // Admin has turned the setup fee off — store creation is free.
+  if (fee <= 0) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-xl font-bold">Store setup fee</h2>
+          <p className="mt-1 text-sm text-muted">
+            Good news — there&apos;s no setup fee right now. Your store is free to create.
+          </p>
+        </div>
+
+        <div className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <div className="text-sm">
+            <p className="font-semibold text-emerald-800">No payment required</p>
+            <p className="mt-1 text-muted">Tap Continue to review your details and submit.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   async function handlePay() {
     if (form.businessName.trim().length < 3 || form.slug.trim().length < 3) {
       toast.error("Complete store identity first");

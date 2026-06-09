@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   getPaidSetupPaymentForUser,
+  getVendorStoreSetupFeeGhs,
   linkSetupPaymentToVendor,
 } from "@/lib/payments/setup-fee";
 import { createClient, createServiceClient, hasSupabaseConfig } from "@/lib/supabase/server";
@@ -40,23 +41,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid store details" }, { status: 400 });
     }
 
-    if (!setupFeeReference) {
-      return NextResponse.json(
-        { error: "Store setup fee payment is required before submitting" },
-        { status: 400 },
-      );
-    }
+    // When the admin has turned the setup fee off, store creation is free —
+    // no payment record is required or linked.
+    const feeRequired = (await getVendorStoreSetupFeeGhs()) > 0;
 
-    const setupPayment = await getPaidSetupPaymentForUser(
-      setupFeeReference,
-      user.id,
-      slug.toLowerCase(),
-    );
-    if (!setupPayment) {
-      return NextResponse.json(
-        { error: "Setup fee not paid or does not match this store handle" },
-        { status: 402 },
+    let setupPayment: Awaited<ReturnType<typeof getPaidSetupPaymentForUser>> = null;
+    if (feeRequired) {
+      if (!setupFeeReference) {
+        return NextResponse.json(
+          { error: "Store setup fee payment is required before submitting" },
+          { status: 400 },
+        );
+      }
+
+      setupPayment = await getPaidSetupPaymentForUser(
+        setupFeeReference,
+        user.id,
+        slug.toLowerCase(),
       );
+      if (!setupPayment) {
+        return NextResponse.json(
+          { error: "Setup fee not paid or does not match this store handle" },
+          { status: 402 },
+        );
+      }
     }
 
     const { data: vendorId, error: rpcErr } = await supabase.rpc("create_store", {
@@ -87,11 +95,17 @@ export async function POST(request: Request) {
         kyc_status: "verified",
         status: "approved",
         verified: true,
+        // No fee charged: mark the store activated so the dashboard gate passes.
+        ...(feeRequired
+          ? {}
+          : { setup_fee_paid_at: new Date().toISOString(), setup_fee_reference: "WAIVED" }),
         ...tierUpdatesFor("starter", false, tierSettings),
       })
       .eq("id", vendorId);
 
-    await linkSetupPaymentToVendor(setupPayment.id, vendorId as string, setupFeeReference);
+    if (setupPayment) {
+      await linkSetupPaymentToVendor(setupPayment.id, vendorId as string, setupFeeReference);
+    }
 
     await ensureVendorReferralCode(vendorId as string);
     if (referralCode.trim()) {

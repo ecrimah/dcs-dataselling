@@ -49,7 +49,7 @@ export async function savePlatformConfig(config: PlatformConfig): Promise<void> 
 
 export async function getVendorSetupFee(): Promise<number> {
   const config = await getPlatformConfig();
-  return config.vendorSetupFeeGhs;
+  return config.vendorSetupFeeEnabled ? config.vendorSetupFeeGhs : 0;
 }
 
 export async function getMomoDirectConfig() {

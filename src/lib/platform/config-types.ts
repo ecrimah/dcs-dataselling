@@ -39,7 +39,9 @@ export interface ContactConfig {
 }
 
 export interface PlatformConfig {
-  /** One-time fee (GHS) every new agent pays before their store goes live. */
+  /** When false, store creation is free — no setup fee is charged regardless of the amount below. */
+  vendorSetupFeeEnabled: boolean;
+  /** One-time fee (GHS) every new agent pays before their store goes live (when enabled). */
   vendorSetupFeeGhs: number;
   /**
    * Block repeat orders to the same beneficiary within this window (minutes).
@@ -57,6 +59,7 @@ export interface PlatformConfig {
 }
 
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
+  vendorSetupFeeEnabled: true,
   vendorSetupFeeGhs:
     Number.isFinite(VENDOR_STORE_SETUP_FEE_GHS) && VENDOR_STORE_SETUP_FEE_GHS > 0
       ? VENDOR_STORE_SETUP_FEE_GHS
@@ -82,6 +85,10 @@ export function normalizePlatformConfig(input: unknown): PlatformConfig {
   const raw = input as Partial<PlatformConfig>;
 
   return {
+    vendorSetupFeeEnabled:
+      typeof raw.vendorSetupFeeEnabled === "boolean"
+        ? raw.vendorSetupFeeEnabled
+        : base.vendorSetupFeeEnabled,
     vendorSetupFeeGhs: clampNum(raw.vendorSetupFeeGhs, base.vendorSetupFeeGhs, 1, 100000),
     recipientOrderCooldownMinutes: clampInt(
       raw.recipientOrderCooldownMinutes,

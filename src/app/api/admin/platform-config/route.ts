@@ -17,6 +17,7 @@ const momoDirectSchema = z.object({
 });
 
 const schema = z.object({
+  vendorSetupFeeEnabled: z.boolean().optional(),
   vendorSetupFeeGhs: z.number().min(1).max(100000).optional(),
   recipientOrderCooldownMinutes: z.number().min(1).max(3).optional(),
   referralRewardGhs: z.number().min(1).max(10000).optional(),

@@ -12,6 +12,7 @@ interface Props {
 }
 
 export function StepReview({ form, update, sessionEmail, setupFeeGhs }: Props) {
+  const feeRequired = setupFeeGhs > 0;
   return (
     <div className="space-y-5">
       <div>
@@ -28,11 +29,17 @@ export function StepReview({ form, update, sessionEmail, setupFeeGhs }: Props) {
         <Row label="MoMo" value={`${form.momoNetwork.toUpperCase()} · ${form.momoNumber}`} />
         <Row
           label="Setup fee"
-          value={form.setupFeePaid ? `Paid ${formatGHS(setupFeeGhs)}` : "Not paid"}
+          value={
+            !feeRequired
+              ? "Free (no fee)"
+              : form.setupFeePaid
+                ? `Paid ${formatGHS(setupFeeGhs)}`
+                : "Not paid"
+          }
         />
       </dl>
 
-      {!form.setupFeePaid && (
+      {feeRequired && !form.setupFeePaid && (
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-800">
           Go back to the Store fee step and complete payment before submitting.
         </p>

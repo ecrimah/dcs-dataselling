@@ -18,8 +18,11 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
   const [showSecret, setShowSecret] = useState(false);
 
   async function save() {
-    if (!Number.isFinite(config.vendorSetupFeeGhs) || config.vendorSetupFeeGhs < 1) {
-      toast.error("Setup fee must be at least ₵1");
+    if (
+      config.vendorSetupFeeEnabled &&
+      (!Number.isFinite(config.vendorSetupFeeGhs) || config.vendorSetupFeeGhs < 1)
+    ) {
+      toast.error("Setup fee must be at least ₵1 (or turn the fee off)");
       return;
     }
 
@@ -90,21 +93,42 @@ export function PlatformConfigEditor({ initialConfig }: Props) {
       <div className="grid gap-3 sm:grid-cols-2">
         <Field
           label="Vendor store setup fee (GHS)"
-          hint="One-time fee every new agent pays before their store goes live."
+          hint={
+            config.vendorSetupFeeEnabled
+              ? "One-time fee every new agent pays before their store goes live."
+              : "Setup fee is turned OFF — new agents create their store for free."
+          }
         >
-          <input
-            type="number"
-            min={1}
-            step={1}
-            value={config.vendorSetupFeeGhs}
-            onChange={(e) =>
-              setConfig((c) => ({
-                ...c,
-                vendorSetupFeeGhs: Number(e.target.value),
-              }))
-            }
-            className="admin-form-field-input"
-          />
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={config.vendorSetupFeeGhs}
+              disabled={!config.vendorSetupFeeEnabled}
+              onChange={(e) =>
+                setConfig((c) => ({
+                  ...c,
+                  vendorSetupFeeGhs: Number(e.target.value),
+                }))
+              }
+              className="admin-form-field-input flex-1 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <label className="inline-flex shrink-0 cursor-pointer items-center gap-2 text-xs font-semibold text-white/70">
+              <input
+                type="checkbox"
+                checked={config.vendorSetupFeeEnabled}
+                onChange={(e) =>
+                  setConfig((c) => ({
+                    ...c,
+                    vendorSetupFeeEnabled: e.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-white/20 bg-white/5 accent-amber-500"
+              />
+              {config.vendorSetupFeeEnabled ? "On" : "Off"}
+            </label>
+          </div>
         </Field>
         <Field
           label="Recipient order cooldown (minutes)"
